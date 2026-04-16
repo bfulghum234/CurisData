@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CurisData | Market Intelligence for Healthcare Growth</title>
+    <meta
+        name="description"
+        content="Static website starter modeled after a flat Cloudflare Pages deployment structure with Pages Functions support."
+    >
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo">Curis<span>Data</span></div>
+        <nav class="site-nav" aria-label="Primary">
+            <a href="#capabilities">Capabilities</a>
+            <a href="#process">Process</a>
+            <a href="#deployment">Deployment</a>
+            <a href="legal/privacy.html" class="nav-cta">Privacy</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <p class="hero-badge">Cloudflare Pages Static Site Starter</p>
+            <h1>Launch a polished healthcare intelligence site with plain web files.</h1>
+            <p class="hero-copy">
+                This starter keeps the shape simple: root-level HTML, CSS, and JavaScript,
+                a top-level <code>functions/</code> folder for Pages Functions, and a GitHub-friendly
+                deployment flow that mirrors the flat structure used in <code>spaitialintel</code>.
+            </p>
+            <div class="hero-actions">
+                <a class="btn-primary" href="#deployment">View Deployment Flow</a>
+                <a class="btn-secondary" href="/api/health">Test Function Route</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="number">Root-Level</div>
+            <div class="label">Static pages and assets</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">Functions</div>
+            <div class="label">Cloudflare Pages API support</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">GitHub</div>
+            <div class="label">Clean repository deployment</div>
+        </div>
+        <div class="stat-item">
+            <div class="number">No Build</div>
+            <div class="label">Plain HTML, CSS, JavaScript</div>
+        </div>
+    </div>
+
+    <section class="section" id="capabilities">
+        <p class="section-label">What's Included</p>
+        <h2 class="section-title">A static-first project shape that stays easy to maintain.</h2>
+        <p class="section-sub">
+            Keep the core site readable at a glance while leaving room for edge functions,
+            legal pages, images, and future standalone report views.
+        </p>
+
+        <div class="feature-grid">
+            <article class="feature-card">
+                <h3>Flat File Layout</h3>
+                <p>
+                    Root-level pages like <code>index.html</code>, <code>404.html</code>,
+                    <code>style.css</code>, and <code>script.js</code>.
+                </p>
+            </article>
+            <article class="feature-card">
+                <h3>Pages Functions Ready</h3>
+                <p>
+                    Add lightweight endpoints in <code>functions/</code> without changing the static site architecture.
+                </p>
+            </article>
+            <article class="feature-card">
+                <h3>Deployment Friendly</h3>
+                <p>
+                    GitHub and Cloudflare Pages work cleanly when the repo root is the deployable static output.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="section section-alt" id="process">
+        <p class="section-label">Suggested Folders</p>
+        <h2 class="section-title">Recommended structure for a site modeled after spaitialintel.</h2>
+        <div class="structure-panel">
+            <pre><code>.
+|-- functions/
+|-- images/
+|-- legal/
+|-- index.html
+|-- 404.html
+|-- style.css
+|-- script.js
+|-- _headers
+|-- .dev.vars.example
+`-- wrangler.toml</code></pre>
+        </div>
+        <p class="section-sub compact">
+            Keep the root focused on the primary experience. Use folders only when they group a clear content area like images, legal pages, or API logic.
+        </p>
+    </section>
+
+    <section class="section" id="deployment">
+        <p class="section-label">Deployment</p>
+        <h2 class="section-title">Prepared for GitHub and Cloudflare Pages.</h2>
+        <div class="deployment-grid">
+            <article class="deployment-card">
+                <h3>GitHub</h3>
+                <p>Initialize the repo, commit the scaffold, and push to your default branch.</p>
+            </article>
+            <article class="deployment-card">
+                <h3>Cloudflare Pages</h3>
+                <p>Use no framework preset, no build command, and set the output directory to <code>.</code>.</p>
+            </article>
+            <article class="deployment-card api-status-card">
+                <h3>Function Status</h3>
+                <p id="api-status">Checking <code>/api/health</code>...</p>
+            </article>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <p>Built for a simple Cloudflare Pages deployment with room to grow.</p>
+        <div class="footer-links">
+            <a href="legal/privacy.html">Privacy</a>
+            <a href="legal/terms.html">Terms</a>
+        </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
