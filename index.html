@@ -3,138 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CurisData | Market Intelligence for Healthcare Growth</title>
-    <meta
-        name="description"
-        content="Static website starter modeled after a flat Cloudflare Pages deployment structure with Pages Functions support."
-    >
+    <title>CurisData | AI-Powered Healthcare Real Estate Intelligence</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
+
+
+<script>
+  function openLoginModal() {
+    const m = document.getElementById('loginModal');
+    m.style.display = 'flex';
+  }
+  function closeModal() {
+    const m = document.getElementById('loginModal');
+    m.style.display = 'none';
+    document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('demoUser').value = '';
+    document.getElementById('demoPass').value = '';
+  }
+  
+</script>
+
+
 <body>
-    <header class="site-header">
-        <div class="logo">Curis<span>Data</span></div>
-        <nav class="site-nav" aria-label="Primary">
-            <a href="#capabilities">Capabilities</a>
-            <a href="#process">Process</a>
-            <a href="#deployment">Deployment</a>
-            <a href="legal/privacy.html" class="nav-cta">Privacy</a>
-        </nav>
-    </header>
 
-    <section class="hero">
-        <div class="hero-content">
-            <p class="hero-badge">Cloudflare Pages Static Site Starter</p>
-            <h1>Launch a polished healthcare intelligence site with plain web files.</h1>
-            <p class="hero-copy">
-                This starter keeps the shape simple: root-level HTML, CSS, and JavaScript,
-                a top-level <code>functions/</code> folder for Pages Functions, and a GitHub-friendly
-                deployment flow that mirrors the flat structure used in <code>spaitialintel</code>.
-            </p>
-            <div class="hero-actions">
-                <a class="btn-primary" href="#deployment">View Deployment Flow</a>
-                <a class="btn-secondary" href="/api/health">Test Function Route</a>
-            </div>
-        </div>
-    </section>
+<!-- ── Header ── -->
+<header>
+    <div class="logo">Curis<span>Data</span></div>
+    <nav>
+        <a href="#features">Features</a>
+        <a href="#reports">Reports</a>
+        <a href="#pricing">Pricing</a>
+        <a href="healthdata.html" class="nav-cta">Data</a>
+        <a href="#" id="sampleReportsBtn" class="sample-reports-link" style="color: #ffffff;">Login</a>
+    </nav>
+</header>
 
-    <div class="stats-bar">
-        <div class="stat-item">
-            <div class="number">Root-Level</div>
-            <div class="label">Static pages and assets</div>
-        </div>
-        <div class="stat-item">
-            <div class="number">Functions</div>
-            <div class="label">Cloudflare Pages API support</div>
-        </div>
-        <div class="stat-item">
-            <div class="number">GitHub</div>
-            <div class="label">Clean repository deployment</div>
-        </div>
-        <div class="stat-item">
-            <div class="number">No Build</div>
-            <div class="label">Plain HTML, CSS, JavaScript</div>
+
+
+<!-- ── Hero ── -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">Healthcare Real Estate Intelligence Platform</div>
+        <h1>
+            Smarter <span>Healthcare</span><br>Demographic Data
+        </h1>
+        <p>
+            Unlock precise population insights, patient demand forecasting, and location intelligence tailored for healthcare real estate decisions, facility placement, and market expansion.
+        </p>
+        <div class="hero-buttons">
+            <a href="#pricing" class="btn-primary">View Data & Pricing</a>
+            <!-- <a href="#reports" class="btn-secondary">See a Sample Report</a> -->
+            <!-- AFTER -->
+            <a href="images/demographic-market-report-sample.pdf" target="_blank"  class="btn-secondary">See a Sample Report</a>
         </div>
     </div>
+</section>
 
-    <section class="section" id="capabilities">
-        <p class="section-label">What's Included</p>
-        <h2 class="section-title">A static-first project shape that stays easy to maintain.</h2>
-        <p class="section-sub">
-            Keep the core site readable at a glance while leaving room for edge functions,
-            legal pages, images, and future standalone report views.
-        </p>
+<!-- ── Stats Bar ── -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="number">800+</div>
+        <div class="label">Markets Analyzed</div>
+    </div>
+    <div class="stat-item">
+        <div class="number">1,200+</div>
+        <div class="label">Variables Available</div>
+    </div>
+    <div class="stat-item">
+        <div class="number">98%</div>
+        <div class="label">Data Accuracy Rate</div>
+    </div>
+    <div class="stat-item">
+        <div class="number">On Demand</div>
+        <div class="label">Immediate Delivery</div>
+    </div>
+</div>
 
-        <div class="feature-grid">
-            <article class="feature-card">
-                <h3>Flat File Layout</h3>
-                <p>
-                    Root-level pages like <code>index.html</code>, <code>404.html</code>,
-                    <code>style.css</code>, and <code>script.js</code>.
-                </p>
-            </article>
-            <article class="feature-card">
-                <h3>Pages Functions Ready</h3>
-                <p>
-                    Add lightweight endpoints in <code>functions/</code> without changing the static site architecture.
-                </p>
-            </article>
-            <article class="feature-card">
-                <h3>Deployment Friendly</h3>
-                <p>
-                    GitHub and Cloudflare Pages work cleanly when the repo root is the deployable static output.
-                </p>
-            </article>
+<!-- ── Features ── -->
+<section class="features" id="features">
+    <p class="section-label">What We Offer</p>
+    <h2 class="section-title">Everything You Need to Make Confident Healthcare Real Estate Decisions</h2>
+    <p class="section-sub">From site selection to service-area optimization, our data surfaces the intelligence behind stronger facility location decisions.</p>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🏥</div>
+            <h3>Patient Population Profiling</h3>
+            <p>Understand the age, income, insurance coverage, and chronic condition prevalence in any target market with census-grade precision.</p>
         </div>
-    </section>
-
-    <section class="section section-alt" id="process">
-        <p class="section-label">Suggested Folders</p>
-        <h2 class="section-title">Recommended structure for a site modeled after spaitialintel.</h2>
-        <div class="structure-panel">
-            <pre><code>.
-|-- functions/
-|-- images/
-|-- legal/
-|-- index.html
-|-- 404.html
-|-- style.css
-|-- script.js
-|-- _headers
-|-- .dev.vars.example
-`-- wrangler.toml</code></pre>
+        <div class="feature-card">
+            <div class="feature-icon">📍</div>
+            <h3>Site Selection Intelligence</h3>
+            <p>Identify optimal clinic, urgent care, or specialty facility locations based on demand density and competitive saturation.</p>
         </div>
-        <p class="section-sub compact">
-            Keep the root focused on the primary experience. Use folders only when they group a clear content area like images, legal pages, or API logic.
-        </p>
-    </section>
-
-    <section class="section" id="deployment">
-        <p class="section-label">Deployment</p>
-        <h2 class="section-title">Prepared for GitHub and Cloudflare Pages.</h2>
-        <div class="deployment-grid">
-            <article class="deployment-card">
-                <h3>GitHub</h3>
-                <p>Initialize the repo, commit the scaffold, and push to your default branch.</p>
-            </article>
-            <article class="deployment-card">
-                <h3>Cloudflare Pages</h3>
-                <p>Use no framework preset, no build command, and set the output directory to <code>.</code>.</p>
-            </article>
-            <article class="deployment-card api-status-card">
-                <h3>Function Status</h3>
-                <p id="api-status">Checking <code>/api/health</code>...</p>
-            </article>
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3>Demand Forecasting</h3>
+            <p>AI-driven models predict patient volume growth, service gaps, and emerging care needs across any geography.</p>
         </div>
-    </section>
-
-    <footer class="site-footer">
-        <p>Built for a simple Cloudflare Pages deployment with room to grow.</p>
-        <div class="footer-links">
-            <a href="legal/privacy.html">Privacy</a>
-            <a href="legal/terms.html">Terms</a>
+        <div class="feature-card">
+            <div class="feature-icon">🗺️</div>
+            <h3>Service Area Mapping</h3>
+            <p>Visualize drive-time catchment areas, access gaps, and competitor coverage to optimize your network footprint.</p>
         </div>
-    </footer>
+        <div class="feature-card">
+            <div class="feature-icon">💊</div>
+            <h3>Payer Mix Analysis</h3>
+            <p>Break down Medicare, Medicaid, and commercial insurance penetration at the ZIP and county level to inform financial projections.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Market Trend Reports</h3>
+            <p>Track how demographic shifts, population growth, and health trends are reshaping your target markets over time.</p>
+        </div>
+    </div>
+</section>
 
-    <script src="script.js" defer></script>
+<!-- ── Sample Report Preview trying to get red button─ -->
+<section class="report-preview" id="reports">
+    <div class="report-preview-inner">
+        <div class="report-text">
+            <p class="section-label" style="text-align:left;">Sample Report</p>
+            <h2>See an example of a report utilizing CurisData</h2>
+            <p>Each report delivers a comprehensive, ready-to-present package of demographic intelligence designed for healthcare real estate teams, operators, investors, and strategists evaluating where to open, acquire, or expand.</p>
+            <ul class="report-checklist">
+                <li>Executive summary with key market takeaways</li>
+                <li>Population & age cohort breakdown</li>
+                <li>Insurance & payer mix analysis</li>
+                <li>Chronic disease prevalence mapping</li>
+                <li>Competitor facility locations & gaps</li>
+                <li>5-year population growth projections</li>
+                <li>Drive-time access & service area maps</li>
+                <li>Downloadable PDF + data tables (Excel)</li>
+            </ul>
+            <a href="images/demographic-market-report-sample.pdf" target="_blank"  class="btn-primary">View Sample Report →</a>
+        </div>
+        <div class="report-image-wrap">
+            <img
+                src="https://placehold.co/700x500/0b4f3a/4ecba0?text=Sample+Healthcare+Real+Estate+Report"
+                alt="Sample Healthcare Real Estate Report Preview"
+            />
+        </div>
+    </div>
+</section>
+
+<!-- ── Pricing ── -->
+<section class="pricing" id="pricing">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title">Transparent, Flexible Report Pricing</h2>
+    <p class="section-sub">No subscriptions required. Order a single report or save with a bundle. All reports delivered on demand.</p>
+
+    <div class="pricing-grid">
+
+        <!-- Basic -->
+        <div class="pricing-card">
+            <div class="plan-name">One Time</div>
+            <div class="plan-price"><sup>$</sup>99</div>
+            <div class="plan-period">per report</div>
+            <p class="plan-desc">Comprehensive intelligence for strategic healthcare real estate, site selection, and market expansion decisions.</p>
+            <ul class="plan-features">
+                <li>Up to 3 geographies compared</li>
+                <li>Full demographic deep-dive</li>
+                <li>Detailed payer mix analysis</li>
+                <li>Drive-time service area maps</li>
+                <li>5-year demand forecast model</li>
+                <li>Competitor mapping & gap analysis</li>
+                <li>PDF + Excel data tables</li>
+                <li>On Demand</li>
+            </ul>
+            <a href="#" class="btn-plan">Order Report</a>
+        </div>
+
+        <!-- Professional (featured) -->
+        <div class="pricing-card featured">
+            <div class="featured-badge">Most Popular</div>
+            <div class="plan-name">Unlimited</div>
+            <div class="plan-price"><sup>$</sup>249</div>
+            <div class="plan-period">Monthly</div>
+            <p class="plan-desc">Comprehensive intelligence for strategic healthcare real estate, site selection, and market expansion decisions.</p>
+            <ul class="plan-features">
+                <li>Up to 3 geographies compared</li>
+                <li>Full demographic deep-dive</li>
+                <li>Detailed payer mix analysis</li>
+                <li>Drive-time service area maps</li>
+                <li>5-year demand forecast model</li>
+                <li>Competitor mapping & gap analysis</li>
+                <li>PDF + Excel data tables</li>
+                <li>On Demand</li>
+            </ul>
+            <a href="#" class="btn-plan">Order Unlimited Reports</a>
+        </div>
+
+        <!-- Custom Analysis -->
+        <div class="pricing-card">
+            <div class="plan-name">Custom Analysis</div>
+            <div class="plan-price">Call for Pricing</div>
+            <div class="plan-period">tailored engagement</div>
+            <p class="plan-desc">Flexible, high-touch analysis for complex healthcare real estate questions, market entry strategy, and portfolio decisions.</p>
+            <ul class="plan-features">
+                <li>Network optimization</li>
+                <li>Predictive visit forecasting</li>
+                <li>Private equity due diligence</li>
+                <li>Gap analysis</li>
+                <li>Quick turnaround</li>
+                <li>Custom market comparisons</li>
+                <li>Executive-ready deliverables</li>
+                <li>Analyst support</li>
+            </ul>
+            <a href="#" class="btn-plan">Request Custom Analysis</a>
+        </div>
+
+    </div>
+</section>
+
+<!-- ── Testimonials ── -->
+<section class="testimonials" id="testimonials">
+    <p class="section-label">Client Stories</p>
+    <h2 class="section-title">Trusted by Healthcare Real Estate Leaders</h2>
+    <p class="section-sub">From regional hospital systems to private equity-backed clinic operators, our reports power real decisions.</p>
+
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <p class="testimonial-text">"The CurisData report saved us months of internal research. We identified a clear underserved market and opened our third urgent care location — it's now our highest-performing site."</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">👩‍⚕️</div>
+                <div>
+                    <div class="author-name">Dr. Sarah M.</div>
+                    <div class="author-title">VP of Operations, RegionalCare Group</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <p class="testimonial-text">"We use the Professional report for every acquisition target. The payer mix and demand forecast data integrates directly into our underwriting models. Exceptional quality."</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">📊</div>
+                <div>
+                    <div class="author-name">James T.</div>
+                    <div class="author-title">Managing Director, HealthVentures PE</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <p class="testimonial-text">"Within 24 hours we had a beautifully structured report ready to present to our board. The competitor mapping alone changed our expansion strategy entirely."</p>
+            <div class="testimonial-author">
+                <div class="author-avatar">🏥</div>
+                <div>
+                    <div class="author-name">Lisa R.</div>
+                    <div class="author-title">Chief Strategy Officer, Summit Health</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA Banner ── -->
+<section class="cta-banner">
+    <h2>Ready to Make Smarter Healthcare Real Estate Decisions?</h2>
+    <p>Order your first report today and get AI-powered demographic intelligence for facility location strategy delivered on demand.</p>
+    <a href="#pricing" class="btn-dark">Start with a Basic Report — $99</a>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div class="footer-top">
+        <div class="footer-brand">
+            <span class="logo">Curis<span>Data</span></span>
+            <p>AI-powered healthcare real estate demographic reports and location intelligence for providers, investors, developers, and operators across the U.S.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Reports</h4>
+            <a href="#">Basic Report</a>
+            <a href="#">Professional Report</a>
+            <a href="#">Enterprise Report</a>
+            <a href="#">Custom Analysis</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Methodology</a>
+            <a href="legal/data-sources.html">Data Sources</a>
+            <a href="#">Careers</a>
+        </div>
+        <div class="footer-col">
+            <h4>Support</h4>
+            <a href="#">Contact Us</a>
+            <a href="images/demographic-market-report-sample.pdf" target="_blank">Sample Reports</a>
+            <a href="legal/acceptable-use.html">Acceptable Use</a>
+            <a href="legal/privacy.html">Privacy Policy</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 CurisData. All rights reserved.</span>
+        <span>
+            <a href="legal/terms.html">Terms</a> &nbsp;·&nbsp;
+            <a href="legal/privacy.html">Privacy</a> &nbsp;·&nbsp;
+            <a href="legal/cookies.html">Cookies</a> &nbsp;·&nbsp;
+            <a href="legal/acceptable-use.html">Acceptable Use</a> &nbsp;·&nbsp;
+            <a href="legal/data-sources.html">Data Sources</a> &nbsp;·&nbsp;
+            <a href="legal/api-terms.html">API Terms</a>
+        </span>
+    </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+  <div style="
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    width:320px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+  ">
+    <h3 style="margin-top:0;">Secure Access</h3>
+
+    <input id="username" type="text" placeholder="Username"
+      style="width:100%; padding:8px; margin-bottom:10px;">
+
+    <input id="password" type="password" placeholder="Password"
+      style="width:100%; padding:8px; margin-bottom:10px;">
+
+    <button id="submitLogin"
+      style="width:100%; padding:10px; cursor:pointer;">
+      Login
+    </button>
+
+    <p id="loginError" style="
+      color:red;
+      display:none;
+      margin-top:10px;
+      font-size:14px;">
+      Invalid credentials
+    </p>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+
+  function buildEndpointCandidates(paths) {
+    const candidates = [];
+    const basePath = window.location.pathname.replace(/[^/]+$/, '/');
+
+    for (const path of paths) {
+      const normalized = path.replace(/^\/+/, '');
+      candidates.push('/' + normalized);
+      candidates.push(basePath + normalized);
+    }
+
+    return [...new Set(candidates)];
+  }
+
+  const LOGIN_ENDPOINTS = buildEndpointCandidates(["api/login", "login"]);
+
+  function getDemoReportUrl() {
+    return new URL("demo_report_map.html", window.location.href).toString();
+  }
+
+  async function postLogin(username, password) {
+    let lastError = null;
+
+    for (const endpoint of LOGIN_ENDPOINTS) {
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok || response.status === 401) {
+          return response;
+        }
+
+        lastError = new Error(`Login endpoint ${endpoint} returned ${response.status}`);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error("Login request failed");
+  }
+
+  const sampleReportsBtn = document.getElementById("sampleReportsBtn");
+  const loginModal = document.getElementById("loginModal");
+  const submitLogin = document.getElementById("submitLogin");
+
+//   if (sampleReportsBtn) {
+//     sampleReportsBtn.style.color = "#ff4d4f";
+//   }
+
+  if (sampleReportsBtn) {
+    sampleReportsBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      loginModal.style.display = "flex";
+    });
+  }
+
+  if (submitLogin) {
+    submitLogin.addEventListener("click", async function () {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const loginError = document.getElementById("loginError");
+      loginError.style.display = "none";
+
+      try {
+        const response = await postLogin(username, password);
+
+        if (!response.ok) {
+          loginError.style.display = "block";
+          return;
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          sessionStorage.setItem("runtimeConfig", JSON.stringify({
+            googleMapsApiKey: result.googleMapsApiKey || "",
+            censusApiKey: result.censusApiKey || ""
+          }));
+          window.location.assign(getDemoReportUrl());
+        } else {
+          loginError.style.display = "block";
+        }
+      } catch (error) {
+        console.error("Login request failed:", error);
+        loginError.textContent = "Login service unavailable. Please try again.";
+        loginError.style.display = "block";
+      }
+    });
+  }
+
+});
+</script>
+
+
 </body>
 </html>
+
+

@@ -1,23 +1,41 @@
-async function updateApiStatus() {
-    const statusNode = document.getElementById("api-status");
+// ===== LOGIN LOGIC =====
 
-    if (!statusNode) {
-        return;
+const runReportBtn = document.getElementById("runReportBtn");
+const loginModal = document.getElementById("loginModal");
+const submitLogin = document.getElementById("submitLogin");
+
+runReportBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  loginModal.style.display = "flex";
+});
+
+submitLogin.addEventListener("click", async () => {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (response.status === 401) {
+      document.getElementById("loginError").style.display = "block";
+      return;
     }
 
-    try {
-        const response = await fetch("/api/health");
+    const result = await response.json();
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        statusNode.textContent = `API online: ${data.status} (${data.runtime})`;
-    } catch (error) {
-        statusNode.textContent = "API not reachable in static-only mode yet. Run Wrangler locally or deploy to Pages to enable Functions.";
-        console.error("Health check failed", error);
+    if (result.success) {
+      window.location.href = "demo_report_map.html";
+    } else {
+      document.getElementById("loginError").style.display = "block";
     }
-}
 
-updateApiStatus();
+  } catch (error) {
+    console.error("Login error:", error);
+  }
+});

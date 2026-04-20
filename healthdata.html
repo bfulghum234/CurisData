@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CurisData Marketplace</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #4ecba0; margin: 0; color: #1f2933; }
+    .container { max-width: 11
+        00px; margin: 30px auto; background: #4ecba0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.08); padding: 24px; }
+    h1 { margin-top: 0; color:white;}
+    table { width: 100%; border-collapse: collapse; border-inline-color: #0b4f3a; margin-top: 12px; }
+    th, td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    th { background: #f8fafc; }
+    .sample-link { color: #007bff; text-decoration: none; font-weight: 600; }
+    .sample-link:hover { text-decoration: underline; }
+    .summary { margin-top: 20px; display: flex; align-items: center; gap: 20px; font-weight: 600; }
+    #checkout-btn { padding: 10px 16px; border: none; background: #007bff; color: white; border-radius: 6px; cursor: pointer; }
+    #checkout-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: #fff; width: min(1000px, 95vw); max-height: 80vh; overflow: auto; border-radius: 10px; padding: 20px; position: relative; }
+    .close-btn { position: absolute; right: 14px; top: 10px; font-size: 30px; cursor: pointer; }
+    .sample-table th { position: sticky; top: 0; background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CurisData Marketplace</h1>
+
+    
+    <section class="data-summary">
+        <h2>About Our Data</h2>
+        <p>
+            Our comprehensive healthcare data sets combine information from the Centers for Medicare & Medicaid Services (CMS) 
+            with proprietary demand potential analytics. CMS is the federal agency that administers Medicare, Medicaid, and 
+            other health insurance programs, maintaining extensive databases of healthcare providers and facilities nationwide.
+        </p>
+        <p>
+            This combined data allows you to identify and analyze healthcare providers within a specified radius of any 
+            potential address. By integrating CMS provider data with demand analytics, you can make informed decisions about 
+            market opportunities, competitive landscapes, and service gaps in your target areas. This data is essential for 
+            healthcare businesses planning expansion, conducting market research, or optimizing their strategic positioning.
+        </p>
+    </section>
+
+    <p>Select one or more datasets and click any "View sample" link to preview example records.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Dataset</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Sample</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox" data-price="199"></td>
+          <td>Clinics</td>
+          <td>Primary and outpatient clinic locations.</td>
+          <td>$199</td>
+          <td><a href="#" class="sample-link" data-dataset="clinics">View sample</a></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" data-price="249"></td>
+          <td>Physicians</td>
+          <td>Provider-level records and practice locations.</td>
+          <td>$249</td>
+          <td><a href="#" class="sample-link" data-dataset="physicians">View sample</a></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" data-price="299"></td>
+          <td>Hospitals</td>
+          <td>Hospital facilities and staffing-level metadata.</td>
+          <td>$299</td>
+          <td><a href="#" class="sample-link" data-dataset="hospitals">View sample</a></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" data-price="179"></td>
+          <td>Urgent Care</td>
+          <td>Urgent care centers with operating hours and size.</td>
+          <td>$179</td>
+          <td><a href="#" class="sample-link" data-dataset="urgent_care">View sample</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="summary">
+      <span>Selected datasets: <strong id="selected-count">0</strong></span>
+      <span>Total: <strong id="total-price">$0</strong></span>
+      <button id="checkout-btn" disabled>Checkout</button>
+    </div>
+  </div>
+
+  <script src="healthdata.js"></script>
+</body>
+</html>

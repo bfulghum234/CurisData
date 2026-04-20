@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urgent Care Site Assessment Report</title>
+
+<style>
+    html, body {
+  width: 816px;        /* 8.5in * 96dpi */
+  margin: 0;
+  padding: 0;
+  overflow: visible !important;
+}
+
+/* ================= BASE ================= */
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    background: #f0f0f0;            /* FIX 9: grey background shows centering clearly */
+}
+
+
+
+/* ================= PAGE - CENTERED WITH 0.5" MARGINS ================= */
+
+.page {
+  width: 7.5in !important;
+  height: auto !important;
+  min-height: 0 !important;        /* FIX: no forced full-page height → eliminates blank pages */
+  box-sizing: border-box !important;
+  margin: 0 auto !important;       /* CENTER HORIZONTALLY */
+  padding: 0.5in !important;
+  display: block !important;
+}
+
+/* ================= COVER ================= */
+.cover-page {
+    text-align: center;
+    padding-top: 1.5in;
+}
+
+.cover-page h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 32px;
+    color: #666;
+}
+
+.location {
+    font-size: 28px;
+    color: #007bff;
+    margin: 15px 0;
+}
+
+.logo-area {
+    margin-top: 40px;
+    border-top: 3px solid #007bff;
+    padding-top: 15px;
+}
+
+/* ================= HEADERS ================= */
+h2 {
+    font-size: 24px;
+    border-bottom: 3px solid #007bff;
+    margin-bottom: 12px;
+}
+
+h3 {
+    font-size: 18px;
+    color: #007bff;
+    margin: 14px 0 8px;
+}
+
+h4 {
+    font-size: 14px;
+    margin: 10px 0 15px 0;  /* INCREASED BOTTOM MARGIN FOR SPACING */
+}
+
+/* ================= TABLES ================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;  /* INCREASED MARGIN FOR SPACING */
+    font-size: 13px;
+}
+
+th {
+    background: #007bff;
+    color: white;
+    padding: 8px;
+    text-align: center;   /* FIX 4/6/8: centered headers on all tables */
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* CENTERED TEXT ALIGNMENT FOR NUMERIC COLUMNS */
+td:not(:first-child) {
+    text-align: center;
+}
+
+/* ================= STATS ================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.stat-card {
+    border-left: 4px solid #007bff;
+    background: #f8f9fa;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.stat-card h4 {
+    margin: 0 0 8px 0;
+    min-height: 2.4em;           /* FIX 3: reserve 2 lines so all value rows align */
+    display: flex;
+    align-items: flex-end;
+    font-size: 14px;
+}
+
+.stat-card .value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #007bff;
+    line-height: 1.2;
+}
+
+/* ================= CHARTS - IMPROVED SPACING ================= */
+.chart-container {
+    margin: 25px 0;  /* INCREASED VERTICAL SPACING */
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    height: 180px;
+    gap: 12px;
+    margin-top: 35px;  /* SPACE BETWEEN TITLE AND CHART */
+    margin-bottom: 40px;  /* SPACE BETWEEN CHART AND NEXT ELEMENT */
+}
+
+.bar {
+    flex: 1;
+    background: linear-gradient(#007bff, #0056b3);
+    position: relative;
+}
+
+.bar-label {
+    position: absolute;
+    bottom: -22px;
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+}
+
+.bar-value {
+    position: absolute;
+    top: -20px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* ================= INFO BOX ================= */
+.info-box {
+    background: #e3f2fd;
+    border-left: 4px solid #007bff;
+    padding: 12px;
+    margin: 12px 0;
+}
+
+.info-box.warning {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+}
+
+.info-box.success {
+    background: #d4edda;
+    border-left-color: #28a745;
+}
+
+/* TREND INDICATORS */
+.trend-positive { color: #28a745; font-weight: 600; }
+.trend-positive:before { content: "▲ "; }
+.trend-negative { color: #dc3545; font-weight: 600; }
+.trend-negative:before { content: "▼ "; }
+.trend-neutral { color: #6c757d; font-weight: 600; }
+
+/* ================= BUTTON ================= */
+#download-btn {
+    margin: 12px;
+    padding: 12px 24px;
+    background: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+/* ================= LOADING INDICATOR ================= */
+.loading {
+    color: #999;
+    font-style: italic;
+}
+
+/* ================= PRINT ================= */
+@page {
+    size: letter;
+    margin: 0.5in;
+}
+
+
+@media print {
+  /* Remove fixed widths so content scales to paper size */
+  body, html, .main-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .page {
+    width: 7.5in !important;
+    height: auto !important;
+    min-height: 0 !important;       /* FIX: no forced blank pages */
+    padding: 0.5in !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Last page: no trailing blank page */
+  .page:last-of-type {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  h2, h3, table, .chart-container, .stats-grid, .stat-card, .info-box {
+      page-break-inside: avoid;
+      break-inside: avoid;
+  }
+
+  #download-btn {
+      display: none !important;
+  }
+}
+
+</style>
+
+<!-- Google Maps: loaded dynamically from config.js key, or inherited from parent iframe -->
+<script src="config.js"></script>
+<script>
+// initMap stub — required by the Google Maps callback
+// When running standalone, this triggers facility fetch after API is ready.
+// When in an iframe, the parent already has google.maps loaded.
+function initMap() {
+    console.log('Google Maps API ready (initMap callback)');
+    // If standalone, fetch facilities now that API is ready
+    if (typeof fetchFacilityCounts === 'function') {
+        fetchFacilityCounts();
+    }
+}
+window.initMap = initMap;
+
+// Dynamically load Google Maps API only if not already present (i.e. not in iframe with parent)
+(function() {
+    if (typeof google !== 'undefined' && google.maps) {
+        console.log('Google Maps already available (inherited from parent)');
+        return;
+    }
+    // Get API key from config.js
+    var apiKey = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY)
+        ? CONFIG.GOOGLE_MAPS_API_KEY : '';
+    if (!apiKey) {
+        console.warn('No Google Maps API key found in CONFIG');
+        return;
+    }
+    var script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places&callback=initMap';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+})();
+</script>
+
+
+</head>
+
+<body>
+
+<!-- ==================== PAGE 1: COVER PAGE ==================== -->
+<button id="download-btn" onclick="downloadPDF()">📥 Download PDF Report</button>
+<div id="pdf-root">
+
+<div class="page cover-page">
+    <h1>Urgent Care Site Assessment</h1>
+    <div class="subtitle">Urgent Care Site Assessment Report</div>
+    
+    <div class="location" id="report-address">
+        Address
+    </div>
+    
+    <div class="map-container" style="width:100%; height:380px; margin: 20px auto; border: 2px solid #007bff; border-radius: 4px; overflow:hidden; position:relative;">
+        <!-- Live map injected here by report_integration.js via postMessage or direct DOM -->
+        <div id="report-map-embed" style="width:100%; height:100%;"></div>
+        <img id="report-map-image" src="" alt="Location Map"
+             style="width:100%; height:100%; object-fit:cover; display:none; position:absolute; top:0; left:0;">
+        <div id="map-placeholder-text" style="color:#666; font-size:16px; text-align:center; padding-top: 160px;">
+            Loading map…
+        </div>
+    </div> 
+    
+    <div class="report-date">
+        Report Generated: <span id="report-date">Report Date</span>
+    </div>
+    
+    <div class="logo-area">
+        <strong style="font-size: 20px;">CurisData</strong>
+        <div style="font-size: 14px; color: #6c757d; margin-top: 10px;">
+            Location Intelligence for Healthcare Real Estate
+        </div>
+    </div>
+</div>
+
+<!-- ==================== PAGE 2: EXECUTIVE SUMMARY ==================== -->
+<div class="page">
+    <h2>Executive Summary</h2>
+    
+    <div class="info-box success">
+        <strong>Report Overview</strong>
+        This urgent care site assessment evaluates the population, access, competition, and growth characteristics surrounding the selected location. Data is analyzed across three concentric radii to help determine trade area demand and site viability for urgent care services.
+    </div>
+    
+    <div class="section">
+    <h3>Key Findings</h3>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+    <h4><span id="max-radius-value">5</span>-Mile Radius POPULATION</h4>
+            <div class="value" id="exec-pop-5mi">0</div>
+            <div class="label">Total Residents</div>
+</div>
+
+<div class="stat-card">
+    <h4><span id="max-radius-value-2">5</span>-Mile Radius HOUSEHOLDS</h4>
+            <div class="value" id="exec-hh-5mi">0</div>
+            <div class="label">Total Households</div>
+</div>
+        
+        <div class="stat-card">
+            <h4>MARKET POTENTIAL</h4>
+            <div class="value" id="exec-potential">High</div>
+            <div class="label">Growth Rating</div>
+        </div>
+    </div>
+    </div>
+    <h3>Market Characteristics</h3>
+    
+    <table>
+        <tr>
+            <td><strong>Primary Trade Area</strong></td>
+            <td>Urban/Suburban Mix</td>
+        </tr>
+        <tr>
+            <td><strong>Population Density</strong></td>
+            <td>Medium-High</td>
+        </tr>
+        <tr>
+            <td><strong>Growth Trend (5-Year)</strong></td>
+            <td><span class="trend-positive">+8.4%</span></td>
+        </tr>
+        <tr>
+            <td><strong>Market Maturity</strong></td>
+            <td>Developing</td>
+        </tr>
+        <tr>
+            <td><strong>Competitive Landscape</strong></td>
+            <td>Moderate Competition</td>
+        </tr>
+    </table>
+    
+    <div class="info-box">
+        <strong>📊 Data Sources</strong>
+        This report utilizes data from the U.S. Census Bureau American Community Survey (ACS 5-Year Estimates), Google Maps Platform, and proprietary market analysis algorithms. Demographic, access, and market indicators are used together to evaluate urgent care potential.
+    </div>
+</div>
+
+<!-- ==================== PAGE 3: DEMOGRAPHIC PROFILE ==================== -->
+<div class="page">
+    <h2>Demographic Profile</h2>
+    
+    <h3>Population & Households by Radius</h3>
+    
+    <table>
+       <thead>
+    <tr>
+        <th>Age Group</th>
+        <th><span id="radius1-value">1</span>-Mile Radius</th>
+        <th><span id="radius2-value">3</span>-Mile Radius</th>
+        <th><span id="radius3-value">5</span>-Mile Radius</th>
+    </tr>
+</thead>
+        <tbody>
+            <tr>
+                <td>Total Population</td>
+                <td id="demo-pop-1mi">0</td>
+                <td id="demo-pop-3mi">0</td>
+                <td id="demo-pop-5mi">0</td>
+            </tr>
+            <tr>
+                <td>Total Households</td>
+                <td id="demo-hh-1mi">0</td>
+                <td id="demo-hh-3mi">0</td>
+                <td id="demo-hh-5mi">0</td>
+            </tr>
+            <tr>
+                <td>Total Families</td>
+                <td id="demo-fam-1mi">0</td>
+                <td id="demo-fam-3mi">0</td>
+                <td id="demo-fam-5mi">0</td>
+            </tr>
+            <tr>
+                <td>Average Household Size</td>
+                <td id="demo-hhsize-1mi">0</td>
+                <td id="demo-hhsize-3mi">0</td>
+                <td id="demo-hhsize-5mi">0</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>Age Distribution Analysis</h3>
+    
+    <!-- AGE BREAKOUT BAR GRAPH - IMPROVED SPACING -->
+    <div class="chart-container">
+        <h4>Population by Age Group (<span id="chart-title-radius">5</span>-Mile Radius)</h4>
+         
+        <div class="bar-chart">
+            <div class="bar" id="bar-age-0-17" style="height: 0;">
+                <div class="bar-value" id="chart-age-0-17">0</div>
+                <div class="bar-label">Ages 0-17</div>
+            </div>
+            <div class="bar" id="bar-age-18-34" style="height: 0;">
+                <div class="bar-value" id="chart-age-18-34">0</div>
+                <div class="bar-label">Ages 18-34</div>
+            </div>
+            <div class="bar" id="bar-age-35-54" style="height: 0;">
+                <div class="bar-value" id="chart-age-35-54">0</div>
+                <div class="bar-label">Ages 35-54</div>
+            </div>
+            <div class="bar" id="bar-age-55-64" style="height: 0;">
+                <div class="bar-value" id="chart-age-55-64">0</div>
+                <div class="bar-label">Ages 55-64</div>
+            </div>
+            <div class="bar" id="bar-age-65plus" style="height: 0;">
+                <div class="bar-value" id="chart-age-65plus">0</div>
+                <div class="bar-label">Ages 65+</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AGE BREAKOUT TABLE - MORE SPACING ABOVE -->
+        <table>
+        <thead>
+            <tr>
+                <th>Age Group</th>
+                 <th><span id="radius-label-1mi">1</span>-Mile</th>
+                 <th><span id="radius-label-3mi">3</span>-Mile</th>
+                 <th><span id="radius-label-5mi">5</span>-Mile</th>
+                 <th>% of Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ages 0-17</td>
+                <td id="age-0-17-1mi">0</td>
+                <td id="age-0-17-3mi">0</td>
+                <td id="age-0-17-5mi">0</td>
+                <td id="age-0-17-pct-5mi">0%</td>
+            </tr>
+            <tr>
+                <td>Ages 18-34</td>
+                <td id="age-18-34-1mi">0</td>
+                <td id="age-18-34-3mi">0</td>
+                <td id="age-18-34-5mi">0</td>
+                <td id="age-18-34-pct-5mi">0%</td>
+            </tr>
+            <tr>
+                <td>Ages 35-54</td>
+                <td id="age-35-54-1mi">0</td>
+                <td id="age-35-54-3mi">0</td>
+                <td id="age-35-54-5mi">0</td>
+                <td id="age-35-54-pct-5mi">0%</td>
+            </tr>
+            <tr>
+                <td>Ages 55-64</td>
+                <td id="age-55-64-1mi">0</td>
+                <td id="age-55-64-3mi">0</td>
+                <td id="age-55-64-5mi">0</td>
+                <td id="age-55-64-pct-5mi">0%</td>
+            </tr>
+            <tr>
+                <td>Ages 65+</td>
+                <td id="age-65plus-1mi">0</td>
+                <td id="age-65plus-3mi">0</td>
+                <td id="age-65plus-5mi">0</td>
+                <td id="age-65plus-pct-5mi">0%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    
+    <div class="info-box">
+        <strong>Key Insight:</strong>
+        The age distribution provides a quick view of likely urgent care utilization patterns, with family-serving age bands and older adult cohorts helping indicate demand for convenient, episodic care close to home and work.
+    </div>
+
+</div><!-- END PAGE 3 -->
+
+<!-- ==================== PAGE 4: COMPETITIVE LANDSCAPE (UPDATED) ==================== -->
+<div class="page">
+    <h2>Market Trends & Analysis</h2>
+    
+    <h3>Competitive Landscape</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Number of Locations: <span id="max-radius-value">5</span>Mile Radius</th>
+                <th>Market Saturation</th>
+                <th>Opportunity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Urgent Care Centers</td>
+                <td id="comp-urgent-care"><span class="loading">Loading...</span></td>
+                <td id="sat-urgent-care">-</td>
+                <td id="opp-urgent-care">-</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="info-box warning">
+        <strong>⚠️ Market Opportunity:</strong>
+        Analysis indicates underserved demand in urgent care services. The population-to-provider ratio suggests capacity for additional urgent care facilities.
+    </div>
+</div>
+
+<!-- ==================== PAGE 4B: NEAREST URGENT CARE MAP + TABLE ==================== -->
+<div class="page">
+    <h2>Nearest Urgent Care Centers</h2>
+
+    <div id="urgent-care-map-container" style="width:100%; height:340px; border:2px solid #007bff; border-radius:4px; overflow:hidden; position:relative; margin-bottom:20px;">
+        <div id="urgent-care-map" style="width:100%; height:100%;"></div>
+        <div id="uc-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:150px; position:absolute; top:0; left:0; width:100%;">
+            Loading map…
+        </div>
+    </div>
+
+    <table id="detail-urgent-care">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Facility Name</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="3" class="loading">Loading…</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ==================== PAGE 4C: CURIS HEALTHCARE DEMAND ==================== -->
+<div class="page">
+    <h2>Curis Healthcare Demand</h2>
+
+    <div class="info-box">
+        <strong>Demand Signal</strong>
+        Curis block group demand data is summarized below for urgent-care-relevant DRGs and service lines. These measures help quantify visit potential beyond general population counts alone.
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4><span id="curis-max-radius-value">5</span>-Mile Annual Demand</h4>
+            <div class="value" id="curis-total-demand">0</div>
+            <div class="label">Estimated DRG-linked demand</div>
+        </div>
+
+        <div class="stat-card">
+            <h4>Demand Per 1,000 Residents</h4>
+            <div class="value" id="curis-demand-per-1000">0</div>
+            <div class="label">Within the largest radius</div>
+        </div>
+
+        <div class="stat-card">
+            <h4>Top Demand Driver</h4>
+            <div class="value" id="curis-top-service-line">N/A</div>
+            <div class="label">Leading urgent care category</div>
+        </div>
+    </div>
+
+    <h3>Demand by Service Line</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Service Line / DRG Group</th>
+                <th><span id="curis-radius1-label">1</span>-Mile</th>
+                <th><span id="curis-radius2-label">3</span>-Mile</th>
+                <th><span id="curis-radius3-label">5</span>-Mile</th>
+                <th>Share of <span id="curis-max-radius-value-2">5</span>-Mile Demand</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="curis-row-1-label">No demand data loaded</td>
+                <td id="curis-row-1-r1">-</td>
+                <td id="curis-row-1-r2">-</td>
+                <td id="curis-row-1-r3">-</td>
+                <td id="curis-row-1-share">-</td>
+            </tr>
+            <tr>
+                <td id="curis-row-2-label">-</td>
+                <td id="curis-row-2-r1">-</td>
+                <td id="curis-row-2-r2">-</td>
+                <td id="curis-row-2-r3">-</td>
+                <td id="curis-row-2-share">-</td>
+            </tr>
+            <tr>
+                <td id="curis-row-3-label">-</td>
+                <td id="curis-row-3-r1">-</td>
+                <td id="curis-row-3-r2">-</td>
+                <td id="curis-row-3-r3">-</td>
+                <td id="curis-row-3-share">-</td>
+            </tr>
+            <tr>
+                <td id="curis-row-4-label">-</td>
+                <td id="curis-row-4-r1">-</td>
+                <td id="curis-row-4-r2">-</td>
+                <td id="curis-row-4-r3">-</td>
+                <td id="curis-row-4-share">-</td>
+            </tr>
+            <tr>
+                <td id="curis-row-5-label">-</td>
+                <td id="curis-row-5-r1">-</td>
+                <td id="curis-row-5-r2">-</td>
+                <td id="curis-row-5-r3">-</td>
+                <td id="curis-row-5-share">-</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="info-box success">
+        <strong>Urgent Care Readout:</strong>
+        <span id="curis-summary-text">Load Curis demand data to see which urgent-care-relevant DRGs and service lines are driving the strongest local demand.</span>
+    </div>
+</div>
+
+
+<!-- ==================== PAGE 5: ECONOMIC INDICATORS ==================== -->
+<div class="page">
+    <h2>Economic Indicators</h2>
+    
+    <h3>Income Distribution</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Income Range</th>
+                <th>Households</th>
+                <th>% of Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Under $25,000</td>
+                <td id="income-under25k">0</td>
+                <td id="income-under25k-pct">0%</td>
+            </tr>
+            <tr>
+                <td>$25,000 - $49,999</td>
+                <td id="income-25k-50k">0</td>
+                <td id="income-25k-50k-pct">0%</td>
+            </tr>
+            <tr>
+                <td>$50,000 - $74,999</td>
+                <td id="income-50k-75k">0</td>
+                <td id="income-50k-75k-pct">0%</td>
+            </tr>
+            <tr>
+                <td>$75,000 - $99,999</td>
+                <td id="income-75k-100k">0</td>
+                <td id="income-75k-100k-pct">0%</td>
+            </tr>
+            <tr>
+                <td>$100,000 - $149,999</td>
+                <td id="income-100k-150k">0</td>
+                <td id="income-100k-150k-pct">0%</td>
+            </tr>
+            <tr>
+                <td>$150,000+</td>
+                <td id="income-150k-plus">0</td>
+                <td id="income-150k-plus-pct">0%</td>
+            </tr>
+        </tbody>
+    </table>
+    
+        <div class="chart-container">
+        <h4>Median Household Income Comparison</h4>
+        <div class="bar-chart">
+            <div class="bar" id="bar-median-income-1mi" style="height: 0;">
+                <div class="bar-value" id="median-income-1mi">$0</div>
+                <div class="bar-label"><span id="radius1-value-income">1</span>-Mile Radius</div>
+            </div>
+            <div class="bar" id="bar-median-income-3mi" style="height: 0;">
+                <div class="bar-value" id="median-income-3mi">$0</div>
+                <div class="bar-label"><span id="radius2-value-income">3</span>-Mile Radius</div>
+            </div>
+            <div class="bar" id="bar-median-income-5mi" style="height: 0;">
+                <div class="bar-value" id="median-income-5mi">$0</div>
+                <div class="bar-label"><span id="radius3-value-income">5</span>-Mile Radius</div>
+            </div>
+            <div class="bar" style="height: 70%;">
+                <div class="bar-value" id="county-median-income">$0</div>
+                <div class="bar-label" id="county-name">County</div>
+            </div>
+            <div class="bar" style="height: 60%;">
+                <div class="bar-value" id="state-median-income">$0</div>
+                <div class="bar-label" id="state-name">State</div>
+            </div>
+        </div>
+    </div>
+    
+    <h3>Employment & Education</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Benchmark</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                <td>Labor Force Participation Rate</td>
+                <td id="emp-labor-force-local">64.2%</td>
+                <td id="emp-labor-force-usa">63.1% (National)</td>
+                </tr>
+                <tr>
+                <td>Unemployment Rate</td>
+                <td id="emp-unemployment-local">3.8%</td>
+                <td id="emp-unemployment-usa">4.2% (National)</td>
+                </tr>
+                <tr>
+                <td>Bachelor's Degree or Higher</td>
+                <td id="emp-bachelors-local">38.4%</td>
+                <td id="emp-bachelors-usa">33.7% (National)</td>
+                </tr>
+                <tr>
+                <td>High School Graduate or Higher</td>
+                <td id="emp-hs-local">91.2%</td>
+                <td id="emp-hs-usa">88.5% (National)</td>
+                </tr>
+                <tr>
+                <td>Professional/Management Occupations</td>
+                <td id="emp-mgmt-local">42.7%</td>
+                <td id="emp-mgmt-usa">38.2% (National)</td>
+                </tr>
+        </tbody>
+    </table>
+    
+    <div class="info-box success">
+        <strong>✓ Economic Strength:</strong>
+        The trade area demonstrates economic characteristics that can support urgent care utilization, including workforce participation, household stability, and income levels that often correlate with commercially insured patient demand.
+    </div>
+    
+    <h3>Housing Characteristics</h3>
+    
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>MEDIAN HOME VALUE</h4>
+            <div class="value" id="housing-median-value">$0</div>
+            <div class="label">Owner-occupied homes</div>
+        </div>
+        
+        <div class="stat-card">
+            <h4>MEDIAN RENT</h4>
+            <div class="value" id="housing-median-rent">$0</div>
+            <div class="label">Monthly rent</div>
+        </div>
+        
+        <div class="stat-card">
+            <h4>HOUSING UNITS</h4>
+            <div class="value" id="housing-total-units">0</div>
+            <div class="label">Total units</div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== PAGE 6: GROWTH PROJECTIONS ==================== -->
+<div class="page">
+    <h2>5-Year Growth Projections</h2>
+    
+    <div class="info-box">
+        <strong>📈 Forecast Period: 2026-2031</strong>
+        Projections are based on historical growth patterns, regional economic trends, planned developments, and demographic shifts. These estimates help frame how urgent care demand may evolve from the current baseline over the next five years.
+    </div>
+    
+    <h3>Population Growth Forecast</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Radius</th>
+                <th>Current (2026)</th>
+                <th>Projected (2031)</th>
+                <th>Change</th>
+                <th>CAGR</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1-Mile</td>
+                <td id="proj-pop-1mi-current">0</td>
+                <td id="pop-proj-1mi">0</td>
+                <td id="pop-change-1mi">0</td>
+                <td id="pop-cagr-1mi">0%</td>
+            </tr>
+            <tr>
+                <td>3-Mile</td>
+                <td id="proj-pop-3mi-current">0</td>
+                <td id="pop-proj-3mi">0</td>
+                <td id="pop-change-3mi">0</td>
+                <td id="pop-cagr-3mi">0%</td>
+            </tr>
+            <tr>
+                <td>5-Mile</td>
+                <td id="proj-pop-5mi-current">0</td>
+                <td id="pop-proj-5mi">0</td>
+                <td id="pop-change-5mi">0</td>
+                <td id="pop-cagr-5mi">0%</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+
+    <h3>Household & Income Projections</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Metric (5-Mile)</th>
+                <th>2026</th>
+                <th>2031</th>
+                <th>% Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Total Households</td>
+                <td id="hh-proj-current">0</td>
+                <td id="hh-proj-future">0</td>
+                <td id="hh-proj-change">0%</td>
+            </tr>
+            <tr>
+                <td>Family Households</td>
+                <td id="fam-proj-current">0</td>
+                <td id="fam-proj-future">0</td>
+                <td id="fam-proj-change">0%</td>
+            </tr>
+            <tr>
+                <td>Median Household Income</td>
+                <td id="med-inc-proj-current">0</td>
+                <td id="med-inc-proj-future">0</td>
+                <td id="med-inc-proj-change">0%</td>
+            </tr>
+            <tr>
+                <td>Per Capita Income</td>
+                <td id="per-capita-current">0</td>
+                <td id="per-capita-future">0</td>
+                <td id="per-capita-change">0%</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>Age Group Shifts</h3>
+    
+    <div class="chart-container">
+        <h4>Projected Age Distribution Changes (2026-2031)</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Age Group</th>
+                    <th>Current Share</th>
+                    <th>2031 Projected Share</th>
+                    <th>Trend</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ages 0-17</td>
+                    <td id="age-shift-0-17-curr">0%</td>    
+                    <td id="age-shift-0-17-proj">0%</td>  
+                    <td id="age-shift-0-17-trend" class="trend-neutral">0 pts</td>
+                </tr>
+                <tr>
+                    <td>Ages 18-34</td>
+                    <td id="age-shift-18-34-curr">0%</td>    
+                    <td id="age-shift-18-34-proj">0%</td>  
+                    <td id="age-shift-18-34-trend" class="trend-neutral">0 pts</td>
+                </tr>
+                <tr>
+                    <td>Ages 35-54</td>
+                    <td id="age-shift-35-54-curr">0%</td>    
+                    <td id="age-shift-35-54-proj">0%</td>  
+                    <td id="age-shift-35-54-trend" class="trend-neutral">0 pts</td>
+                </tr>
+                <tr>
+                    <td>Ages 55-64</td>
+                    <td id="age-shift-55-64-curr">0%</td>    
+                    <td id="age-shift-55-64-proj">0%</td>    
+                    <td id="age-shift-55-64-trend" class="trend-neutral">0 pts</td>
+                </tr>
+                <tr>
+                    <td>Ages 65+</td>
+                    <td id="age-shift-65plus-curr">0%</td> 
+                    <td id="age-shift-65plus-proj">0%</td>
+                    <td id="age-shift-65plus-trend" class="trend-neutral">0 pts</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="info-box warning">
+        <strong>🎯 Strategic Implications:</strong>
+        Projected shifts across young families, working-age adults, and older populations can materially influence urgent care demand, visit mix, and staffing needs. Growth in these segments may support stronger visit volume and broader daypart utilization over time.
+    </div>
+</div>
+
+<!-- ==================== PAGE 7: TIC REIMBURSEMENT BENCHMARK ==================== -->
+<div class="page">
+    <h2>TiC Reimbursement Benchmark</h2>
+    
+    <div class="info-box">
+        <strong>Negotiated Rate Benchmark</strong>
+        This section summarizes payer mix and negotiated reimbursement benchmarks from Transparency in Coverage data, using a Snowflake ZIP-based trade area selected for local sufficiency.
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>SELECTED RADIUS</h4>
+            <div class="value" id="tic-selected-radius">N/A</div>
+            <div class="label">Adaptive trade area</div>
+        </div>
+        <div class="stat-card">
+            <h4>ZIPS COVERED</h4>
+            <div class="value" id="tic-selected-zips">N/A</div>
+            <div class="label">Trade area ZIP count</div>
+        </div>
+        <div class="stat-card">
+            <h4>BENCHMARK ROWS</h4>
+            <div class="value" id="tic-payer-rows">0</div>
+            <div class="label">Payer and class rows</div>
+        </div>
+        <div class="stat-card">
+            <h4>TOP PAYER</h4>
+            <div class="value" id="tic-top-payer">N/A</div>
+            <div class="label" id="tic-top-payer-share">N/A</div>
+        </div>
+    </div>
+
+    <div class="info-box success">
+        <strong>Billing Classes:</strong>
+        <span id="tic-billing-classes">Unavailable</span>
+    </div>
+
+    <p id="tic-summary-text" style="margin: 14px 0 18px 0; color: #444;">
+        TiC benchmark data was not available for this report run.
+    </p>
+
+    <h3>Top Payer Benchmarks</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Payer / Network</th>
+                <th>Class</th>
+                <th>Local Mix Share</th>
+                <th>Local Avg Rate</th>
+                <th>State Avg Rate</th>
+                <th>Delta vs State</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="tic-row-1-payer">No data</td>
+                <td id="tic-row-1-class">-</td>
+                <td id="tic-row-1-share">-</td>
+                <td id="tic-row-1-local-rate">-</td>
+                <td id="tic-row-1-state-rate">-</td>
+                <td id="tic-row-1-delta">-</td>
+            </tr>
+            <tr>
+                <td id="tic-row-2-payer">-</td>
+                <td id="tic-row-2-class">-</td>
+                <td id="tic-row-2-share">-</td>
+                <td id="tic-row-2-local-rate">-</td>
+                <td id="tic-row-2-state-rate">-</td>
+                <td id="tic-row-2-delta">-</td>
+            </tr>
+            <tr>
+                <td id="tic-row-3-payer">-</td>
+                <td id="tic-row-3-class">-</td>
+                <td id="tic-row-3-share">-</td>
+                <td id="tic-row-3-local-rate">-</td>
+                <td id="tic-row-3-state-rate">-</td>
+                <td id="tic-row-3-delta">-</td>
+            </tr>
+            <tr>
+                <td id="tic-row-4-payer">-</td>
+                <td id="tic-row-4-class">-</td>
+                <td id="tic-row-4-share">-</td>
+                <td id="tic-row-4-local-rate">-</td>
+                <td id="tic-row-4-state-rate">-</td>
+                <td id="tic-row-4-delta">-</td>
+            </tr>
+            <tr>
+                <td id="tic-row-5-payer">-</td>
+                <td id="tic-row-5-class">-</td>
+                <td id="tic-row-5-share">-</td>
+                <td id="tic-row-5-local-rate">-</td>
+                <td id="tic-row-5-state-rate">-</td>
+                <td id="tic-row-5-delta">-</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- ==================== THEMATIC MAP: INCOME BY BLOCK GROUP ==================== -->
+<div class="page">
+    <h2>Thematic Map — Median Household Income</h2>
+    
+    <div class="info-box">
+        <strong>📊 Income Distribution by Block Group</strong>
+        This choropleth map displays median household income across Census block groups within the trade area. Income concentration can help inform payer mix expectations and the commercial viability of an urgent care location.
+    </div>
+
+    <div id="thematic-income-map-container" style="width:100%; height:480px; border:2px solid #007bff; border-radius:4px; overflow:hidden; position:relative; margin:15px 0;">
+        <div id="thematic-income-map" style="width:100%; height:100%;"></div>
+        <div id="income-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:220px; position:absolute; top:0; left:0; width:100%;">
+            Loading income map…
+        </div>
+    </div>
+
+    <div id="income-legend" style="display:flex; gap:8px; align-items:center; justify-content:center; font-size:12px; margin-top:8px;">
+        <span>Lower Income</span>
+        <div style="display:flex; gap:0;">
+            <div style="width:40px; height:16px; background:#ffffcc;"></div>
+            <div style="width:40px; height:16px; background:#c7e9b4;"></div>
+            <div style="width:40px; height:16px; background:#7fcdbb;"></div>
+            <div style="width:40px; height:16px; background:#41b6c4;"></div>
+            <div style="width:40px; height:16px; background:#1d91c0;"></div>
+            <div style="width:40px; height:16px; background:#225ea8;"></div>
+            <div style="width:40px; height:16px; background:#0c2c84;"></div>
+        </div>
+        <span>Higher Income</span>
+    </div>
+</div>
+
+<!-- ==================== THEMATIC MAP: POPULATION BY BLOCK GROUP ==================== -->
+<div class="page">
+    <h2>Thematic Map — Population Density</h2>
+    
+    <div class="info-box">
+        <strong>👥 Population Distribution by Block Group</strong>
+        This choropleth map displays total population across Census block groups within the trade area. Population concentration helps highlight where urgent care demand is most likely to cluster.
+    </div>
+
+    <div id="thematic-pop-map-container" style="width:100%; height:480px; border:2px solid #007bff; border-radius:4px; overflow:hidden; position:relative; margin:15px 0;">
+        <div id="thematic-pop-map" style="width:100%; height:100%;"></div>
+        <div id="pop-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:220px; position:absolute; top:0; left:0; width:100%;">
+            Loading population map…
+        </div>
+    </div>
+
+    <div id="pop-legend" style="display:flex; gap:8px; align-items:center; justify-content:center; font-size:12px; margin-top:8px;">
+        <span>Lower Population</span>
+        <div style="display:flex; gap:0;">
+            <div style="width:40px; height:16px; background:#fee5d9;"></div>
+            <div style="width:40px; height:16px; background:#fcbba1;"></div>
+            <div style="width:40px; height:16px; background:#fc9272;"></div>
+            <div style="width:40px; height:16px; background:#fb6a4a;"></div>
+            <div style="width:40px; height:16px; background:#ef3b2c;"></div>
+            <div style="width:40px; height:16px; background:#cb181d;"></div>
+            <div style="width:40px; height:16px; background:#67000d;"></div>
+        </div>
+        <span>Higher Population</span>
+    </div>
+
+    <div class="page-footer" style="margin-top:40px;">
+        <div>Report Generated: <span id="footer-date">January 23, 2026</span></div>
+        <div style="margin-top: 5px;">CurisData | Location Intelligence for Healthcare Real Estate</div>
+        <div style="margin-top: 5px; font-size: 11px;">
+            Data Sources: U.S. Census Bureau (ACS 5-Year Estimates), Google Maps Platform, Proprietary Analysis
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ================= MAP INIT IN REPORT ================= -->
+<script>
+/**
+ * Initializes the cover page map.
+ * Called either directly (same-origin iframe) or via window.message from parent.
+ *
+ * Expects: { lat, lng, radiusMiles, zoom }
+ * Falls back to Static Maps API image if Maps JS not available.
+ */
+function initReportMap(lat, lng, radiusMiles, zoom) {
+    const mapDiv    = document.getElementById('report-map-embed');
+    const imgEl     = document.getElementById('report-map-image');
+    const placeholder = document.getElementById('map-placeholder-text');
+
+    if (!lat || !lng) return;
+
+    // Hide placeholder
+    if (placeholder) placeholder.style.display = 'none';
+
+    // Prefer Google Maps JS (already loaded via config.js in parent scope)
+    if (typeof google !== 'undefined' && google.maps) {
+        if (mapDiv) mapDiv.style.display = 'block';
+        const reportMap = new google.maps.Map(mapDiv, {
+            center: { lat: parseFloat(lat), lng: parseFloat(lng) },
+            zoom:   zoom || 12,
+            mapTypeId: 'roadmap',
+            disableDefaultUI: true,
+            zoomControl: false,
+        });
+
+        // Draw radius circle(s)
+        const radii = Array.isArray(radiusMiles) ? radiusMiles : [radiusMiles];
+        const colors = ['#007bff', '#28a745', '#ffc107'];
+        radii.forEach((r, i) => {
+            new google.maps.Circle({
+                map: reportMap,
+                center: { lat: parseFloat(lat), lng: parseFloat(lng) },
+                radius: parseFloat(r) * 1609.34,
+                strokeColor: colors[i % colors.length],
+                strokeOpacity: 0.9,
+                strokeWeight: 2,
+                fillColor: colors[i % colors.length],
+                fillOpacity: 0.08,
+            });
+        });
+
+        // Center marker
+        new google.maps.Marker({
+            position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+            map: reportMap,
+            title: 'Site Location',
+        });
+
+    } else if (imgEl) {
+        // Fallback: Static Maps API image
+        const maxRadius = Array.isArray(radiusMiles) ? Math.max(...radiusMiles) : radiusMiles;
+        const key = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY) ? CONFIG.GOOGLE_MAPS_API_KEY : '';
+        const staticUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom||12}&size=700x380&markers=color:blue|${lat},${lng}&key=${key}`;
+        imgEl.src    = staticUrl;
+        imgEl.style.display = 'block';
+        if (mapDiv) mapDiv.style.display = 'none';
+    }
+}
+
+// Listen for map data posted from parent page (iframe scenario)
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'REPORT_MAP_DATA') {
+        const { lat, lng, radiusMiles, zoom } = event.data;
+        initReportMap(lat, lng, radiusMiles, zoom);
+    }
+});
+
+// Also expose globally so report_integration.js can call directly when same-origin
+window.initReportMap = initReportMap;
+</script>
+
+<!-- ================= PDF SCRIPT ================= -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+// GOOGLE PLACES API — URGENT CARE ONLY (no rating to reduce API cost)
+
+/**
+ * Populate urgent care detail table (no rating column).
+ */
+function populateFacilityTable(tableId, places) {
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!places || places.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">No results found</td></tr>';
+        return;
+    }
+    places.forEach(function(place, idx) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td>' + (idx + 1) + '</td>' +
+            '<td>' + (place.name || 'Unknown') + '</td>' +
+            '<td>' + (place.address || 'N/A') + '</td>';
+        tbody.appendChild(tr);
+    });
+}
+window.populateFacilityTable = populateFacilityTable;
+
+/**
+ * Build numbered-marker Google Map for urgent care locations.
+ * Uses google.maps which must be loaded before calling.
+ */
+function buildUrgentCareMap(places, centerLat, centerLng) {
+    if (typeof google === 'undefined' || !google.maps) {
+        console.warn('buildUrgentCareMap: google.maps not available');
+        return;
+    }
+    var container = document.getElementById('urgent-care-map');
+    var placeholder = document.getElementById('uc-map-placeholder');
+    if (!container) return;
+    if (placeholder) placeholder.style.display = 'none';
+
+    var ucMap = new google.maps.Map(container, {
+        center: { lat: centerLat, lng: centerLng },
+        zoom: 11,
+        mapTypeId: 'roadmap',
+        disableDefaultUI: true,
+        zoomControl: true
+    });
+
+    // Blue site marker
+    new google.maps.Marker({
+        position: { lat: centerLat, lng: centerLng },
+        map: ucMap,
+        title: 'Site Location',
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8, fillColor: '#007bff', fillOpacity: 1,
+            strokeColor: '#fff', strokeWeight: 2
+        }
+    });
+
+    var bounds = new google.maps.LatLngBounds();
+    bounds.extend({ lat: centerLat, lng: centerLng });
+
+    places.forEach(function(place, idx) {
+        if (!place.lat || !place.lng) return;
+        var pos = { lat: place.lat, lng: place.lng };
+        bounds.extend(pos);
+        new google.maps.Marker({
+            position: pos,
+            map: ucMap,
+            label: { text: String(idx + 1), color: '#fff', fontWeight: 'bold', fontSize: '12px' },
+            title: place.name,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 14, fillColor: '#dc3545', fillOpacity: 0.9,
+                strokeColor: '#fff', strokeWeight: 2
+            }
+        });
+    });
+
+    ucMap.fitBounds(bounds, 40);
+}
+window.buildUrgentCareMap = buildUrgentCareMap;
+
+/**
+ * Build a thematic (choropleth) map.
+ */
+function buildThematicMap(mapDivId, placeholderId, geoFeatures, dataMap, metric, colors, centerLat, centerLng) {
+    if (typeof google === 'undefined' || !google.maps) {
+        console.warn('buildThematicMap: google.maps not available');
+        return;
+    }
+    var container = document.getElementById(mapDivId);
+    var placeholder = document.getElementById(placeholderId);
+    if (!container) return;
+    if (placeholder) placeholder.style.display = 'none';
+
+    var thematicMap = new google.maps.Map(container, {
+        center: { lat: centerLat, lng: centerLng },
+        zoom: 11,
+        mapTypeId: 'roadmap',
+        disableDefaultUI: true,
+        zoomControl: true,
+        styles: [
+            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+            { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+        ]
+    });
+
+    // Collect values to compute quantile breaks
+    var values = [];
+    geoFeatures.forEach(function(f) {
+        var geoid = f.properties && f.properties.GEOID;
+        if (!geoid) return;
+        var d = dataMap.get(geoid);
+        if (d) { var v = d[metric] || 0; if (v > 0) values.push(v); }
+    });
+    values.sort(function(a, b) { return a - b; });
+    if (values.length === 0) return;
+
+    // 7 quantile breaks
+    var breaks = [];
+    for (var i = 1; i <= 7; i++) {
+        var idx = Math.min(Math.floor((i / 7) * values.length), values.length - 1);
+        breaks.push(values[idx]);
+    }
+    function getColor(val) {
+        if (val <= 0) return '#e0e0e0';
+        for (var j = 0; j < breaks.length; j++) {
+            if (val <= breaks[j]) return colors[j];
+        }
+        return colors[colors.length - 1];
+    }
+
+    var bounds = new google.maps.LatLngBounds();
+
+    geoFeatures.forEach(function(feature) {
+        var geoid = feature.properties && feature.properties.GEOID;
+        if (!geoid) return;
+        var d = dataMap.get(geoid);
+        if (!d) return;
+        var val = d[metric] || 0;
+        var color = getColor(val);
+
+        try {
+            var geom = feature.geometry;
+            var coordSets = [];
+            if (geom.type === 'Polygon') { coordSets = [geom.coordinates]; }
+            else if (geom.type === 'MultiPolygon') { coordSets = geom.coordinates; }
+            else { return; }
+
+            coordSets.forEach(function(polygonCoords) {
+                var paths = polygonCoords.map(function(ring) {
+                    return ring.map(function(c) {
+                        var pt = { lat: c[1], lng: c[0] };
+                        bounds.extend(pt);
+                        return pt;
+                    });
+                });
+                var poly = new google.maps.Polygon({
+                    paths: paths,
+                    strokeColor: '#666', strokeOpacity: 0.4, strokeWeight: 0.5,
+                    fillColor: color, fillOpacity: 0.7, map: thematicMap
+                });
+                google.maps.event.addListener(poly, 'mouseover', function() {
+                    poly.setOptions({ strokeWeight: 2, strokeColor: '#000' });
+                });
+                google.maps.event.addListener(poly, 'mouseout', function() {
+                    poly.setOptions({ strokeWeight: 0.5, strokeColor: '#666' });
+                });
+            });
+        } catch (e) { /* skip bad geometry */ }
+    });
+
+    // Center marker
+    new google.maps.Marker({
+        position: { lat: centerLat, lng: centerLng },
+        map: thematicMap, title: 'Site Location',
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8, fillColor: '#007bff', fillOpacity: 1,
+            strokeColor: '#fff', strokeWeight: 2
+        }
+    });
+
+    thematicMap.fitBounds(bounds, 20);
+}
+window.buildThematicMap = buildThematicMap;
+
+// Standalone fallback for when report HTML is opened directly (not in iframe)
+async function fetchFacilityCounts() {
+    try {
+        var addressElement = document.getElementById('report-address');
+        var address = addressElement ? addressElement.textContent.trim() : null;
+        if (!address || address === 'Address') return;
+        if (typeof google === 'undefined' || !google.maps) return;
+
+        var location = await new Promise(function(resolve) {
+            new google.maps.Geocoder().geocode({ address: address }, function(results, status) {
+                resolve(status === 'OK' && results[0] ? results[0].geometry.location : null);
+            });
+        });
+        if (!location) return;
+
+        var serviceDiv = document.createElement('div');
+        serviceDiv.style.display = 'none';
+        document.body.appendChild(serviceDiv);
+        var service = new google.maps.places.PlacesService(serviceDiv);
+
+        var places = await new Promise(function(resolve) {
+            service.nearbySearch({
+                location: location, keyword: 'urgent care',
+                rankBy: google.maps.places.RankBy.DISTANCE
+            }, function(results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+                    resolve(results.map(function(p) {
+                        return {
+                            name: p.name || 'Unknown', address: p.vicinity || 'N/A',
+                            lat: p.geometry ? p.geometry.location.lat() : null,
+                            lng: p.geometry ? p.geometry.location.lng() : null
+                        };
+                    }));
+                } else { resolve([]); }
+            });
+        });
+
+        var countEl = document.getElementById('comp-urgent-care');
+        if (countEl) { countEl.textContent = places.length; countEl.className = ''; }
+        var metrics = calcMarketMetrics(places.length);
+        var satEl = document.getElementById('sat-urgent-care');
+        var oppEl = document.getElementById('opp-urgent-care');
+        if (satEl) satEl.textContent = metrics.saturation;
+        if (oppEl) oppEl.textContent = metrics.opportunity;
+
+        var top10 = places.slice(0, 10);
+        populateFacilityTable('detail-urgent-care', top10);
+        buildUrgentCareMap(top10, location.lat(), location.lng());
+    } catch (error) { console.error('Error in fetchFacilityCounts:', error); }
+}
+
+function calcMarketMetrics(count) {
+    if (count === 0) return { saturation: 'None', opportunity: 'Very High' };
+    if (count <= 5)  return { saturation: 'Low', opportunity: 'High' };
+    if (count <= 15) return { saturation: 'Moderate', opportunity: 'Moderate' };
+    if (count <= 25) return { saturation: 'Moderate-High', opportunity: 'Low-Moderate' };
+    return { saturation: 'High', opportunity: 'Low' };
+}
+
+// Auto-show static map image if src gets set from report_integration.js
+const _reportMapImg = document.getElementById('report-map-image');
+if (_reportMapImg) {
+    const _observer = new MutationObserver(() => {
+        if (_reportMapImg.src && _reportMapImg.src !== window.location.href) {
+            _reportMapImg.style.display = 'block';
+            const placeholder = document.getElementById('map-placeholder-text');
+            if (placeholder) placeholder.style.display = 'none';
+            const embedDiv = document.getElementById('report-map-embed');
+            if (embedDiv) embedDiv.style.display = 'none';
+        }
+    });
+    _observer.observe(_reportMapImg, { attributes: true, attributeFilter: ['src'] });
+}
+
+// fetchFacilityCounts is called by initMap() callback when API loads standalone,
+// or by the parent via populateReportTemplate when in iframe.
+
+// PDF DOWNLOAD FUNCTION
+function downloadPDF() {
+  var element = document.getElementById('pdf-root') || document.body;
+  html2pdf()
+    .set({
+      margin: 0.5, filename: 'urgent-care-site-assessment-report.pdf',
+      html2canvas: {
+        scale: 2, useCORS: true, scrollX: 0, scrollY: 0, x: 0, y: 0, windowWidth: 816,
+        onclone: function(doc) {
+          doc.documentElement.style.width = '816px';
+          doc.documentElement.style.margin = '0'; doc.documentElement.style.padding = '0';
+          var b = doc.body;
+          b.style.width = '816px'; b.style.margin = '0'; b.style.padding = '0';
+          b.style.transform = 'none'; b.style.zoom = '1'; b.style.overflow = 'visible'; b.style.background = 'white';
+          var r = doc.getElementById('pdf-root');
+          if (r) { r.style.width = '100%'; r.style.margin = '0'; r.style.padding = '0'; }
+          doc.querySelectorAll('.page').forEach(function(p) {
+            p.style.width = '100%'; p.style.maxWidth = '100%'; p.style.margin = '0'; p.style.padding = '0';
+          });
+          var btn = doc.getElementById('download-btn');
+          if (btn) btn.style.display = 'none';
+        }
+      },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak: { mode: ['css','legacy'], before: '.page', avoid: ['table','.stat-card','.chart-container','.info-box'] }
+    })
+    .from(element).save();
+}
+
+
+</script>
+
+</body>
+</html>
