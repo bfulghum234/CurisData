@@ -1418,11 +1418,12 @@ function createPreviewSvgDataUrl(svg) {
 }
 
 const frozenDemoMapAssets = {
-    cover: "images/demo/austin-cover-map.png",
-    urgentCare: "images/demo/austin-urgent-care-map.png",
-    income: "images/demo/austin-income-map.png",
-    population: "images/demo/austin-population-map.png"
+    cover: "images/demo/Fort Worth-cover-map.png",
+    urgentCare: "images/demo/Fort Worth-urgent-care-map.png",
+    income: "images/demo/Fort Worth-income-map.png",
+    population: "images/demo/Fort Worth-population-map.png"
 };
+const frozenDemoAddress = "4455 Camp Bowie Blvd., Fort Worth, TX 76107";
 
 function getPreviewParams() {
     try {
@@ -1462,6 +1463,18 @@ async function applyFrozenDemoMapsIfAvailable() {
     const reportMapImg = document.getElementById("report-map-image");
     const reportMapEmbed = document.getElementById("report-map-embed");
     const reportPlaceholder = document.getElementById("map-placeholder-text");
+    const reportAddress = document.getElementById("report-address");
+    const reportDate = document.getElementById("report-date");
+    const footerDate = document.getElementById("footer-date");
+    const formattedDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    if (reportAddress) reportAddress.textContent = frozenDemoAddress;
+    if (reportDate) reportDate.textContent = formattedDate;
+    if (footerDate) footerDate.textContent = formattedDate;
 
     if (coverUrl && reportMapImg) {
         reportMapImg.src = coverUrl;
@@ -1471,15 +1484,15 @@ async function applyFrozenDemoMapsIfAvailable() {
     }
 
     if (urgentCareUrl) {
-        applyStaticMapImageToContainer("urgent-care-map", "uc-map-placeholder", urgentCareUrl, "Frozen Austin urgent care map");
+        applyStaticMapImageToContainer("urgent-care-map", "uc-map-placeholder", urgentCareUrl, "Frozen Fort Worth urgent care map");
     }
 
     if (incomeUrl) {
-        applyStaticMapImageToContainer("thematic-income-map", "income-map-placeholder", incomeUrl, "Frozen Austin income map");
+        applyStaticMapImageToContainer("thematic-income-map", "income-map-placeholder", incomeUrl, "Frozen Fort Worth income map");
     }
 
     if (populationUrl) {
-        applyStaticMapImageToContainer("thematic-pop-map", "pop-map-placeholder", populationUrl, "Frozen Austin population map");
+        applyStaticMapImageToContainer("thematic-pop-map", "pop-map-placeholder", populationUrl, "Frozen Fort Worth population map");
     }
 
     return Boolean(coverUrl || urgentCareUrl || incomeUrl || populationUrl);
@@ -1532,8 +1545,8 @@ async function renderPreviewPlaceholderMaps() {
                 <text x="498" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">I-30</text>
                 <text x="490" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Trinity River</text>
                 <rect x="28" y="28" width="320" height="84" rx="14" fill="#ffffff" opacity="0.95"/>
-                <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Austin Trade Area Map</text>
-                <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">5900 Balcones Dr, Austin, TX 78731</text>
+                <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Fort Worth Trade Area Map</text>
+                <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">4455 Camp Bowie Blvd., Fort Worth, TX 76107</text>
             </svg>
         `);
         reportMapImg.style.display = "block";
@@ -1779,6 +1792,9 @@ function getStandaloneFallbackFacilities() {
 }
 
 async function bootstrapStandaloneAustinSample() {
+    const params = getPreviewParams();
+    if (params.get("demoMaps") === "frozen") return;
+
     const isInIframe = window.self !== window.top;
     const reportAddress = document.getElementById('report-address');
     if (isInIframe || !reportAddress || reportAddress.textContent.trim() !== 'Address') return;

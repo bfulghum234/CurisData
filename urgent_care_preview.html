@@ -96,7 +96,7 @@
     <div class="toolbar">
       <div>
         <h1>Urgent Care Report Preview</h1>
-        <p>This loads the real report template with sample urgent care data so you can review copy and layout quickly.</p>
+        <p>This loads the Fort Worth sample report with frozen demo maps so you can review copy and layout quickly.</p>
       </div>
       <div class="actions">
         <button class="primary" id="reload-preview" type="button">Reload Preview</button>
@@ -106,7 +106,7 @@
     </div>
 
     <div class="frame-wrap">
-      <iframe id="report-iframe" src="demographic_report_template.html?preview=1" title="Urgent care report preview"></iframe>
+      <iframe id="report-iframe" src="demographic_report_template.html?preview=1&demoMaps=frozen" title="Urgent care report preview"></iframe>
     </div>
   </div>
 
@@ -119,13 +119,13 @@
       CENSUS_API_KEY: ""
     };
 
-    const previewAddress = "5900 Balcones Dr, Austin, TX 78731";
-    const previewLat = 30.3346;
-    const previewLng = -97.7607;
+    const previewAddress = "4455 Camp Bowie Blvd., Fort Worth, TX 76107";
+    const previewLat = 32.7354;
+    const previewLng = -97.3892;
     const previewRadii = [1, 3, 5];
     const frozenPreviewSrc = "demographic_report_template.html?preview=1&demoMaps=frozen";
 
-    function createAustinMapPlaceholder(title, subtitle) {
+    function createFortWorthMapPlaceholder(title, subtitle) {
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="700" height="380" viewBox="0 0 700 380">
           <rect width="700" height="380" fill="#eef2eb"/>
@@ -143,9 +143,9 @@
           <circle cx="352" cy="180" r="72" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.45"/>
           <circle cx="352" cy="180" r="132" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.25"/>
           <circle cx="352" cy="180" r="10" fill="#e74c3c"/>
-          <text x="92" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Balcones Dr</text>
-          <text x="498" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">MoPac Expy</text>
-          <text x="490" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Lake Austin</text>
+          <text x="92" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Camp Bowie Blvd</text>
+          <text x="498" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">I-30</text>
+          <text x="490" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Fort Worth</text>
           <rect x="28" y="28" width="332" height="84" rx="14" fill="#ffffff" opacity="0.95" />
           <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">${title}</text>
           <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">${subtitle}</text>
@@ -210,12 +210,12 @@
       };
     }
 
-    function buildAustinFallbackPayload(reason) {
-      console.warn("Using Austin fallback preview payload:", reason);
+    function buildFortWorthFallbackPayload(reason) {
+      console.warn("Using Fort Worth fallback preview payload:", reason);
       return {
         address: previewAddress,
         radii: previewRadii,
-        mapImageUrl: createAustinMapPlaceholder("Austin Sample Trade Area", "5900 Balcones Dr, Austin, TX 78731"),
+        mapImageUrl: createFortWorthMapPlaceholder("Fort Worth Trade Area", "4455 Camp Bowie Blvd., Fort Worth, TX 76107"),
         demographicData: {
           "1mile": buildRadiusData(15680, 6280, 3810, 98200, 88100, 76000),
           "3mile": buildRadiusData(89240, 34980, 21140, 101500, 88100, 76000),
@@ -239,7 +239,7 @@
             { label: "Skin & Soft Tissue", values: [180, 980, 2270], shareOfMax: 12.9 },
             { label: "GI / Dehydration", values: [150, 760, 1810], shareOfMax: 10.3 }
           ],
-          summaryText: "Austin sample preview is using a saved CurisData-style fallback snapshot because live file-based preview could not reach the full data pipeline."
+          summaryText: "Fort Worth sample preview is using a saved CurisData-style fallback snapshot because the live file-based preview could not reach the full data pipeline."
         }
       };
     }
@@ -343,16 +343,16 @@
         centerLat: previewLat,
         centerLng: previewLng,
         urgentCareDetails: [
-          { name: "CareNow Urgent Care", address: "3801 N Capital of Texas Hwy, Austin, TX", lat: 30.3621, lng: -97.7969 },
-          { name: "FastMed Urgent Care", address: "10001 Research Blvd, Austin, TX", lat: 30.3928, lng: -97.7461 },
-          { name: "Premier ER & Urgent Care", address: "3300 Bee Caves Rd, West Lake Hills, TX", lat: 30.2751, lng: -97.8016 },
-          { name: "Ascension Seton Express Care", address: "2500 W Parmer Ln, Austin, TX", lat: 30.4184, lng: -97.7069 },
-          { name: "Carbon Health Urgent Care", address: "3300 W Anderson Ln, Austin, TX", lat: 30.3589, lng: -97.7427 }
+          { name: "Texas Health Breeze Urgent Care", address: "5912 Convair Dr, Fort Worth, TX", lat: 32.7389, lng: -97.4011 },
+          { name: "CityDoc Urgent Care", address: "3020 W 7th St, Fort Worth, TX", lat: 32.7501, lng: -97.3634 },
+          { name: "CareNow Urgent Care", address: "7400 Oakmont Blvd, Fort Worth, TX", lat: 32.7333, lng: -97.4347 },
+          { name: "Texas Health Breeze Urgent Care", address: "6100 Camp Bowie Blvd, Fort Worth, TX", lat: 32.7258, lng: -97.4148 },
+          { name: "Baylor Scott & White Urgent Care", address: "7215 Camp Bowie West Blvd, Fort Worth, TX", lat: 32.7247, lng: -97.4419 }
         ]
       };
     }
 
-    async function buildRealAustinPreviewPayload() {
+    async function buildRealFortWorthPreviewPayload() {
       try {
         await Promise.all([
           loadBlockGroupData(),
@@ -409,7 +409,7 @@
           healthcareDemand
         };
       } catch (error) {
-        return buildAustinFallbackPayload(error);
+        return buildFortWorthFallbackPayload(error);
       }
     }
 
@@ -420,7 +420,7 @@
           console.warn("Preview runtime config unavailable. Falling back to data-only mode.");
         }
 
-        const payload = await buildRealAustinPreviewPayload();
+        const payload = await buildRealFortWorthPreviewPayload();
         const iframeWindow = iframe.contentWindow;
         if (iframeWindow && window.google?.maps) {
           iframeWindow.google = window.google;
@@ -435,8 +435,8 @@
           payload.healthcareDemand
         );
       } catch (error) {
-        console.error("Failed to build Austin preview payload:", error);
-        const payload = buildAustinFallbackPayload(error);
+        console.error("Failed to build Fort Worth preview payload:", error);
+        const payload = buildFortWorthFallbackPayload(error);
         populateReportTemplate(
           payload.address,
           payload.demographicData,
@@ -455,7 +455,7 @@
 
     iframe.addEventListener("load", loadPreview);
     reloadButton.addEventListener("click", function() {
-      iframe.src = "demographic_report_template.html?preview=1";
+      iframe.src = frozenPreviewSrc;
     });
     frozenButton.addEventListener("click", function() {
       iframe.src = frozenPreviewSrc;
