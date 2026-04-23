@@ -6,6 +6,17 @@
 <title>Urgent Care Site Assessment Report</title>
 
 <style>
+    :root {
+  --cd-ink: #17352b;
+  --cd-ink-soft: #4f6f63;
+  --cd-brand: #0b4f3a;
+  --cd-brand-strong: #083d2d;
+  --cd-accent: #4ecba0;
+  --cd-line: #d7e8e0;
+  --cd-paper: #ffffff;
+  --cd-shadow: 0 18px 44px rgba(11, 79, 58, 0.10);
+}
+
     html, body {
   width: 816px;        /* 8.5in * 96dpi */
   margin: 0;
@@ -18,11 +29,11 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    line-height: 1.4;
+    color: var(--cd-ink);
+    line-height: 1.52;
     margin: 0;
     padding: 0;
-    background: #f0f0f0;            /* FIX 9: grey background shows centering clearly */
+    background: linear-gradient(180deg, #edf6f1 0%, #f7fbf9 100%);
 }
 
 
@@ -34,50 +45,100 @@ body {
   height: auto !important;
   min-height: 0 !important;        /* FIX: no forced full-page height → eliminates blank pages */
   box-sizing: border-box !important;
-  margin: 0 auto !important;       /* CENTER HORIZONTALLY */
+  margin: 18px auto !important;       /* CENTER HORIZONTALLY */
   padding: 0.5in !important;
   display: block !important;
+  background: var(--cd-paper);
+  border: 1px solid rgba(11, 79, 58, 0.08);
+  border-radius: 22px;
+  box-shadow: var(--cd-shadow);
 }
 
 /* ================= COVER ================= */
 .cover-page {
     text-align: center;
-    padding-top: 1.5in;
+    padding-top: 1.1in;
+    background:
+      radial-gradient(circle at top right, rgba(78, 203, 160, 0.18), transparent 28%),
+      linear-gradient(180deg, #fcfffd 0%, #f4faf7 100%);
 }
 
 .cover-page h1 {
-    font-size: 48px;
-    margin-bottom: 10px;
+    font-size: 46px;
+    margin-bottom: 12px;
+    line-height: 1.08;
+    color: var(--cd-brand-strong);
+    letter-spacing: -0.02em;
 }
 
 .subtitle {
-    font-size: 32px;
-    color: #666;
+    font-size: 29px;
+    color: var(--cd-ink-soft);
+    font-weight: 400;
 }
 
 .location {
     font-size: 28px;
-    color: #007bff;
-    margin: 15px 0;
+    color: var(--cd-brand);
+    margin: 16px 0 18px;
+    font-weight: 700;
 }
 
 .logo-area {
     margin-top: 40px;
-    border-top: 3px solid #007bff;
-    padding-top: 15px;
+    border-top: 3px solid var(--cd-accent);
+    padding-top: 18px;
+}
+
+.cover-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.cover-logo svg {
+    width: 236px;
+    height: 68px;
+    max-width: 100%;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 8px 18px rgba(11, 79, 58, 0.12));
+}
+
+.brand-links {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+}
+
+.brand-links a,
+.page-footer a {
+    color: var(--cd-brand);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.brand-links a:hover,
+.page-footer a:hover {
+    text-decoration: underline;
 }
 
 /* ================= HEADERS ================= */
 h2 {
     font-size: 24px;
-    border-bottom: 3px solid #007bff;
+    border-bottom: 3px solid var(--cd-accent);
     margin-bottom: 12px;
+    color: var(--cd-brand-strong);
 }
 
 h3 {
     font-size: 18px;
-    color: #007bff;
-    margin: 14px 0 8px;
+    color: var(--cd-brand);
+    margin: 18px 0 10px;
 }
 
 h4 {
@@ -88,21 +149,26 @@ h4 {
 /* ================= TABLES ================= */
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin: 20px 0;  /* INCREASED MARGIN FOR SPACING */
     font-size: 13px;
+    border: 1px solid var(--cd-line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fbfefd;
 }
 
 th {
-    background: #007bff;
+    background: linear-gradient(180deg, #0b4f3a 0%, #0d654a 100%);
     color: white;
-    padding: 8px;
+    padding: 10px 8px;
     text-align: center;   /* FIX 4/6/8: centered headers on all tables */
 }
 
 td {
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    border-bottom: 1px solid #e5efe9;
 }
 
 /* CENTERED TEXT ALIGNMENT FOR NUMERIC COLUMNS */
@@ -119,12 +185,14 @@ td:not(:first-child) {
 }
 
 .stat-card {
-    border-left: 4px solid #007bff;
-    background: #f8f9fa;
-    padding: 12px;
+    border-left: 4px solid var(--cd-accent);
+    background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
+    padding: 14px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(11, 79, 58, 0.06);
 }
 
 .stat-card h4 {
@@ -138,8 +206,12 @@ td:not(:first-child) {
 .stat-card .value {
     font-size: 28px;
     font-weight: bold;
-    color: #007bff;
+    color: var(--cd-brand);
     line-height: 1.2;
+}
+
+.stat-card .label {
+    color: var(--cd-ink-soft);
 }
 
 /* ================= CHARTS - IMPROVED SPACING ================= */
@@ -158,8 +230,9 @@ td:not(:first-child) {
 
 .bar {
     flex: 1;
-    background: linear-gradient(#007bff, #0056b3);
+    background: linear-gradient(180deg, #4ecba0 0%, #0b4f3a 100%);
     position: relative;
+    border-radius: 10px 10px 0 0;
 }
 
 .bar-label {
@@ -177,29 +250,30 @@ td:not(:first-child) {
     text-align: center;
     font-size: 12px;
     font-weight: bold;
-    color: #007bff;
+    color: var(--cd-brand);
 }
 
 /* ================= INFO BOX ================= */
 .info-box {
-    background: #e3f2fd;
-    border-left: 4px solid #007bff;
-    padding: 12px;
-    margin: 12px 0;
+    background: #eef8f3;
+    border-left: 4px solid var(--cd-brand);
+    padding: 14px 16px;
+    margin: 14px 0;
+    border-radius: 0 14px 14px 0;
 }
 
 .info-box.warning {
-    background: #fff3cd;
-    border-left-color: #ffc107;
+    background: #fff5da;
+    border-left-color: #d8a326;
 }
 
 .info-box.success {
-    background: #d4edda;
-    border-left-color: #28a745;
+    background: #e4f6ef;
+    border-left-color: #1f8f64;
 }
 
 /* TREND INDICATORS */
-.trend-positive { color: #28a745; font-weight: 600; }
+.trend-positive { color: #1f8f64; font-weight: 600; }
 .trend-positive:before { content: "▲ "; }
 .trend-negative { color: #dc3545; font-weight: 600; }
 .trend-negative:before { content: "▼ "; }
@@ -207,13 +281,15 @@ td:not(:first-child) {
 
 /* ================= BUTTON ================= */
 #download-btn {
-    margin: 12px;
+    margin: 16px;
     padding: 12px 24px;
-    background: #28a745;
+    background: linear-gradient(180deg, #1a8a68 0%, #0b4f3a 100%);
     color: white;
     border: none;
     cursor: pointer;
     font-weight: bold;
+    border-radius: 999px;
+    box-shadow: 0 10px 22px rgba(11, 79, 58, 0.18);
 }
 
 .section {
@@ -224,6 +300,11 @@ td:not(:first-child) {
 .loading {
     color: #999;
     font-style: italic;
+}
+
+.report-date,
+.page-footer {
+    color: var(--cd-ink-soft);
 }
 
 /* ================= PRINT ================= */
@@ -327,13 +408,11 @@ window.initMap = initMap;
 
 <div class="page cover-page">
     <h1>Urgent Care Site Assessment</h1>
-    <div class="subtitle">Urgent Care Site Assessment Report</div>
-    
     <div class="location" id="report-address">
         Address
     </div>
     
-    <div class="map-container" style="width:100%; height:380px; margin: 20px auto; border: 2px solid #007bff; border-radius: 4px; overflow:hidden; position:relative;">
+    <div class="map-container" style="width:100%; height:380px; margin: 20px auto; border: 3px solid #2fb486; border-radius: 8px; overflow:hidden; position:relative;">
         <!-- Live map injected here by report_integration.js via postMessage or direct DOM -->
         <div id="report-map-embed" style="width:100%; height:100%;"></div>
         <img id="report-map-image" src="" alt="Location Map"
@@ -348,9 +427,45 @@ window.initMap = initMap;
     </div>
     
     <div class="logo-area">
-        <strong style="font-size: 20px;">CurisData</strong>
-        <div style="font-size: 14px; color: #6c757d; margin-top: 10px;">
+        <div class="cover-logo">
+            <svg viewBox="0 0 660 180" aria-hidden="true" role="img">
+                <defs>
+                    <linearGradient id="cdCrossDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0b5f46" />
+                        <stop offset="100%" stop-color="#0f6d51" />
+                    </linearGradient>
+                    <linearGradient id="cdCrossTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2a9687" />
+                        <stop offset="100%" stop-color="#57d3bd" />
+                    </linearGradient>
+                    <linearGradient id="cdLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#0f8a72" />
+                        <stop offset="100%" stop-color="#58d6bd" />
+                    </linearGradient>
+                </defs>
+                <rect x="42" y="56" width="58" height="58" rx="10" fill="url(#cdCrossDark)" />
+                <path d="M42 114C70 114 92 104 100 86V114H42Z" fill="#0a533e" opacity="0.45" />
+                <rect x="100" y="0" width="58" height="58" rx="10" fill="url(#cdCrossDark)" />
+                <rect x="100" y="56" width="58" height="58" rx="10" fill="#ffffff" />
+                <rect x="158" y="56" width="58" height="58" rx="10" fill="url(#cdCrossTeal)" />
+                <rect x="100" y="114" width="58" height="58" rx="10" fill="url(#cdCrossTeal)" />
+                <path d="M100 172C128 172 148 160 158 138V172H100Z" fill="#168b7a" opacity="0.5" />
+                <path d="M125 82L188 30L248 82L308 20" fill="none" stroke="url(#cdLine)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="125" cy="82" r="16" fill="#ffffff" stroke="#128c78" stroke-width="8" />
+                <circle cx="188" cy="30" r="16" fill="#ffffff" stroke="#1f9d88" stroke-width="8" />
+                <circle cx="248" cy="82" r="16" fill="#ffffff" stroke="#2aa792" stroke-width="8" />
+                <circle cx="308" cy="20" r="16" fill="#ffffff" stroke="#55d5be" stroke-width="8" />
+                <text x="332" y="138" font-size="62" font-weight="800" fill="#1f2b46" font-family="Arial, Helvetica, sans-serif">Curis</text>
+                <text x="502" y="138" font-size="62" font-weight="800" fill="#41c8b0" font-family="Arial, Helvetica, sans-serif">Data</text>
+            </svg>
+        </div>
+        <div style="font-size: 14px; color: #6c757d; margin-top: 6px;">
             Location Intelligence for Healthcare Real Estate
+        </div>
+        <div class="brand-links">
+            <a href="https://curiscorp.com" target="_blank" rel="noopener noreferrer">curiscorp.com</a>
+            <a href="https://curiscorp.com/#pricing" target="_blank" rel="noopener noreferrer">View Pricing</a>
+            <a href="https://curiscorp.com/data.html" target="_blank" rel="noopener noreferrer">Explore Data</a>
         </div>
     </div>
 </div>
@@ -549,63 +664,7 @@ window.initMap = initMap;
 
 </div><!-- END PAGE 3 -->
 
-<!-- ==================== PAGE 4: COMPETITIVE LANDSCAPE (UPDATED) ==================== -->
-<div class="page">
-    <h2>Market Trends & Analysis</h2>
-    
-    <h3>Competitive Landscape</h3>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Category</th>
-                <th>Number of Locations: <span id="max-radius-value">5</span>Mile Radius</th>
-                <th>Market Saturation</th>
-                <th>Opportunity</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Urgent Care Centers</td>
-                <td id="comp-urgent-care"><span class="loading">Loading...</span></td>
-                <td id="sat-urgent-care">-</td>
-                <td id="opp-urgent-care">-</td>
-            </tr>
-        </tbody>
-    </table>
-    
-    <div class="info-box warning">
-        <strong>⚠️ Market Opportunity:</strong>
-        Analysis indicates underserved demand in urgent care services. The population-to-provider ratio suggests capacity for additional urgent care facilities.
-    </div>
-</div>
-
-<!-- ==================== PAGE 4B: NEAREST URGENT CARE MAP + TABLE ==================== -->
-<div class="page">
-    <h2>Nearest Urgent Care Centers</h2>
-
-    <div id="urgent-care-map-container" style="width:100%; height:340px; border:2px solid #007bff; border-radius:4px; overflow:hidden; position:relative; margin-bottom:20px;">
-        <div id="urgent-care-map" style="width:100%; height:100%;"></div>
-        <div id="uc-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:150px; position:absolute; top:0; left:0; width:100%;">
-            Loading map…
-        </div>
-    </div>
-
-    <table id="detail-urgent-care">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Facility Name</th>
-                <th>Address</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td colspan="3" class="loading">Loading…</td></tr>
-        </tbody>
-    </table>
-</div>
-
-<!-- ==================== PAGE 4C: CURIS HEALTHCARE DEMAND ==================== -->
+<!-- ==================== PAGE 4: CURIS HEALTHCARE DEMAND ==================== -->
 <div class="page">
     <h2>Curis Healthcare Demand</h2>
 
@@ -691,6 +750,61 @@ window.initMap = initMap;
     </div>
 </div>
 
+<!-- ==================== PAGE 4: COMPETITIVE LANDSCAPE (UPDATED) ==================== -->
+<div class="page">
+    <h2>Market Trends & Analysis</h2>
+    
+    <h3>Competitive Landscape</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Number of Locations: <span id="max-radius-value">5</span>Mile Radius</th>
+                <th>Market Saturation</th>
+                <th>Opportunity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Urgent Care Centers</td>
+                <td id="comp-urgent-care"><span class="loading">Loading...</span></td>
+                <td id="sat-urgent-care">-</td>
+                <td id="opp-urgent-care">-</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="info-box warning">
+        <strong>⚠️ Market Opportunity:</strong>
+        Analysis indicates underserved demand in urgent care services. The population-to-provider ratio suggests capacity for additional urgent care facilities.
+    </div>
+</div>
+
+<!-- ==================== PAGE 4B: NEAREST URGENT CARE MAP + TABLE ==================== -->
+<div class="page">
+    <h2>Nearest Urgent Care Centers</h2>
+
+    <div id="urgent-care-map-container" style="width:100%; height:340px; border:3px solid #2fb486; border-radius:8px; overflow:hidden; position:relative; margin-bottom:20px;">
+        <div id="urgent-care-map" style="width:100%; height:100%;"></div>
+        <div id="uc-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:150px; position:absolute; top:0; left:0; width:100%;">
+            Loading map…
+        </div>
+    </div>
+
+    <table id="detail-urgent-care">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Facility Name</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="3" class="loading">Loading…</td></tr>
+        </tbody>
+    </table>
+</div>
 
 <!-- ==================== PAGE 5: ECONOMIC INDICATORS ==================== -->
 <div class="page">
@@ -984,7 +1098,7 @@ window.initMap = initMap;
         This choropleth map displays median household income across Census block groups within the trade area. Income concentration can help inform payer mix expectations and the commercial viability of an urgent care location.
     </div>
 
-    <div id="thematic-income-map-container" style="width:100%; height:480px; border:2px solid #007bff; border-radius:4px; overflow:hidden; position:relative; margin:15px 0;">
+    <div id="thematic-income-map-container" style="width:100%; height:480px; border:3px solid #2fb486; border-radius:8px; overflow:hidden; position:relative; margin:15px 0;">
         <div id="thematic-income-map" style="width:100%; height:100%;"></div>
         <div id="income-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:220px; position:absolute; top:0; left:0; width:100%;">
             Loading income map…
@@ -1015,7 +1129,7 @@ window.initMap = initMap;
         This choropleth map displays total population across Census block groups within the trade area. Population concentration helps highlight where urgent care demand is most likely to cluster.
     </div>
 
-    <div id="thematic-pop-map-container" style="width:100%; height:480px; border:2px solid #007bff; border-radius:4px; overflow:hidden; position:relative; margin:15px 0;">
+    <div id="thematic-pop-map-container" style="width:100%; height:480px; border:3px solid #2fb486; border-radius:8px; overflow:hidden; position:relative; margin:15px 0;">
         <div id="thematic-pop-map" style="width:100%; height:100%;"></div>
         <div id="pop-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:220px; position:absolute; top:0; left:0; width:100%;">
             Loading population map…
@@ -1038,7 +1152,7 @@ window.initMap = initMap;
 
     <div class="page-footer" style="margin-top:40px;">
         <div>Report Generated: <span id="footer-date">January 23, 2026</span></div>
-        <div style="margin-top: 5px;">CurisData | Location Intelligence for Healthcare Real Estate</div>
+        <div style="margin-top: 5px;">CurisData | Location Intelligence for Healthcare Real Estate | <a href="https://curiscorp.com" target="_blank" rel="noopener noreferrer">curiscorp.com</a></div>
         <div style="margin-top: 5px; font-size: 11px;">
             Data Sources: U.S. Census Bureau (ACS 5-Year Estimates), Google Maps Platform, Proprietary Analysis
         </div>
