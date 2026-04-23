@@ -379,6 +379,112 @@ section {
 }
 
 /* ── Pricing ── */
+.apps-section {
+    background: linear-gradient(180deg, #eef8f3 0%, #ffffff 100%);
+}
+
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.app-card {
+    background: #ffffff;
+    border: 1px solid #d0ece2;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 12px 32px rgba(11,79,58,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px rgba(11,79,58,0.12);
+}
+
+.app-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e0f5ec;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #1a8a68;
+    margin-bottom: 18px;
+}
+
+.app-card h3 {
+    font-size: 20px;
+    color: #0b3d2d;
+    margin-bottom: 12px;
+}
+
+.app-card p {
+    font-size: 14px;
+    color: #4a7060;
+    line-height: 1.75;
+    margin-bottom: 18px;
+}
+
+.app-points {
+    list-style: none;
+}
+
+.app-points li {
+    font-size: 14px;
+    color: #2d6b52;
+    line-height: 1.6;
+    padding: 7px 0 7px 22px;
+    position: relative;
+}
+
+.app-points li::before {
+    content: '+';
+    position: absolute;
+    left: 6px;
+    color: #4ecba0;
+    font-weight: 900;
+}
+
+/* â”€â”€ Methodology â”€â”€ */
+.methodology {
+    background-color: #ffffff;
+}
+
+.methodology-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.methodology-card {
+    background: #f4faf7;
+    border: 1px solid #d0ece2;
+    border-radius: 16px;
+    padding: 28px;
+}
+
+.methodology-card h3 {
+    font-size: 20px;
+    color: #0b3d2d;
+    margin-bottom: 12px;
+}
+
+.methodology-card p {
+    font-size: 15px;
+    color: #4a7060;
+    line-height: 1.75;
+}
+
 .pricing {
     background-color: #ffffff;
 }
