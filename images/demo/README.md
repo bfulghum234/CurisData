@@ -1,9 +1,9 @@
 Save frozen Fort Worth demo map images here using these filenames:
 
-- `Fort Worth-cover-map.png`
-- `Fort Worth-urgent-care-map.png`
-- `Fort Worth-income-map.png`
-- `Fort Worth-population-map.png`
+- `fort-worth-cover-map.png`
+- `fort-worth-urgent-care-map.png`
+- `fort-worth-income-map.png`
+- `fort-worth-population-map.png`
 
 Once those files exist, open:
 
