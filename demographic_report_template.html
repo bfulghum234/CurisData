@@ -315,6 +315,12 @@ td:not(:first-child) {
 
 
 @media print {
+  html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: #ffffff !important;
+  }
+
   /* Remove fixed widths so content scales to paper size */
   body, html, .main-container {
     width: 100% !important;
@@ -334,6 +340,9 @@ td:not(:first-child) {
     break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
   /* Last page: no trailing blank page */
@@ -1954,31 +1963,8 @@ setTimeout(bootstrapStandaloneAustinSample, 900);
 
 // PDF DOWNLOAD FUNCTION
 function downloadPDF() {
-  var element = document.getElementById('pdf-root') || document.body;
-  html2pdf()
-    .set({
-      margin: 0.5, filename: 'urgent-care-site-assessment-report.pdf',
-      html2canvas: {
-        scale: 2, useCORS: true, scrollX: 0, scrollY: 0, x: 0, y: 0, windowWidth: 816,
-        onclone: function(doc) {
-          doc.documentElement.style.width = '816px';
-          doc.documentElement.style.margin = '0'; doc.documentElement.style.padding = '0';
-          var b = doc.body;
-          b.style.width = '816px'; b.style.margin = '0'; b.style.padding = '0';
-          b.style.transform = 'none'; b.style.zoom = '1'; b.style.overflow = 'visible'; b.style.background = 'white';
-          var r = doc.getElementById('pdf-root');
-          if (r) { r.style.width = '100%'; r.style.margin = '0'; r.style.padding = '0'; }
-          doc.querySelectorAll('.page').forEach(function(p) {
-            p.style.width = '100%'; p.style.maxWidth = '100%'; p.style.margin = '0'; p.style.padding = '0';
-          });
-          var btn = doc.getElementById('download-btn');
-          if (btn) btn.style.display = 'none';
-        }
-      },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-      pagebreak: { mode: ['css','legacy'], before: '.page', avoid: ['table','.stat-card','.chart-container','.info-box'] }
-    })
-    .from(element).save();
+  window.focus();
+  window.print();
 }
 
 
