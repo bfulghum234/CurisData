@@ -106,33 +106,40 @@
 
   <script src="report_integration.js"></script>
   <script>
-    function createMapPlaceholder(address) {
+    let runtimeConfig = {
+      GOOGLE_MAPS_API_KEY: "",
+      CENSUS_API_KEY: ""
+    };
+
+    const previewAddress = "5900 Balcones Dr, Austin, TX 78731";
+    const previewLat = 30.3346;
+    const previewLng = -97.7607;
+    const previewRadii = [1, 3, 5];
+
+    function createAustinMapPlaceholder(title, subtitle) {
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="700" height="380" viewBox="0 0 700 380">
-          <defs>
-            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#d9ecff" />
-              <stop offset="100%" stop-color="#f5fbff" />
-            </linearGradient>
-          </defs>
-          <rect width="700" height="380" fill="url(#bg)" />
-          <g opacity="0.16" stroke="#0b6bcb" stroke-width="2">
-            <path d="M0 70 H700" />
-            <path d="M0 150 H700" />
-            <path d="M0 230 H700" />
-            <path d="M0 310 H700" />
-            <path d="M120 0 V380" />
-            <path d="M280 0 V380" />
-            <path d="M440 0 V380" />
-            <path d="M580 0 V380" />
+          <rect width="700" height="380" fill="#eef2eb"/>
+          <path d="M0 260 C110 220, 180 215, 275 240 S470 300, 700 250 L700 380 L0 380 Z" fill="#bdd8f2"/>
+          <path d="M0 282 C120 242, 210 244, 315 274 S510 332, 700 286" fill="none" stroke="#8db7dd" stroke-width="16" opacity="0.95"/>
+          <path d="M-20 122 C110 142, 190 96, 286 122 S452 190, 740 130" fill="none" stroke="#e9c46a" stroke-width="28" opacity="0.95"/>
+          <path d="M-20 122 C110 142, 190 96, 286 122 S452 190, 740 130" fill="none" stroke="#fff7dd" stroke-width="18" opacity="0.95"/>
+          <path d="M72 0 L165 380" stroke="#d7dbd2" stroke-width="8"/>
+          <path d="M242 -10 L318 390" stroke="#d7dbd2" stroke-width="8"/>
+          <path d="M462 -10 L522 390" stroke="#d7dbd2" stroke-width="8"/>
+          <g stroke="#9db9da" stroke-width="2" opacity="0.35">
+            <path d="M0 70 H700"/><path d="M0 150 H700"/><path d="M0 230 H700"/><path d="M0 310 H700"/>
+            <path d="M120 0 V380"/><path d="M280 0 V380"/><path d="M440 0 V380"/><path d="M580 0 V380"/>
           </g>
-          <circle cx="352" cy="180" r="72" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.45" />
-          <circle cx="352" cy="180" r="132" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.25" />
-          <circle cx="352" cy="180" r="10" fill="#e74c3c" />
-          <rect x="28" y="28" width="308" height="82" rx="14" fill="#ffffff" opacity="0.95" />
-          <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Preview Map Placeholder</text>
-          <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">${address}</text>
-          <text x="48" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">Preview mode uses sample data and a static placeholder map.</text>
+          <circle cx="352" cy="180" r="72" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.45"/>
+          <circle cx="352" cy="180" r="132" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.25"/>
+          <circle cx="352" cy="180" r="10" fill="#e74c3c"/>
+          <text x="92" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Balcones Dr</text>
+          <text x="498" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">MoPac Expy</text>
+          <text x="490" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Lake Austin</text>
+          <rect x="28" y="28" width="332" height="84" rx="14" fill="#ffffff" opacity="0.95" />
+          <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">${title}</text>
+          <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">${subtitle}</text>
         </svg>`;
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     }
@@ -194,50 +201,27 @@
       };
     }
 
-    function getPreviewPayload() {
-      const address = "5900 Balcones Dr, Austin, TX 78731";
+    function buildAustinFallbackPayload(reason) {
+      console.warn("Using Austin fallback preview payload:", reason);
       return {
-        address,
-        radii: [1, 3, 5],
-        mapImageUrl: createMapPlaceholder(address),
+        address: previewAddress,
+        radii: previewRadii,
+        mapImageUrl: createAustinMapPlaceholder("Austin Sample Trade Area", "5900 Balcones Dr, Austin, TX 78731"),
         demographicData: {
           "1mile": buildRadiusData(15680, 6280, 3810, 98200, 88100, 76000),
           "3mile": buildRadiusData(89240, 34980, 21140, 101500, 88100, 76000),
           "5mile": buildRadiusData(214600, 84220, 50110, 104800, 88100, 76000)
         },
         facilityCounts: {
-          urgentCare: 14,
-          centerLat: 30.3346,
-          centerLng: -97.7607,
-          urgentCareDetails: [
-            { name: "CareNow Urgent Care", address: "3801 N Capital of Texas Hwy, Austin, TX" },
-            { name: "FastMed Urgent Care", address: "10001 Research Blvd, Austin, TX" },
-            { name: "Premier ER & Urgent Care", address: "3300 Bee Caves Rd, West Lake Hills, TX" },
-            { name: "Baylor Scott & White Urgent Care", address: "11001 Lakeline Mall Dr, Austin, TX" },
-            { name: "Ascension Seton Express Care", address: "2500 W Parmer Ln, Austin, TX" },
-            { name: "NextCare Urgent Care", address: "1701 W Ben White Blvd, Austin, TX" },
-            { name: "Carbon Health Urgent Care", address: "3300 W Anderson Ln, Austin, TX" },
-            { name: "Austin Regional Clinic After Hours", address: "6835 Austin Center Blvd, Austin, TX" }
-          ]
+          ...getFallbackFacilityCounts(),
+          urgentCare: 14
         },
         healthcareDemand: {
           maxRadius: 5,
           byRadius: {
-            "1mile": {
-              totalDemand: 1480,
-              demandPer1000: 94.4,
-              topServiceLine: { label: "Respiratory & Viral" }
-            },
-            "3mile": {
-              totalDemand: 7920,
-              demandPer1000: 88.8,
-              topServiceLine: { label: "Respiratory & Viral" }
-            },
-            "5mile": {
-              totalDemand: 17640,
-              demandPer1000: 82.2,
-              topServiceLine: { label: "Respiratory & Viral" }
-            }
+            "1mile": { totalDemand: 1480, demandPer1000: 94.4, topServiceLine: { label: "Respiratory & Viral" } },
+            "3mile": { totalDemand: 7920, demandPer1000: 88.8, topServiceLine: { label: "Respiratory & Viral" } },
+            "5mile": { totalDemand: 17640, demandPer1000: 82.2, topServiceLine: { label: "Respiratory & Viral" } }
           },
           tableRows: [
             { label: "Respiratory & Viral", values: [420, 2210, 4880], shareOfMax: 27.7 },
@@ -246,21 +230,213 @@
             { label: "Skin & Soft Tissue", values: [180, 980, 2270], shareOfMax: 12.9 },
             { label: "GI / Dehydration", values: [150, 760, 1810], shareOfMax: 10.3 }
           ],
-          summaryText: "Respiratory & Viral is the leading Curis demand driver within the 5-mile trade area, contributing 4,880 estimated annual demand events and 82.2 demand events per 1,000 residents overall."
+          summaryText: "Austin sample preview is using a saved CurisData-style fallback snapshot because live file-based preview could not reach the full data pipeline."
         }
       };
     }
 
-    function loadPreview() {
-      const payload = getPreviewPayload();
-      populateReportTemplate(
-        payload.address,
-        payload.demographicData,
-        payload.facilityCounts,
-        payload.mapImageUrl,
-        payload.radii,
-        payload.healthcareDemand
-      );
+    function buildEndpointCandidates(paths) {
+      const candidates = [];
+      const basePath = window.location.pathname.replace(/[^/]+$/, "");
+
+      for (const path of paths) {
+        const normalized = path.replace(/^\/+/, "");
+        candidates.push("/" + normalized);
+        candidates.push(basePath + normalized);
+      }
+
+      return [...new Set(candidates)];
+    }
+
+    async function loadRuntimeConfig() {
+      const configEndpoints = buildEndpointCandidates(["api/login", "login"]);
+
+      for (const endpoint of configEndpoints) {
+        try {
+          const response = await fetch(endpoint, { method: "GET" });
+          if (!response.ok) continue;
+
+          const config = await response.json();
+          const googleMapsApiKey = config.googleMapsApiKey || "";
+          const censusApiKey = config.censusApiKey || "";
+          if (!googleMapsApiKey) continue;
+
+          runtimeConfig = {
+            GOOGLE_MAPS_API_KEY: googleMapsApiKey,
+            CENSUS_API_KEY: censusApiKey
+          };
+
+          window.runtimeConfig = runtimeConfig;
+          sessionStorage.setItem("runtimeConfig", JSON.stringify({
+            googleMapsApiKey,
+            censusApiKey
+          }));
+          return true;
+        } catch (error) {
+          console.warn("Preview runtime config attempt failed:", endpoint, error);
+        }
+      }
+
+      const cachedConfig = sessionStorage.getItem("runtimeConfig");
+      if (cachedConfig) {
+        try {
+          const parsed = JSON.parse(cachedConfig);
+          if (parsed.googleMapsApiKey) {
+            runtimeConfig = {
+              GOOGLE_MAPS_API_KEY: parsed.googleMapsApiKey,
+              CENSUS_API_KEY: parsed.censusApiKey || ""
+            };
+            window.runtimeConfig = runtimeConfig;
+            return true;
+          }
+        } catch (error) {
+          console.warn("Preview runtime cache parse failed:", error);
+        }
+      }
+
+      return false;
+    }
+
+    function loadGoogleMapsScript() {
+      if (window.google?.maps) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve, reject) => {
+        window.__initCurisPreviewMap = () => resolve();
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(runtimeConfig.GOOGLE_MAPS_API_KEY)}&libraries=places&callback=__initCurisPreviewMap`;
+        script.async = true;
+        script.defer = true;
+        script.onerror = () => reject(new Error("Failed to load Google Maps script."));
+        document.head.appendChild(script);
+      });
+    }
+
+    function ensureHiddenMap() {
+      if (window.map?.getCenter) return;
+      const hiddenDiv = document.createElement("div");
+      hiddenDiv.style.width = "1px";
+      hiddenDiv.style.height = "1px";
+      hiddenDiv.style.position = "absolute";
+      hiddenDiv.style.left = "-9999px";
+      hiddenDiv.style.top = "-9999px";
+      document.body.appendChild(hiddenDiv);
+      window.map = new google.maps.Map(hiddenDiv, {
+        center: { lat: previewLat, lng: previewLng },
+        zoom: 12
+      });
+    }
+
+    function getFallbackFacilityCounts() {
+      return {
+        urgentCare: 8,
+        centerLat: previewLat,
+        centerLng: previewLng,
+        urgentCareDetails: [
+          { name: "CareNow Urgent Care", address: "3801 N Capital of Texas Hwy, Austin, TX", lat: 30.3621, lng: -97.7969 },
+          { name: "FastMed Urgent Care", address: "10001 Research Blvd, Austin, TX", lat: 30.3928, lng: -97.7461 },
+          { name: "Premier ER & Urgent Care", address: "3300 Bee Caves Rd, West Lake Hills, TX", lat: 30.2751, lng: -97.8016 },
+          { name: "Ascension Seton Express Care", address: "2500 W Parmer Ln, Austin, TX", lat: 30.4184, lng: -97.7069 },
+          { name: "Carbon Health Urgent Care", address: "3300 W Anderson Ln, Austin, TX", lat: 30.3589, lng: -97.7427 }
+        ]
+      };
+    }
+
+    async function buildRealAustinPreviewPayload() {
+      try {
+        await Promise.all([
+          loadBlockGroupData(),
+          loadDemographicCSV(),
+          loadAcsPctCSV()
+        ]);
+
+        await loadCurisDemandCSV();
+
+        const demographicData = await fetchMultiRadiusDataFromCSV(previewLat, previewLng, previewRadii);
+        const healthcareDemand = await buildHealthcareDemandSummary(previewLat, previewLng, previewRadii, demographicData);
+
+        let facilityCounts = getFallbackFacilityCounts();
+        let mapImageUrl = "";
+
+        if (runtimeConfig.GOOGLE_MAPS_API_KEY) {
+          await loadGoogleMapsScript();
+          ensureHiddenMap();
+
+          try {
+            const urgentCareResults = await fetchNearbyPlaces(previewLat, previewLng, Math.max(...previewRadii), "urgent_care");
+            if (urgentCareResults?.length) {
+              facilityCounts = {
+                urgentCare: urgentCareResults.length,
+                centerLat: previewLat,
+                centerLng: previewLng,
+                urgentCareDetails: urgentCareResults.slice(0, 10).map(function(place) {
+                  return {
+                    name: place.name || "Unknown",
+                    address: place.formatted_address || place.vicinity || "N/A",
+                    lat: place.geometry ? place.geometry.location.lat() : null,
+                    lng: place.geometry ? place.geometry.location.lng() : null
+                  };
+                })
+              };
+            }
+          } catch (error) {
+            console.warn("Preview urgent care lookup failed, using fallback facilities:", error);
+          }
+
+          try {
+            mapImageUrl = await generateMapSnapshot(new google.maps.LatLng(previewLat, previewLng));
+          } catch (error) {
+            console.warn("Preview static map snapshot failed, using fallback template rendering:", error);
+          }
+        }
+
+        return {
+          address: previewAddress,
+          radii: previewRadii,
+          mapImageUrl,
+          demographicData,
+          facilityCounts,
+          healthcareDemand
+        };
+      } catch (error) {
+        return buildAustinFallbackPayload(error);
+      }
+    }
+
+    async function loadPreview() {
+      try {
+        const hasRuntimeConfig = await loadRuntimeConfig();
+        if (!hasRuntimeConfig) {
+          console.warn("Preview runtime config unavailable. Falling back to data-only mode.");
+        }
+
+        const payload = await buildRealAustinPreviewPayload();
+        const iframeWindow = iframe.contentWindow;
+        if (iframeWindow && window.google?.maps) {
+          iframeWindow.google = window.google;
+        }
+
+        populateReportTemplate(
+          payload.address,
+          payload.demographicData,
+          payload.facilityCounts,
+          payload.mapImageUrl,
+          payload.radii,
+          payload.healthcareDemand
+        );
+      } catch (error) {
+        console.error("Failed to build Austin preview payload:", error);
+        const payload = buildAustinFallbackPayload(error);
+        populateReportTemplate(
+          payload.address,
+          payload.demographicData,
+          payload.facilityCounts,
+          payload.mapImageUrl,
+          payload.radii,
+          payload.healthcareDemand
+        );
+      }
     }
 
     const iframe = document.getElementById("report-iframe");

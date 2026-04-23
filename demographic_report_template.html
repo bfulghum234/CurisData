@@ -273,8 +273,8 @@ td:not(:first-child) {
 
 </style>
 
-<!-- Google Maps: loaded dynamically from config.js key, or inherited from parent iframe -->
-<script src="config.js"></script>
+<!-- Shared report logic and CSV loaders -->
+<script src="report_integration.js"></script>
 <script>
 // initMap stub — required by the Google Maps callback
 // When running standalone, this triggers facility fetch after API is ready.
@@ -294,9 +294,13 @@ window.initMap = initMap;
         console.log('Google Maps already available (inherited from parent)');
         return;
     }
-    // Get API key from config.js
-    var apiKey = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_MAPS_API_KEY)
-        ? CONFIG.GOOGLE_MAPS_API_KEY : '';
+    // Get API key from runtime config or legacy config.js if present
+    var apiKey = '';
+    if (typeof runtimeConfig !== 'undefined' && runtimeConfig && runtimeConfig.GOOGLE_MAPS_API_KEY) {
+        apiKey = runtimeConfig.GOOGLE_MAPS_API_KEY;
+    } else if (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.GOOGLE_MAPS_API_KEY) {
+        apiKey = CONFIG.GOOGLE_MAPS_API_KEY;
+    }
     if (!apiKey) {
         console.warn('No Google Maps API key found in CONFIG');
         return;
@@ -1406,6 +1410,140 @@ function buildThematicMap(mapDivId, placeholderId, geoFeatures, dataMap, metric,
 }
 window.buildThematicMap = buildThematicMap;
 
+function createPreviewSvgDataUrl(svg) {
+    return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+}
+
+function injectPreviewMapImage(containerId, placeholderId, svgMarkup) {
+    var container = document.getElementById(containerId);
+    var placeholder = document.getElementById(placeholderId);
+    if (!container) return;
+
+    if (placeholder) placeholder.style.display = "none";
+    container.innerHTML = '<img alt="Preview map" src="' + createPreviewSvgDataUrl(svgMarkup) + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
+}
+
+function renderPreviewPlaceholderMaps() {
+    var params = new URLSearchParams(window.location.search);
+    var isPreviewMode = params.get("preview") === "1";
+    var reportAddress = document.getElementById("report-address");
+    var isStandaloneTemplate = !isPreviewMode && reportAddress && reportAddress.textContent.trim() === "Address";
+
+    if (!isPreviewMode && !isStandaloneTemplate) return;
+
+    var reportMapImg = document.getElementById("report-map-image");
+    var reportMapEmbed = document.getElementById("report-map-embed");
+    var reportPlaceholder = document.getElementById("map-placeholder-text");
+
+    if (reportMapImg && !reportMapImg.getAttribute("src")) {
+        reportMapImg.src = createPreviewSvgDataUrl(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="700" height="380" viewBox="0 0 700 380">
+                <rect width="700" height="380" fill="#edf2ec"/>
+                <path d="M0 260 C110 220, 180 215, 275 240 S470 300, 700 250 L700 380 L0 380 Z" fill="#bdd8f2"/>
+                <path d="M0 282 C120 242, 210 244, 315 274 S510 332, 700 286" fill="none" stroke="#8db7dd" stroke-width="16" opacity="0.95"/>
+                <path d="M-20 122 C110 142, 190 96, 286 122 S452 190, 740 130" fill="none" stroke="#e9c46a" stroke-width="28" opacity="0.95"/>
+                <path d="M-20 122 C110 142, 190 96, 286 122 S452 190, 740 130" fill="none" stroke="#fff7dd" stroke-width="18" opacity="0.95"/>
+                <path d="M72 0 L165 380" stroke="#d7dbd2" stroke-width="8"/>
+                <path d="M242 -10 L318 390" stroke="#d7dbd2" stroke-width="8"/>
+                <path d="M462 -10 L522 390" stroke="#d7dbd2" stroke-width="8"/>
+                <path d="M0 70 H700"/><path d="M0 150 H700"/><path d="M0 230 H700"/><path d="M0 310 H700"/>
+                    <path d="M120 0 V380"/><path d="M280 0 V380"/><path d="M440 0 V380"/><path d="M580 0 V380"/>
+                <g stroke="#9db9da" stroke-width="2" opacity="0.35">
+                    <path d="M0 70 H700"/><path d="M0 150 H700"/><path d="M0 230 H700"/><path d="M0 310 H700"/>
+                    <path d="M120 0 V380"/><path d="M280 0 V380"/><path d="M440 0 V380"/><path d="M580 0 V380"/>
+                </g>
+                <circle cx="352" cy="180" r="72" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.45"/>
+                <circle cx="352" cy="180" r="132" fill="none" stroke="#0b6bcb" stroke-width="4" opacity="0.25"/>
+                <circle cx="352" cy="180" r="10" fill="#e74c3c"/>
+                <circle cx="612" cy="120" r="16" fill="#1a73e8"/><text x="612" y="126" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">1</text>
+                <text x="88" y="110" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Camp Bowie Blvd</text>
+                <text x="498" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">I-30</text>
+                <text x="490" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Trinity River</text>
+                <rect x="28" y="28" width="320" height="84" rx="14" fill="#ffffff" opacity="0.95"/>
+                <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Sample Trade Area Map</text>
+                <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">Basemap-style placeholder with radii and site pin</text>
+            </svg>
+        `);
+        reportMapImg.style.display = "block";
+        if (reportMapEmbed) reportMapEmbed.style.display = "none";
+        if (reportPlaceholder) reportPlaceholder.style.display = "none";
+    }
+
+    injectPreviewMapImage("urgent-care-map", "uc-map-placeholder", `
+        <svg xmlns="http://www.w3.org/2000/svg" width="900" height="340" viewBox="0 0 900 340">
+            <rect width="900" height="340" fill="#eef2eb"/>
+            <path d="M0 245 C140 210, 280 208, 390 228 S640 292, 900 248 L900 340 L0 340 Z" fill="#c6dcf3"/>
+            <path d="M0 262 C160 222, 300 222, 430 246 S690 308, 900 268" fill="none" stroke="#8fb8dc" stroke-width="14"/>
+            <path d="M-20 76 C100 120, 238 62, 360 94 S624 154, 920 84" fill="none" stroke="#f0cc6c" stroke-width="24"/>
+            <path d="M-20 76 C100 120, 238 62, 360 94 S624 154, 920 84" fill="none" stroke="#fff7de" stroke-width="14"/>
+            <path d="M44 0 L120 340" stroke="#d8ddd3" stroke-width="8"/>
+            <path d="M250 0 L250 340" stroke="#d8ddd3" stroke-width="8"/>
+            <path d="M470 0 L560 340" stroke="#d8ddd3" stroke-width="8"/>
+            <path d="M720 0 L690 340" stroke="#d8ddd3" stroke-width="8"/>
+            <g stroke="#cdd9e4" stroke-width="2" opacity="0.45">
+                <path d="M0 68 H900"/><path d="M0 136 H900"/><path d="M0 204 H900"/><path d="M0 272 H900"/>
+                <path d="M150 0 V340"/><path d="M300 0 V340"/><path d="M450 0 V340"/><path d="M600 0 V340"/><path d="M750 0 V340"/>
+            </g>
+            <circle cx="430" cy="170" r="80" fill="none" stroke="#0b6bcb" stroke-width="5" opacity="0.25"/>
+            <circle cx="430" cy="170" r="10" fill="#0b6bcb"/>
+            <g font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="16" text-anchor="middle">
+                <circle cx="330" cy="110" r="18" fill="#dc3545"/><text x="330" y="116" fill="#fff">1</text>
+                <circle cx="520" cy="100" r="18" fill="#dc3545"/><text x="520" y="116" fill="#fff">2</text>
+                <circle cx="580" cy="170" r="18" fill="#dc3545"/><text x="580" y="176" fill="#fff">3</text>
+                <circle cx="345" cy="230" r="18" fill="#dc3545"/><text x="345" y="236" fill="#fff">4</text>
+                <circle cx="520" cy="245" r="18" fill="#dc3545"/><text x="520" y="251" fill="#fff">5</text>
+            </g>
+            <text x="92" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#66788a">MoPac Expy</text>
+            <text x="690" y="102" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#66788a">RM 2222</text>
+            <text x="660" y="294" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#66788a">Lake Austin</text>
+            <rect x="24" y="22" width="290" height="70" rx="14" fill="#ffffff" opacity="0.96"/>
+            <text x="42" y="52" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Nearest Urgent Care</text>
+            <text x="42" y="76" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#53687b">Basemap-style placeholder with numbered facility pins</text>
+        </svg>
+    `);
+
+    injectPreviewMapImage("thematic-income-map", "income-map-placeholder", `
+        <svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480">
+            <rect width="900" height="480" fill="#f8fbfd"/>
+            <g stroke="#ffffff" stroke-width="3">
+                <path d="M60 80 L190 50 L280 120 L210 220 L80 190 Z" fill="#ffffcc"/>
+                <path d="M190 50 L350 40 L410 125 L280 120 Z" fill="#c7e9b4"/>
+                <path d="M410 125 L560 90 L620 180 L470 220 Z" fill="#7fcdbb"/>
+                <path d="M210 220 L280 120 L470 220 L360 320 L190 330 Z" fill="#41b6c4"/>
+                <path d="M470 220 L620 180 L720 270 L560 360 L360 320 Z" fill="#1d91c0"/>
+                <path d="M80 190 L210 220 L190 330 L90 310 Z" fill="#225ea8"/>
+                <path d="M190 330 L360 320 L560 360 L360 430 L170 420 Z" fill="#0c2c84"/>
+            </g>
+            <circle cx="430" cy="210" r="9" fill="#e74c3c"/>
+            <rect x="28" y="24" width="330" height="78" rx="14" fill="#ffffff" opacity="0.96"/>
+            <text x="48" y="56" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#17324d">Median Household Income</text>
+            <text x="48" y="82" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#53687b">Sample choropleth placeholder for preview mode</text>
+        </svg>
+    `);
+
+    injectPreviewMapImage("thematic-pop-map", "pop-map-placeholder", `
+        <svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480">
+            <rect width="900" height="480" fill="#fdf8f7"/>
+            <g stroke="#ffffff" stroke-width="3">
+                <path d="M70 95 L200 60 L305 118 L220 210 L96 192 Z" fill="#fee5d9"/>
+                <path d="M200 60 L356 42 L434 120 L305 118 Z" fill="#fcbba1"/>
+                <path d="M434 120 L572 92 L646 176 L500 220 Z" fill="#fc9272"/>
+                <path d="M220 210 L305 118 L500 220 L380 322 L204 330 Z" fill="#fb6a4a"/>
+                <path d="M500 220 L646 176 L736 276 L570 366 L380 322 Z" fill="#ef3b2c"/>
+                <path d="M96 192 L220 210 L204 330 L98 306 Z" fill="#cb181d"/>
+                <path d="M204 330 L380 322 L570 366 L366 432 L176 420 Z" fill="#67000d"/>
+            </g>
+            <circle cx="430" cy="210" r="9" fill="#0b6bcb"/>
+            <rect x="28" y="24" width="290" height="78" rx="14" fill="#ffffff" opacity="0.96"/>
+            <text x="48" y="56" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#17324d">Population Density</text>
+            <text x="48" y="82" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#53687b">Sample choropleth placeholder for preview mode</text>
+        </svg>
+    `);
+}
+
+setTimeout(renderPreviewPlaceholderMaps, 250);
+setTimeout(renderPreviewPlaceholderMaps, 1200);
+
 // Standalone fallback for when report HTML is opened directly (not in iframe)
 async function fetchFacilityCounts() {
     try {
@@ -1482,6 +1620,232 @@ if (_reportMapImg) {
 
 // fetchFacilityCounts is called by initMap() callback when API loads standalone,
 // or by the parent via populateReportTemplate when in iframe.
+
+async function loadStandaloneRuntimeConfig() {
+    const endpoints = ['/api/login', '/login', 'api/login', 'login'];
+    for (const endpoint of endpoints) {
+        try {
+            const response = await fetch(endpoint, { method: 'GET' });
+            if (!response.ok) continue;
+
+            const config = await response.json();
+            if (!config || !config.googleMapsApiKey) continue;
+
+            window.runtimeConfig = {
+                GOOGLE_MAPS_API_KEY: config.googleMapsApiKey,
+                CENSUS_API_KEY: config.censusApiKey || ''
+            };
+            return window.runtimeConfig;
+        } catch (error) {
+            console.warn('Standalone runtime config attempt failed:', endpoint, error);
+        }
+    }
+    return window.runtimeConfig || null;
+}
+
+function loadStandaloneGoogleMapsScript() {
+    if (typeof google !== 'undefined' && google.maps) {
+        return Promise.resolve();
+    }
+
+    const apiKey =
+        (typeof runtimeConfig !== 'undefined' && runtimeConfig && runtimeConfig.GOOGLE_MAPS_API_KEY) ||
+        (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.GOOGLE_MAPS_API_KEY) ||
+        '';
+
+    if (!apiKey) {
+        return Promise.resolve();
+    }
+
+    return new Promise(function(resolve, reject) {
+        window.__initStandaloneAustinMap = function() { resolve(); };
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=' +
+            encodeURIComponent(apiKey) +
+            '&libraries=places&callback=__initStandaloneAustinMap';
+        script.async = true;
+        script.defer = true;
+        script.onerror = function() { reject(new Error('Failed to load Google Maps API')); };
+        document.head.appendChild(script);
+    });
+}
+
+function ensureStandaloneHiddenMap(lat, lng) {
+    if (typeof google === 'undefined' || !google.maps) return null;
+    if (window.map && typeof window.map.getCenter === 'function') return window.map;
+
+    const hiddenDiv = document.createElement('div');
+    hiddenDiv.style.width = '1px';
+    hiddenDiv.style.height = '1px';
+    hiddenDiv.style.position = 'absolute';
+    hiddenDiv.style.left = '-9999px';
+    hiddenDiv.style.top = '-9999px';
+    document.body.appendChild(hiddenDiv);
+
+    window.map = new google.maps.Map(hiddenDiv, {
+        center: { lat: lat, lng: lng },
+        zoom: 12
+    });
+
+    return window.map;
+}
+
+function getStandaloneFallbackFacilities() {
+    return {
+        urgentCare: 8,
+        centerLat: 30.3346,
+        centerLng: -97.7607,
+        urgentCareDetails: [
+            { name: 'CareNow Urgent Care', address: '3801 N Capital of Texas Hwy, Austin, TX', lat: 30.3621, lng: -97.7969 },
+            { name: 'FastMed Urgent Care', address: '10001 Research Blvd, Austin, TX', lat: 30.3928, lng: -97.7461 },
+            { name: 'Premier ER & Urgent Care', address: '3300 Bee Caves Rd, West Lake Hills, TX', lat: 30.2751, lng: -97.8016 },
+            { name: 'Ascension Seton Express Care', address: '2500 W Parmer Ln, Austin, TX', lat: 30.4184, lng: -97.7069 },
+            { name: 'Carbon Health Urgent Care', address: '3300 W Anderson Ln, Austin, TX', lat: 30.3589, lng: -97.7427 }
+        ]
+    };
+}
+
+async function bootstrapStandaloneAustinSample() {
+    const isInIframe = window.self !== window.top;
+    const reportAddress = document.getElementById('report-address');
+    if (isInIframe || !reportAddress || reportAddress.textContent.trim() !== 'Address') return;
+    if (typeof loadBlockGroupData !== 'function' || typeof fetchMultiRadiusDataFromCSV !== 'function') return;
+
+    const address = '5900 Balcones Dr, Austin, TX 78731';
+    const lat = 30.3346;
+    const lng = -97.7607;
+    const radii = [1, 3, 5];
+
+    try {
+        await loadStandaloneRuntimeConfig();
+        await Promise.all([
+            loadBlockGroupData(),
+            loadDemographicCSV(),
+            loadAcsPctCSV()
+        ]);
+        await loadCurisDemandCSV();
+
+        try {
+            await loadStandaloneGoogleMapsScript();
+            ensureStandaloneHiddenMap(lat, lng);
+        } catch (mapsError) {
+            console.warn('Standalone Austin sample could not load Google Maps:', mapsError);
+        }
+
+        const demographicData = await fetchMultiRadiusDataFromCSV(lat, lng, radii);
+        const healthcareDemand = await buildHealthcareDemandSummary(lat, lng, radii, demographicData);
+        let facilityCounts = getStandaloneFallbackFacilities();
+        let mapImageUrl = '';
+
+        if (typeof google !== 'undefined' && google.maps) {
+            try {
+                const urgentCareResults = await fetchNearbyPlaces(lat, lng, Math.max.apply(null, radii), 'urgent_care');
+                if (urgentCareResults && urgentCareResults.length) {
+                    facilityCounts = {
+                        urgentCare: urgentCareResults.length,
+                        centerLat: lat,
+                        centerLng: lng,
+                        urgentCareDetails: urgentCareResults.slice(0, 10).map(function(place) {
+                            return {
+                                name: place.name || 'Unknown',
+                                address: place.formatted_address || place.vicinity || 'N/A',
+                                lat: place.geometry ? place.geometry.location.lat() : null,
+                                lng: place.geometry ? place.geometry.location.lng() : null
+                            };
+                        })
+                    };
+                }
+            } catch (placesError) {
+                console.warn('Standalone Austin urgent care lookup failed, using fallback facilities:', placesError);
+            }
+
+            try {
+                mapImageUrl = await generateMapSnapshot(new google.maps.LatLng(lat, lng));
+            } catch (snapshotError) {
+                console.warn('Standalone Austin static map snapshot failed:', snapshotError);
+            }
+        }
+
+        setIfExists(document, 'report-address', address);
+        const formattedDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        setIfExists(document, 'report-date', formattedDate);
+        setIfExists(document, 'footer-date', formattedDate);
+
+        const mapImg = document.getElementById('report-map-image');
+        if (mapImg && mapImageUrl) {
+            mapImg.src = mapImageUrl;
+            mapImg.style.display = 'block';
+        }
+
+        if (typeof initReportMap === 'function') {
+            try { initReportMap(lat, lng, radii, 11); } catch (mapError) { console.warn('Standalone cover map init failed:', mapError); }
+        }
+
+        setIfExists(document, 'comp-urgent-care', facilityCounts.urgentCare || 0);
+        const metrics = calculateMarketMetrics(facilityCounts.urgentCare || 0);
+        setIfExists(document, 'sat-urgent-care', metrics.saturation);
+        setIfExists(document, 'opp-urgent-care', metrics.opportunity);
+
+        populateFacilityTable('detail-urgent-care', facilityCounts.urgentCareDetails || []);
+        try {
+            buildUrgentCareMap(facilityCounts.urgentCareDetails || [], lat, lng);
+        } catch (urgentCareMapError) {
+            console.warn('Standalone urgent care map failed:', urgentCareMapError);
+        }
+
+        populateAllDemographics(document, demographicData, radii);
+        populateHealthcareDemand(document, healthcareDemand, radii);
+
+        if (blockGroupData && blockGroupData.features && demographicDataByGeoid) {
+            const radiusLookup = getBlockGroupsByRadius(lat, lng, radii);
+            const allGeoids = radiusLookup.allGeoids || [];
+            const perGeoid = getCSVDataForGeoids(allGeoids);
+            const relevantFeatures = blockGroupData.features.filter(function(feature) {
+                const featureGeoid = normalizeGeoid(feature && feature.properties && (feature.properties.GEOID || feature.properties.GEOID20));
+                return featureGeoid && allGeoids.includes(featureGeoid);
+            });
+
+            try {
+                buildThematicMap(
+                    'thematic-income-map',
+                    'income-map-placeholder',
+                    relevantFeatures,
+                    perGeoid,
+                    'medianIncome',
+                    ['#ffffcc','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84'],
+                    lat,
+                    lng
+                );
+            } catch (incomeMapError) {
+                console.warn('Standalone income thematic map failed:', incomeMapError);
+            }
+
+            try {
+                buildThematicMap(
+                    'thematic-pop-map',
+                    'pop-map-placeholder',
+                    relevantFeatures,
+                    perGeoid,
+                    'population',
+                    ['#fee5d9','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#67000d'],
+                    lat,
+                    lng
+                );
+            } catch (populationMapError) {
+                console.warn('Standalone population thematic map failed:', populationMapError);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to bootstrap standalone Austin sample report:', error);
+    }
+}
+
+setTimeout(bootstrapStandaloneAustinSample, 150);
+setTimeout(bootstrapStandaloneAustinSample, 900);
 
 // PDF DOWNLOAD FUNCTION
 function downloadPDF() {
