@@ -69,6 +69,11 @@
     color: #0b6bcb;
   }
 
+  .tertiary {
+    background: #f4f8f3;
+    color: #1d6b43;
+  }
+
   .frame-wrap {
     border: 1px solid #d5e0ea;
     border-radius: 14px;
@@ -95,6 +100,7 @@
       </div>
       <div class="actions">
         <button class="primary" id="reload-preview" type="button">Reload Preview</button>
+        <button class="tertiary" id="open-frozen-preview" type="button">Open Frozen Demo</button>
         <button class="secondary" id="open-template" type="button">Open Template Only</button>
       </div>
     </div>
@@ -106,6 +112,8 @@
 
   <script src="report_integration.js"></script>
   <script>
+    window.__CURIS_SUPPRESS_DATA_ALERTS = true;
+
     let runtimeConfig = {
       GOOGLE_MAPS_API_KEY: "",
       CENSUS_API_KEY: ""
@@ -115,6 +123,7 @@
     const previewLat = 30.3346;
     const previewLng = -97.7607;
     const previewRadii = [1, 3, 5];
+    const frozenPreviewSrc = "demographic_report_template.html?preview=1&demoMaps=frozen";
 
     function createAustinMapPlaceholder(title, subtitle) {
       const svg = `
@@ -441,14 +450,18 @@
 
     const iframe = document.getElementById("report-iframe");
     const reloadButton = document.getElementById("reload-preview");
+    const frozenButton = document.getElementById("open-frozen-preview");
     const templateButton = document.getElementById("open-template");
 
     iframe.addEventListener("load", loadPreview);
     reloadButton.addEventListener("click", function() {
       iframe.src = "demographic_report_template.html?preview=1";
     });
+    frozenButton.addEventListener("click", function() {
+      iframe.src = frozenPreviewSrc;
+    });
     templateButton.addEventListener("click", function() {
-      window.open("demographic_report_template.html?preview=1", "_blank");
+      window.open(frozenPreviewSrc, "_blank");
     });
   </script>
 </body>

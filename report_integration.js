@@ -96,9 +96,26 @@ async function fetchFirstAvailable(candidates, responseType = 'text') {
   throw lastError || new Error('Unable to fetch any configured data source');
 }
 
+function shouldSuppressDataAlerts() {
+  if (typeof window === "undefined") return false;
+  if (window.__CURIS_SUPPRESS_DATA_ALERTS) return true;
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("preview") === "1") return true;
+  } catch (error) {
+    // ignore URL parsing issues
+  }
+
+  return false;
+}
+
 function getGoogleMapsApiKey() {
   if (typeof runtimeConfig !== 'undefined' && runtimeConfig?.GOOGLE_MAPS_API_KEY) {
     return runtimeConfig.GOOGLE_MAPS_API_KEY;
+  }
+  if (typeof window !== "undefined" && window.runtimeConfig?.GOOGLE_MAPS_API_KEY) {
+    return window.runtimeConfig.GOOGLE_MAPS_API_KEY;
   }
   throw new Error('Google Maps API key is unavailable. Ensure Cloudflare login function returns googleMapsApiKey.');
 }
@@ -230,10 +247,12 @@ async function loadDemographicCSV() {
     return demographicDataByGeoid;
   } catch (error) {
     console.error("Error loading demographic CSV:", error);
-    alert(
-      "Error: Could not load texas_blockgroup_demographics_2022.csv. " +
-        "Check the console for attempted file paths and update the CSV path if needed."
-    );
+    if (!shouldSuppressDataAlerts()) {
+      alert(
+        "Error: Could not load texas_blockgroup_demographics_2022.csv. " +
+          "Check the console for attempted file paths and update the CSV path if needed."
+      );
+    }
     throw error;
   }
 }

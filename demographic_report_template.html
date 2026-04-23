@@ -276,6 +276,7 @@ td:not(:first-child) {
 <!-- Shared report logic and CSV loaders -->
 <script src="report_integration.js"></script>
 <script>
+window.__CURIS_SUPPRESS_DATA_ALERTS = true;
 // initMap stub — required by the Google Maps callback
 // When running standalone, this triggers facility fetch after API is ready.
 // When in an iframe, the parent already has google.maps loaded.
@@ -298,6 +299,8 @@ window.initMap = initMap;
     var apiKey = '';
     if (typeof runtimeConfig !== 'undefined' && runtimeConfig && runtimeConfig.GOOGLE_MAPS_API_KEY) {
         apiKey = runtimeConfig.GOOGLE_MAPS_API_KEY;
+    } else if (typeof window !== 'undefined' && window.runtimeConfig && window.runtimeConfig.GOOGLE_MAPS_API_KEY) {
+        apiKey = window.runtimeConfig.GOOGLE_MAPS_API_KEY;
     } else if (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.GOOGLE_MAPS_API_KEY) {
         apiKey = CONFIG.GOOGLE_MAPS_API_KEY;
     }
@@ -1414,6 +1417,74 @@ function createPreviewSvgDataUrl(svg) {
     return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
 
+const frozenDemoMapAssets = {
+    cover: "images/demo/austin-cover-map.png",
+    urgentCare: "images/demo/austin-urgent-care-map.png",
+    income: "images/demo/austin-income-map.png",
+    population: "images/demo/austin-population-map.png"
+};
+
+function getPreviewParams() {
+    try {
+        return new URLSearchParams(window.location.search);
+    } catch (error) {
+        return new URLSearchParams();
+    }
+}
+
+function loadImageIfAvailable(url) {
+    return new Promise(function(resolve) {
+        const img = new Image();
+        img.onload = function() { resolve(url); };
+        img.onerror = function() { resolve(null); };
+        img.src = url;
+    });
+}
+
+function applyStaticMapImageToContainer(containerId, placeholderId, url, altText) {
+    var container = document.getElementById(containerId);
+    var placeholder = document.getElementById(placeholderId);
+    if (!container) return;
+
+    if (placeholder) placeholder.style.display = "none";
+    container.innerHTML = '<img alt="' + altText + '" src="' + url + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
+}
+
+async function applyFrozenDemoMapsIfAvailable() {
+    var params = getPreviewParams();
+    if (params.get("demoMaps") !== "frozen") return false;
+
+    const coverUrl = await loadImageIfAvailable(frozenDemoMapAssets.cover);
+    const urgentCareUrl = await loadImageIfAvailable(frozenDemoMapAssets.urgentCare);
+    const incomeUrl = await loadImageIfAvailable(frozenDemoMapAssets.income);
+    const populationUrl = await loadImageIfAvailable(frozenDemoMapAssets.population);
+
+    const reportMapImg = document.getElementById("report-map-image");
+    const reportMapEmbed = document.getElementById("report-map-embed");
+    const reportPlaceholder = document.getElementById("map-placeholder-text");
+
+    if (coverUrl && reportMapImg) {
+        reportMapImg.src = coverUrl;
+        reportMapImg.style.display = "block";
+        if (reportMapEmbed) reportMapEmbed.style.display = "none";
+        if (reportPlaceholder) reportPlaceholder.style.display = "none";
+    }
+
+    if (urgentCareUrl) {
+        applyStaticMapImageToContainer("urgent-care-map", "uc-map-placeholder", urgentCareUrl, "Frozen Austin urgent care map");
+    }
+
+    if (incomeUrl) {
+        applyStaticMapImageToContainer("thematic-income-map", "income-map-placeholder", incomeUrl, "Frozen Austin income map");
+    }
+
+    if (populationUrl) {
+        applyStaticMapImageToContainer("thematic-pop-map", "pop-map-placeholder", populationUrl, "Frozen Austin population map");
+    }
+
+    return Boolean(coverUrl || urgentCareUrl || incomeUrl || populationUrl);
+}
+
 function injectPreviewMapImage(containerId, placeholderId, svgMarkup) {
     var container = document.getElementById(containerId);
     var placeholder = document.getElementById(placeholderId);
@@ -1423,13 +1494,14 @@ function injectPreviewMapImage(containerId, placeholderId, svgMarkup) {
     container.innerHTML = '<img alt="Preview map" src="' + createPreviewSvgDataUrl(svgMarkup) + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
 }
 
-function renderPreviewPlaceholderMaps() {
-    var params = new URLSearchParams(window.location.search);
+async function renderPreviewPlaceholderMaps() {
+    var params = getPreviewParams();
     var isPreviewMode = params.get("preview") === "1";
     var reportAddress = document.getElementById("report-address");
     var isStandaloneTemplate = !isPreviewMode && reportAddress && reportAddress.textContent.trim() === "Address";
 
     if (!isPreviewMode && !isStandaloneTemplate) return;
+    if (await applyFrozenDemoMapsIfAvailable()) return;
 
     var reportMapImg = document.getElementById("report-map-image");
     var reportMapEmbed = document.getElementById("report-map-embed");
@@ -1460,8 +1532,8 @@ function renderPreviewPlaceholderMaps() {
                 <text x="498" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">I-30</text>
                 <text x="490" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#657786">Trinity River</text>
                 <rect x="28" y="28" width="320" height="84" rx="14" fill="#ffffff" opacity="0.95"/>
-                <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Sample Trade Area Map</text>
-                <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">Basemap-style placeholder with radii and site pin</text>
+                <text x="48" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#17324d">Austin Trade Area Map</text>
+                <text x="48" y="84" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#4d647a">5900 Balcones Dr, Austin, TX 78731</text>
             </svg>
         `);
         reportMapImg.style.display = "block";
@@ -1650,6 +1722,7 @@ function loadStandaloneGoogleMapsScript() {
 
     const apiKey =
         (typeof runtimeConfig !== 'undefined' && runtimeConfig && runtimeConfig.GOOGLE_MAPS_API_KEY) ||
+        (typeof window !== 'undefined' && window.runtimeConfig && window.runtimeConfig.GOOGLE_MAPS_API_KEY) ||
         (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.GOOGLE_MAPS_API_KEY) ||
         '';
 
