@@ -1058,6 +1058,8 @@ function populateReportTemplate(address, demographicData, facilityCounts, mapIma
   const populateData = () => {
     setTimeout(() => {
       const doc = reportIframe.contentDocument || reportIframe.contentWindow.document;
+      const iframeUrl = reportIframe.getAttribute("src") || "";
+      const isFrozenDemoMode = iframeUrl.includes("demoMaps=frozen");
 
       // Basic info
       setIfExists(doc, "report-address", address);
@@ -1067,12 +1069,12 @@ function populateReportTemplate(address, demographicData, facilityCounts, mapIma
 
       // Map — static snapshot image (already set by generateMapSnapshot)
       const mapImg = doc.getElementById("report-map-image");
-      if (mapImg) mapImg.src = mapImageUrl;
+      if (mapImg && !isFrozenDemoMode && mapImageUrl) mapImg.src = mapImageUrl;
 
       // Also inject live map if iframe has initReportMap available
       try {
         const iframeWin = reportIframe.contentWindow;
-        if (iframeWin && typeof iframeWin.initReportMap === 'function') {
+        if (!isFrozenDemoMode && iframeWin && typeof iframeWin.initReportMap === 'function') {
           const center = (typeof map !== 'undefined' && map.getCenter) ? map.getCenter() : null;
           if (center) {
             iframeWin.initReportMap(center.lat(), center.lng(), radii, map.getZoom ? map.getZoom() : 12);
