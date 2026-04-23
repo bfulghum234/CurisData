@@ -783,6 +783,12 @@ function parseCSVToGeoidMap(csvText) {
 // Initialize by loading data when page loads
 if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("preview") === "1") {
+      console.log("Preview mode detected, skipping production data loaders.");
+      return;
+    }
+
     console.log("Page loaded, initializing data loaders...");
     try {
       await Promise.all([

@@ -100,7 +100,7 @@
     </div>
 
     <div class="frame-wrap">
-      <iframe id="report-iframe" src="demographic_report_template.html" title="Urgent care report preview"></iframe>
+      <iframe id="report-iframe" src="demographic_report_template.html?preview=1" title="Urgent care report preview"></iframe>
     </div>
   </div>
 
@@ -269,10 +269,10 @@
 
     iframe.addEventListener("load", loadPreview);
     reloadButton.addEventListener("click", function() {
-      iframe.src = "demographic_report_template.html";
+      iframe.src = "demographic_report_template.html?preview=1";
     });
     templateButton.addEventListener("click", function() {
-      window.open("demographic_report_template.html", "_blank");
+      window.open("demographic_report_template.html?preview=1", "_blank");
     });
   </script>
 </body>
