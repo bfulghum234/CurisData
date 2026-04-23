@@ -56,11 +56,65 @@ body {
 
 /* ================= COVER ================= */
 .cover-page {
+    position: relative;
+    overflow: hidden;
     text-align: center;
-    padding-top: 1.1in;
+    padding-top: 0.9in;
     background:
       radial-gradient(circle at top right, rgba(78, 203, 160, 0.18), transparent 28%),
       linear-gradient(180deg, #fcfffd 0%, #f4faf7 100%);
+}
+
+.cover-page::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 18px;
+    background: linear-gradient(90deg, #0b4f3a 0%, #17956f 52%, #58d6bd 100%);
+}
+
+.cover-page::after {
+    content: "";
+    position: absolute;
+    inset: 28px 32px auto auto;
+    width: 260px;
+    height: 160px;
+    background-image:
+      radial-gradient(circle at 18px 18px, rgba(78, 203, 160, 0.22) 0 4px, transparent 5px),
+      linear-gradient(rgba(78, 203, 160, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(78, 203, 160, 0.12) 1px, transparent 1px);
+    background-size: 72px 72px, 36px 36px, 36px 36px;
+    opacity: 0.45;
+    pointer-events: none;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0));
+}
+
+.cover-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 7px 14px;
+    border: 1px solid rgba(78, 203, 160, 0.45);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--cd-brand);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.cover-kicker::before,
+.cover-kicker::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cd-accent);
+    box-shadow: 0 0 0 4px rgba(78, 203, 160, 0.18);
 }
 
 .cover-page h1 {
@@ -80,8 +134,43 @@ body {
 .location {
     font-size: 28px;
     color: var(--cd-brand);
-    margin: 16px 0 18px;
+    margin: 10px 0 18px;
     font-weight: 700;
+}
+
+.location-label {
+    margin-top: 6px;
+    margin-bottom: 2px;
+    color: var(--cd-ink-soft);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.cover-meta {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    color: var(--cd-ink-soft);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cover-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cover-meta span::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cd-accent);
 }
 
 .logo-area {
@@ -416,7 +505,9 @@ window.initMap = initMap;
 <div id="pdf-root">
 
 <div class="page cover-page">
+    <div class="cover-kicker">CurisData Site Intelligence Report</div>
     <h1>Urgent Care Site Assessment</h1>
+    <div class="location-label">Target Location</div>
     <div class="location" id="report-address">
         Address
     </div>
@@ -433,6 +524,11 @@ window.initMap = initMap;
     
     <div class="report-date">
         Report Generated: <span id="report-date">Report Date</span>
+    </div>
+    <div class="cover-meta">
+        <span>US Coverage</span>
+        <span>All Specialties Available</span>
+        <span>Healthcare Real Estate Intelligence</span>
     </div>
     
     <div class="logo-area">
@@ -473,7 +569,7 @@ window.initMap = initMap;
         </div>
         <div class="brand-links">
             <a href="https://curiscorp.com" target="_blank" rel="noopener noreferrer">curiscorp.com</a>
-            <a href="https://curiscorp.com/#pricing" target="_blank" rel="noopener noreferrer">View Pricing</a>
+            <a href="https://curiscorp.com/#reports" target="_blank" rel="noopener noreferrer">Available Reports</a>
             <a href="https://curiscorp.com/data.html" target="_blank" rel="noopener noreferrer">Explore Data</a>
         </div>
     </div>
