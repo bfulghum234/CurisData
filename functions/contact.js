@@ -9,6 +9,28 @@ function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
+function normalizeErrorMessage(error, env) {
+  const message = String(error?.message || "");
+
+  if (message.includes("Resend error: 403")) {
+    return "Email sending is blocked because the Resend sender domain is not verified yet.";
+  }
+
+  if (message.includes("Resend error: 401")) {
+    return "Email sending is not configured correctly. Please check the RESEND_API_KEY secret.";
+  }
+
+  if (message.includes("MailChannels error:")) {
+    return "Email sending fallback failed. Add a RESEND_API_KEY and CONTACT_FROM secret in Cloudflare Pages.";
+  }
+
+  if (!env.RESEND_API_KEY) {
+    return "Email sending is not fully configured yet. Add RESEND_API_KEY in Cloudflare Pages to enable contact requests.";
+  }
+
+  return "Unable to send inquiry. Please check the email provider configuration.";
+}
+
 function escapeHtml(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -152,6 +174,6 @@ export async function onRequest(context) {
     return json({ success: true });
   } catch (error) {
     console.error("Contact form error:", error);
-    return json({ success: false, error: "Unable to send inquiry." }, 500);
+    return json({ success: false, error: normalizeErrorMessage(error, env) }, 500);
   }
 }

@@ -683,7 +683,7 @@ document.addEventListener("DOMContentLoaded", function () {
         inquiryDisplay.value = "Single Report";
       } catch (error) {
         console.error("Contact request failed:", error);
-        contactStatus.textContent = "We couldn’t send the request just now. Please try again in a moment.";
+        contactStatus.textContent = error.message || "We couldn’t send the request just now. Please try again in a moment.";
         contactStatus.className = "contact-status is-error";
       } finally {
         contactSubmit.disabled = false;
