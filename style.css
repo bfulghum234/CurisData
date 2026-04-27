@@ -119,6 +119,16 @@ nav a.sample-reports-link:hover {
     margin: 0 auto;
 }
 
+@media (max-width: 900px) {
+    header {
+        gap: 14px;
+    }
+
+    nav {
+        gap: 6px;
+    }
+}
+
 .hero-badge {
     display: inline-block;
     background-color: rgba(78,203,160,0.2);
