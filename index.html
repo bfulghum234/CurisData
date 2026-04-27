@@ -246,48 +246,46 @@
 
 <section class="pricing" id="pricing">
     <p class="section-label">Pricing</p>
-    <h2 class="section-title">Transparent, Flexible Report Pricing</h2>
-    <p class="section-sub">No subscriptions required. Order a single report or save with a bundle. All reports delivered on demand.</p>
+    <h2 class="section-title">Flexible Pricing for Analyst-Produced Reports</h2>
+    <p class="section-sub">Start with a single market report, request volume pricing for multiple markets, or engage us for tailored analysis. Early engagements are analyst-produced and delivered with a defined turnaround window.</p>
 
     <div class="pricing-grid">
 
-        <!-- Basic -->
+        <!-- Single Report -->
         <div class="pricing-card">
-            <div class="plan-name">One Time</div>
+            <div class="plan-name">Single Report</div>
             <div class="plan-price"><sup>$</sup>99</div>
-            <div class="plan-period">per report</div>
-            <p class="plan-desc">Comprehensive intelligence for strategic healthcare real estate, site selection, and market expansion decisions.</p>
+            <div class="plan-period">starting price</div>
+            <p class="plan-desc">A low-friction starting point for one target market or location, produced by our team and delivered in a polished, decision-ready format.</p>
             <ul class="plan-features">
-                <li>Up to 3 geographies compared</li>
-                <li>Full demographic deep-dive</li>
-                <li>Detailed payer mix analysis</li>
-                <li>Drive-time service area maps</li>
-                <li>5-year demand forecast model</li>
-                <li>Competitor mapping & gap analysis</li>
-                <li>PDF + Excel data tables</li>
-                <li>On Demand</li>
+                <li>One target location or market</li>
+                <li>Analyst-produced report</li>
+                <li>Demographic and demand summary</li>
+                <li>Payer mix and market context</li>
+                <li>Competitor and service area views</li>
+                <li>Executive-ready PDF output</li>
+                <li>Defined turnaround window</li>
             </ul>
-            <a href="#" class="btn-plan">Order Report</a>
+            <a href="#" class="btn-plan contact-trigger" data-inquiry-type="Single Report">Request Report</a>
         </div>
 
-        <!-- Professional (featured) -->
+        <!-- Batch Reports (featured) -->
         <div class="pricing-card featured">
-            <div class="featured-badge">Most Popular</div>
-            <div class="plan-name">Unlimited</div>
-            <div class="plan-price"><sup>$</sup>249</div>
-            <div class="plan-period">Monthly</div>
-            <p class="plan-desc">Comprehensive intelligence for strategic healthcare real estate, site selection, and market expansion decisions.</p>
+            <div class="featured-badge">Best for Comparison</div>
+            <div class="plan-name">Batch Reports</div>
+            <div class="plan-price">Volume</div>
+            <div class="plan-period">pricing for 3+ markets</div>
+            <p class="plan-desc">Built for site comparison, expansion screens, and portfolio planning when your team needs multiple reports delivered in a coordinated batch.</p>
             <ul class="plan-features">
-                <li>Up to 3 geographies compared</li>
-                <li>Full demographic deep-dive</li>
-                <li>Detailed payer mix analysis</li>
-                <li>Drive-time service area maps</li>
-                <li>5-year demand forecast model</li>
-                <li>Competitor mapping & gap analysis</li>
-                <li>PDF + Excel data tables</li>
-                <li>On Demand</li>
+                <li>3, 5, or more markets per engagement</li>
+                <li>Consistent methodology across locations</li>
+                <li>Ideal for side-by-side site review</li>
+                <li>Volume pricing available</li>
+                <li>Priority turnaround options</li>
+                <li>Designed for growth and screening workflows</li>
+                <li>Executive-ready deliverables</li>
             </ul>
-            <a href="#" class="btn-plan">Order Unlimited Reports</a>
+            <a href="#" class="btn-plan contact-trigger" data-inquiry-type="Batch Reports">Request Batch Pricing</a>
         </div>
 
         <!-- Custom Analysis -->
@@ -295,7 +293,7 @@
             <div class="plan-name">Custom Analysis</div>
             <div class="plan-price">Contact for Pricing</div>
             <div class="plan-period">tailored engagement</div>
-            <p class="plan-desc">Flexible, high-touch analysis for complex healthcare real estate questions, market entry strategy, and portfolio decisions.</p>
+            <p class="plan-desc">Flexible, high-touch analysis for complex healthcare real estate questions, specialty-specific work, market entry strategy, and portfolio decisions.</p>
             <ul class="plan-features">
                 <li>Network optimization</li>
                 <li>Predictive visit forecasting</li>
@@ -306,7 +304,7 @@
                 <li>Executive-ready deliverables</li>
                 <li>Analyst support</li>
             </ul>
-            <a href="#" class="btn-plan">Request Custom Analysis</a>
+            <a href="#" class="btn-plan contact-trigger" data-inquiry-type="Custom Analysis">Request Custom Analysis</a>
         </div>
 
     </div>
@@ -315,8 +313,8 @@
 <!-- Ã¢â€â‚¬Ã¢â€â‚¬ CTA Banner Ã¢â€â‚¬Ã¢â€â‚¬ -->
 <section class="cta-banner">
     <h2>Ready to Make Smarter Healthcare Real Estate Decisions?</h2>
-    <p>Order your first report today and get AI-powered demographic intelligence for facility location strategy delivered on demand.</p>
-    <a href="#pricing" class="btn-dark">Start with a Basic Report - $99</a>
+    <p>Start with a single report, compare multiple markets with a batch engagement, or talk with us about a custom analysis built around your growth strategy.</p>
+    <a href="#pricing" class="btn-dark">Start with a Single Report - $99</a>
 </section>
 
 <!-- Ã¢â€â‚¬Ã¢â€â‚¬ Footer Ã¢â€â‚¬Ã¢â€â‚¬ -->
@@ -342,7 +340,7 @@
         </div>
         <div class="footer-col">
             <h4>Support</h4>
-            <a href="#">Contact Us</a>
+            <a href="#" class="contact-trigger" data-inquiry-type="General Inquiry">Contact Us</a>
             <a href="urgent_care_preview.html" target="_blank">Sample Reports</a>
             <a href="legal/acceptable-use.html">Acceptable Use</a>
             <a href="legal/privacy.html">Privacy Policy</a>
@@ -360,6 +358,72 @@
         </span>
     </div>
 </footer>
+
+<!-- CONTACT MODAL -->
+<div id="contactModal" class="contact-modal-overlay" aria-hidden="true">
+  <div class="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+    <button type="button" class="contact-close" id="closeContactModal" aria-label="Close contact form">×</button>
+    <p class="contact-kicker">Get Started</p>
+    <h3 id="contactModalTitle">Request a CurisData Engagement</h3>
+    <p class="contact-note">Tell us what you need and we’ll follow up with the right next step, pricing guidance, and expected turnaround.</p>
+
+    <form id="contactForm">
+      <input type="hidden" id="inquiryType" name="inquiryType" value="Single Report">
+      <input type="text" name="website" id="website" autocomplete="off" tabindex="-1" class="contact-honeypot">
+
+      <div class="contact-form-grid">
+        <label class="contact-field">
+          <span>Name</span>
+          <input type="text" name="name" id="contactName" required>
+        </label>
+        <label class="contact-field">
+          <span>Work Email</span>
+          <input type="email" name="email" id="contactEmail" required>
+        </label>
+        <label class="contact-field">
+          <span>Company</span>
+          <input type="text" name="company" id="contactCompany">
+        </label>
+        <label class="contact-field">
+          <span>Inquiry Type</span>
+          <select name="inquiryTypeDisplay" id="contactInquiryDisplay">
+            <option>Single Report</option>
+            <option>Batch Reports</option>
+            <option>Custom Analysis</option>
+            <option>General Inquiry</option>
+          </select>
+        </label>
+        <label class="contact-field contact-field-wide">
+          <span>Target Location(s) or Market(s)</span>
+          <input type="text" name="markets" id="contactMarkets" placeholder="Example: Fort Worth urgent care expansion, Dallas ASC screen">
+        </label>
+        <label class="contact-field">
+          <span>Desired Turnaround</span>
+          <select name="timeline" id="contactTimeline">
+            <option value="">Select one</option>
+            <option>24 hours</option>
+            <option>2-3 business days</option>
+            <option>1 week</option>
+            <option>Flexible</option>
+          </select>
+        </label>
+        <label class="contact-field">
+          <span>How many markets?</span>
+          <input type="text" name="volume" id="contactVolume" placeholder="1, 3, 5+, etc.">
+        </label>
+        <label class="contact-field contact-field-wide">
+          <span>What are you evaluating?</span>
+          <textarea name="message" id="contactMessage" rows="5" placeholder="Tell us about the sites, specialties, or decision you’re working through." required></textarea>
+        </label>
+      </div>
+
+      <div class="contact-actions">
+        <button type="submit" class="contact-submit" id="contactSubmit">Send Request</button>
+        <p id="contactFormStatus" class="contact-status" aria-live="polite"></p>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- LOGIN MODAL -->
 <div id="loginModal" style="
@@ -419,6 +483,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   const LOGIN_ENDPOINTS = buildEndpointCandidates(["api/login", "login"]);
+  const CONTACT_ENDPOINTS = buildEndpointCandidates(["api/contact", "contact"]);
 
   function getDemoReportUrl() {
     return new URL("demo_report_map.html", window.location.href).toString();
@@ -451,6 +516,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const sampleReportsBtn = document.getElementById("sampleReportsBtn");
   const loginModal = document.getElementById("loginModal");
   const submitLogin = document.getElementById("submitLogin");
+  const contactModal = document.getElementById("contactModal");
+  const closeContactModal = document.getElementById("closeContactModal");
+  const contactForm = document.getElementById("contactForm");
+  const contactStatus = document.getElementById("contactFormStatus");
+  const contactSubmit = document.getElementById("contactSubmit");
+  const inquiryType = document.getElementById("inquiryType");
+  const inquiryDisplay = document.getElementById("contactInquiryDisplay");
+  const contactTriggers = document.querySelectorAll(".contact-trigger");
 
 //   if (sampleReportsBtn) {
 //     sampleReportsBtn.style.color = "#ff4d4f";
@@ -493,6 +566,128 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Login request failed:", error);
         loginError.textContent = "Login service unavailable. Please try again.";
         loginError.style.display = "block";
+      }
+    });
+  }
+
+  function openContactModal(type) {
+    if (type) {
+      inquiryType.value = type;
+      inquiryDisplay.value = type;
+    }
+    if (contactStatus) {
+      contactStatus.textContent = "";
+      contactStatus.className = "contact-status";
+    }
+    if (contactModal) {
+      contactModal.style.display = "flex";
+      contactModal.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function closeContactFormModal() {
+    if (contactModal) {
+      contactModal.style.display = "none";
+      contactModal.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  async function postContact(payload) {
+    let lastError = null;
+
+    for (const endpoint of CONTACT_ENDPOINTS) {
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok || response.status === 400 || response.status === 500) {
+          return response;
+        }
+
+        lastError = new Error(`Contact endpoint ${endpoint} returned ${response.status}`);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error("Contact request failed");
+  }
+
+  if (contactTriggers.length) {
+    contactTriggers.forEach(function(trigger) {
+      trigger.addEventListener("click", function(e) {
+        e.preventDefault();
+        openContactModal(trigger.dataset.inquiryType || "General Inquiry");
+      });
+    });
+  }
+
+  if (inquiryDisplay) {
+    inquiryDisplay.addEventListener("change", function() {
+      inquiryType.value = inquiryDisplay.value;
+    });
+  }
+
+  if (closeContactModal) {
+    closeContactModal.addEventListener("click", closeContactFormModal);
+  }
+
+  if (contactModal) {
+    contactModal.addEventListener("click", function(e) {
+      if (e.target === contactModal) closeContactFormModal();
+    });
+  }
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      closeContactFormModal();
+    }
+  });
+
+  if (contactForm) {
+    contactForm.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const payload = {
+        inquiryType: inquiryType.value || inquiryDisplay.value || "General Inquiry",
+        name: document.getElementById("contactName").value.trim(),
+        email: document.getElementById("contactEmail").value.trim(),
+        company: document.getElementById("contactCompany").value.trim(),
+        markets: document.getElementById("contactMarkets").value.trim(),
+        timeline: document.getElementById("contactTimeline").value,
+        volume: document.getElementById("contactVolume").value.trim(),
+        message: document.getElementById("contactMessage").value.trim(),
+        website: document.getElementById("website").value.trim()
+      };
+
+      contactStatus.textContent = "";
+      contactStatus.className = "contact-status";
+      contactSubmit.disabled = true;
+      contactSubmit.textContent = "Sending...";
+
+      try {
+        const response = await postContact(payload);
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || "Unable to send request");
+        }
+
+        contactStatus.textContent = "Thanks. Your request has been sent and we’ll follow up soon.";
+        contactStatus.className = "contact-status is-success";
+        contactForm.reset();
+        inquiryType.value = "Single Report";
+        inquiryDisplay.value = "Single Report";
+      } catch (error) {
+        console.error("Contact request failed:", error);
+        contactStatus.textContent = "We couldn’t send the request just now. Please try again in a moment.";
+        contactStatus.className = "contact-status is-error";
+      } finally {
+        contactSubmit.disabled = false;
+        contactSubmit.textContent = "Send Request";
       }
     });
   }
