@@ -11,6 +11,7 @@ function json(body, status = 200) {
 
 function normalizeErrorMessage(error, env) {
   const message = String(error?.message || "");
+  const resendMatch = message.match(/^Resend error: (\d{3})\s+(.+)$/s);
 
   if (message.includes("Resend error: 403")) {
     return "Email sending is blocked because the Resend sender domain is not verified yet.";
@@ -26,6 +27,23 @@ function normalizeErrorMessage(error, env) {
 
   if (!env.RESEND_API_KEY) {
     return "Email sending is not fully configured yet. Add RESEND_API_KEY in Cloudflare Pages to enable contact requests.";
+  }
+
+  if (resendMatch) {
+    const [, status, responseBody] = resendMatch;
+
+    // Resend's validation response is safe to expose and makes sender setup actionable.
+    try {
+      const providerError = JSON.parse(responseBody);
+      const detail = providerError.message || providerError.name;
+      if (detail) {
+        return `Resend rejected the request (${status}): ${detail}`;
+      }
+    } catch {
+      // Fall through to the status-only message if Resend did not return JSON.
+    }
+
+    return `Resend rejected the request (HTTP ${status}). Check the sender and recipient configuration.`;
   }
 
   return "Unable to send inquiry. Please check the email provider configuration.";
