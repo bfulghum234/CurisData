@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compare radius-based screening with drive-time trade areas, and learn which travel assumptions to examine when evaluating a healthcare location.">
+    <title>A Five-Mile Circle Is Not Your Patient Trade Area | CurisData</title>
+    <link rel="stylesheet" href="blog.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+    <a class="logo" href="../index.html" target="_blank" rel="noopener noreferrer">Curis<span>Data</span></a>
+    <nav class="header-links" aria-label="Site navigation">
+        <a class="home-link" href="index.html">All blog posts</a>
+        <a class="home-link" href="../index.html" target="_blank" rel="noopener noreferrer">Visit curiscorp.com &rarr;</a>
+    </nav>
+</header>
+<main id="main-content">
+    <article aria-labelledby="article-title">
+        <header class="hero article-hero">
+            <div class="hero-content">
+                <p class="eyebrow">Location Intelligence</p>
+                <h1 id="article-title">A five-mile circle is not your patient trade area.</h1>
+                <p class="hero-copy">A radius tells you what is nearby. Travel analysis helps you ask what is reachable. Neither, by itself, tells you where patients will choose to go.</p>
+                <div class="article-meta">
+                    <span>By CurisData</span>
+                    <time datetime="2026-09-08">September 8, 2026</time>
+                </div>
+            </div>
+        </header>
+        <div class="content">
+            <section class="intro" aria-labelledby="intro-heading">
+                <div class="intro-copy">
+                    <p class="eyebrow">Beyond the Circle</p>
+                    <h2 id="intro-heading">Nearby and convenient are different questions.</h2>
+                    <p>Drawing a circle around an address is a useful first step. It creates a consistent area for comparing population, households, and nearby services. But the circle does not know where the bridge is, which road has an entrance, or how a patient will reach the front door.</p>
+                    <p>For healthcare real estate, the next question is whether the geography reflects a plausible journey to care. That means considering the route, the service, and the people the location is meant to serve.</p>
+                </div>
+                <aside class="principle-card">
+                    <strong>Key Takeaway</strong>
+                    <p>Use a radius for an initial screen. Use travel scenarios to examine accessibility. Use local evidence to test whether either boundary resembles the intended patient market.</p>
+                </aside>
+            </section>
+            <section aria-labelledby="framework-heading">
+                <div class="section-heading">
+                    <p class="eyebrow">Three Different Views</p>
+                    <h2 id="framework-heading">Be clear about what the boundary means.</h2>
+                </div>
+                <div class="card-grid">
+                    <section class="card">
+                        <div class="card-number" aria-hidden="true">01</div>
+                        <h3>Radius</h3>
+                        <p>A straight-line distance around a location. Useful for consistent screening, but not a representation of a road journey.</p>
+                    </section>
+                    <section class="card">
+                        <div class="card-number" aria-hidden="true">02</div>
+                        <h3>Travel-time area</h3>
+                        <p>A modeled reachable area under specified travel conditions. Its usefulness depends on the network, travel mode, and assumptions.</p>
+                    </section>
+                    <section class="card">
+                        <div class="card-number" aria-hidden="true">03</div>
+                        <h3>Observed patient origins</h3>
+                        <p>Where an existing location&rsquo;s patients come from. Where lawfully available and appropriately aggregated, this can help test a proposed boundary.</p>
+                    </section>
+                </div>
+            </section>
+            <section class="article-section" aria-labelledby="network-heading">
+                <h2 id="network-heading">The road network changes the map.</h2>
+                <p>Imagine a hypothetical clinic near a river. Homes across the water may sit inside a small radius, yet reaching the clinic requires a trip to a distant bridge. Homes farther away along a direct road could have an easier journey. A circle treats those distances geometrically; a network analysis can test the route.</p>
+                <p>Esri&rsquo;s <a href="https://doc.esri.com/en/arcgis-pro/latest/help/analysis/networks/service-area-analysis-layer.html" target="_blank" rel="noopener noreferrer">service-area documentation</a> describes how reachable areas are calculated using travel costs and cutoffs. It also explains why travel toward a facility can produce a different result from travel away from it when directional restrictions or travel times differ.</p>
+            </section>
+            <section class="article-section" aria-labelledby="assumptions-heading">
+                <h2 id="assumptions-heading">A drive-time label is not enough.</h2>
+                <p>A &ldquo;15-minute trade area&rdquo; needs an explanation. Fifteen minutes by what mode? At what time? Toward which entrance? With static speeds or traffic-aware routing?</p>
+                <p>The same <a href="https://doc.esri.com/en/arcgis-pro/latest/help/analysis/networks/service-area-analysis-layer.html" target="_blank" rel="noopener noreferrer">Esri guidance</a> distinguishes static travel times from analyses that use time-dependent traffic or transit data. Specifying a departure or arrival scenario only makes those conditions meaningful if the underlying network supports them.</p>
+                <p>For a market evaluation, document the assumptions and consider more than one plausible scenario. The purpose is not to find a universal travel threshold. It is to understand how sensitive the location&rsquo;s apparent reach is to the conditions you choose.</p>
+            </section>
+            <section class="article-section" aria-labelledby="patients-heading">
+                <h2 id="patients-heading">Reachability is not patient preference.</h2>
+                <p>A travel-time polygon estimates access under a model. It does not establish that residents inside it will become patients, or that residents outside it will not. Referral relationships, service availability, payer networks, and personal preferences still need investigation.</p>
+                <p>As a planning hypothesis, a frequent-visit service deserves questions about repeated travel burden, while a referral-based specialty service deserves questions about referral reach. Those are prompts for validation, not fixed rules about how far any patient will travel.</p>
+                <p>Driving is also only one possible journey. If the intended population relies on transit, walking, or assistance from others, a car-only analysis may not answer the relevant access question.</p>
+            </section>
+            <section class="article-section" aria-labelledby="checklist-heading">
+                <h2 id="checklist-heading">A practical trade-area review.</h2>
+                <ul class="checklist">
+                    <li><strong>Check the location.</strong> Verify the patient entrance, road connection, and geocoded point rather than relying only on the street address.</li>
+                    <li><strong>Compare scenarios consistently.</strong> Use the same travel settings when comparing candidate sites, and identify why any exceptions are necessary.</li>
+                    <li><strong>Respect the data geography.</strong> If a boundary cuts through census areas, explain how demographic totals were estimated. Do not imply exact household counts where allocation was modeled.</li>
+                    <li><strong>Walk the last part of the trip.</strong> Examine parking, pedestrian access, and building entry alongside the network analysis.</li>
+                </ul>
+            </section>
+            <section class="workflow" aria-labelledby="workflow-heading">
+                <div>
+                    <p class="eyebrow">From Distance to Access</p>
+                    <h2 id="workflow-heading">A better boundary starts with a better journey.</h2>
+                </div>
+                <div class="workflow-steps">
+                    <div class="workflow-step"><span>01</span><strong>Screen with a consistent geography</strong></div>
+                    <div class="workflow-step"><span>02</span><strong>Test realistic travel scenarios</strong></div>
+                    <div class="workflow-step"><span>03</span><strong>Validate with local context</strong></div>
+                </div>
+            </section>
+            <section class="notice" aria-labelledby="note-heading">
+                <h3 id="note-heading">Modeled access is not guaranteed access.</h3>
+                <p>Travel results depend on data, routing settings, and conditions. No radius or drive-time threshold in this article is a recommended standard. A modeled trade area is not a patient-volume forecast or a regulatory network-adequacy determination.</p>
+            </section>
+            <section class="sources" aria-labelledby="sources-heading">
+                <h2 id="sources-heading">Sources and further reading.</h2>
+                <ul>
+                    <li><a href="https://doc.esri.com/en/arcgis-pro/latest/help/analysis/networks/service-area-analysis-layer.html" target="_blank" rel="noopener noreferrer">Esri: Service Area Analysis Layer</a></li>
+                    <li><a href="../legal/data-sources.html" target="_blank" rel="noopener noreferrer">CurisData: Data Sources</a></li>
+                </ul>
+                <p class="source-note">Source guidance reviewed September 18, 2026. The healthcare planning framework and river example are editorial interpretation, not findings from an Esri study.</p>
+            </section>
+            <nav class="related" aria-labelledby="related-heading">
+                <h2 id="related-heading">Keep exploring.</h2>
+                <ul>
+                    <li><a href="population-growth-healthcare-demand.html">Population growth is not a healthcare demand forecast.</a></li>
+                    <li><a href="provider-counts-patient-access.html">More providers do not always mean better access.</a></li>
+                    <li><a href="index.html">View all blog posts &rarr;</a></li>
+                </ul>
+            </nav>
+        </div>
+    </article>
+</main>
+<footer class="page-footer">
+    <span>&copy; 2026 CurisData. All rights reserved.</span>
+    <div class="footer-links">
+        <a href="index.html">All blog posts</a>
+        <a href="../index.html" target="_blank" rel="noopener noreferrer">Explore CurisData &rarr;</a>
+    </div>
+</footer>
+</body>
+</html>
