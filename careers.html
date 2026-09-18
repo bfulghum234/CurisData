@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Explore opportunities to help CurisData build better healthcare real estate intelligence.">
+<title>Careers | CurisData</title>
+<style>
+    :root {
+        --forest: #064b37;
+        --forest-deep: #032e22;
+        --mint: #4ecba0;
+        --mint-pale: #e9f7f0;
+        --ink: #123c30;
+        --body: #55776b;
+        --line: #cce9dc;
+        --paper: #fbfefa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        line-height: 1.6;
+    }
+
+    a { color: inherit; }
+
+    .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px clamp(24px, 6vw, 88px);
+        color: #fff;
+        background: var(--forest);
+    }
+
+    .logo {
+        font-size: 25px;
+        font-weight: 900;
+        letter-spacing: -1px;
+        text-decoration: none;
+    }
+
+    .logo span { color: var(--mint); }
+
+    .home-link {
+        color: #dff7ed;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .home-link:hover { color: var(--mint); }
+
+    .hero {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(64px, 11vw, 130px) clamp(24px, 8vw, 130px) 88px;
+        color: #fff;
+        background:
+            radial-gradient(circle at 84% 12%, rgba(78, 203, 160, 0.38), transparent 25%),
+            linear-gradient(118deg, var(--forest-deep), var(--forest));
+    }
+
+    .hero::after {
+        position: absolute;
+        right: -7vw;
+        bottom: -17vw;
+        width: min(46vw, 560px);
+        aspect-ratio: 1;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 50%;
+        content: "";
+    }
+
+    .hero-content,
+    .content { max-width: 1120px; margin: 0 auto; }
+
+    .eyebrow {
+        margin: 0 0 16px;
+        color: var(--mint);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 { line-height: 1.1; }
+
+    h1 {
+        max-width: 760px;
+        margin: 0;
+        font-size: clamp(42px, 6vw, 74px);
+        letter-spacing: -0.055em;
+    }
+
+    .hero-copy {
+        max-width: 710px;
+        margin: 25px 0 0;
+        color: #cae8dc;
+        font-size: clamp(18px, 2.1vw, 22px);
+    }
+
+    .content { padding: 74px 24px 88px; }
+
+    .intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1.16fr) minmax(260px, 0.84fr);
+        gap: 48px;
+        align-items: start;
+        margin-bottom: 72px;
+    }
+
+    h2 {
+        margin: 0 0 18px;
+        font-size: clamp(31px, 4vw, 47px);
+        letter-spacing: -0.045em;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 25px;
+        letter-spacing: -0.035em;
+    }
+
+    p { margin: 0; color: var(--body); }
+
+    .intro-copy p + p { margin-top: 18px; }
+
+    .intro-note {
+        padding: 29px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--mint-pale);
+    }
+
+    .intro-note strong {
+        display: block;
+        margin-bottom: 9px;
+        color: var(--forest);
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .openings-heading { margin-bottom: 28px; }
+
+    .job-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .job-card {
+        display: flex;
+        min-height: 490px;
+        padding: 29px;
+        flex-direction: column;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: #fff;
+        box-shadow: 0 12px 30px rgba(11, 79, 58, 0.06);
+    }
+
+    .job-number {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        margin-bottom: 25px;
+        place-items: center;
+        border-radius: 12px;
+        color: var(--forest);
+        background: var(--mint-pale);
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .job-summary {
+        margin-top: 16px;
+        font-size: 15px;
+    }
+
+    .skills-label {
+        margin: 27px 0 9px;
+        color: var(--forest);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .skills-list {
+        margin: 0;
+        padding: 0;
+        color: var(--body);
+        font-size: 14px;
+        list-style: none;
+    }
+
+    .skills-list li { margin-top: 7px; }
+
+    .skills-list li::before {
+        margin-right: 8px;
+        color: var(--mint);
+        content: "+";
+        font-weight: 900;
+    }
+
+    .apply-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: auto;
+        padding: 13px 16px;
+        border-radius: 9px;
+        color: #fff;
+        background: var(--forest);
+        font-size: 14px;
+        font-weight: 900;
+        text-decoration: none;
+        transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .apply-link:hover {
+        background: #087052;
+        transform: translateY(-2px);
+    }
+
+    .application {
+        display: grid;
+        grid-template-columns: 0.75fr 1.25fr;
+        gap: 46px;
+        align-items: center;
+        margin-top: 80px;
+        padding: 49px;
+        border-radius: 22px;
+        background: var(--forest);
+    }
+
+    .application h2 { margin-bottom: 0; color: #fff; }
+
+    .application-copy { color: #c5e5d8; }
+
+    .email-button {
+        display: inline-flex;
+        margin-top: 24px;
+        padding: 14px 20px;
+        border-radius: 9px;
+        color: var(--forest);
+        background: var(--mint);
+        font-weight: 900;
+        text-decoration: none;
+    }
+
+    .page-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 26px clamp(24px, 6vw, 88px);
+        color: #a8d7c3;
+        background: var(--forest-deep);
+        font-size: 13px;
+    }
+
+    .page-footer a { color: #fff; font-weight: 800; text-decoration: none; }
+
+    @media (max-width: 860px) {
+        .intro,
+        .application { grid-template-columns: 1fr; }
+
+        .job-grid { grid-template-columns: 1fr; }
+
+        .job-card { min-height: auto; gap: 0; }
+
+        .apply-link { margin-top: 28px; }
+    }
+
+    @media (max-width: 560px) {
+        .application { padding: 34px 25px; }
+
+        .page-footer { align-items: flex-start; flex-direction: column; }
+    }
+</style>
+</head>
+
+<body>
+<header class="site-header">
+    <a class="logo" href="index.html" target="_blank" rel="noopener noreferrer">Curis<span>Data</span></a>
+    <a class="home-link" href="index.html" target="_blank" rel="noopener noreferrer">Visit curiscorp.com &rarr;</a>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <p class="eyebrow">Careers at CurisData</p>
+            <h1>Help build a sharper view of healthcare opportunity.</h1>
+            <p class="hero-copy">We are looking for curious builders who can turn complex healthcare and market information into useful, decision-ready intelligence.</p>
+        </div>
+    </section>
+
+    <div class="content">
+        <section class="intro">
+            <div class="intro-copy">
+                <p class="eyebrow">How We Work</p>
+                <h2>Small team, meaningful data problems.</h2>
+                <p>CurisData sits at the intersection of healthcare, data engineering, geospatial intelligence, and practical business decisions. We value people who enjoy figuring out messy data, improving repeatable processes, and explaining their work clearly.</p>
+                <p>If your experience does not match every line below but you can make a strong case for how you would help, we would like to hear from you.</p>
+            </div>
+            <aside class="intro-note">
+                <strong>What We Value</strong>
+                <p>Sound judgment, careful data handling, initiative, and a willingness to learn quickly as the product and its data foundations evolve.</p>
+            </aside>
+        </section>
+
+        <section aria-labelledby="open-roles">
+            <div class="openings-heading">
+                <p class="eyebrow">Current Opportunities</p>
+                <h2 id="open-roles">Work with us.</h2>
+            </div>
+
+            <div class="job-grid">
+                <article class="job-card">
+                    <div class="job-number" aria-hidden="true">01</div>
+                    <h3>Data Engineers</h3>
+                    <p class="job-summary">Build reliable data pipelines and reusable data products that support healthcare real estate research, reporting, and market analysis.</p>
+                    <p class="skills-label">Skills we are looking for</p>
+                    <ul class="skills-list">
+                        <li>Strong SQL and Python or similar data tooling</li>
+                        <li>Experience designing and maintaining ETL or ELT pipelines</li>
+                        <li>Comfort working with APIs, structured files, and imperfect source data</li>
+                        <li>Thoughtful documentation, testing, and data-quality practices</li>
+                    </ul>
+                    <a class="apply-link" href="mailto:bfulghum@curisdata.com?subject=CurisData%20Career%20Inquiry%20-%20Data%20Engineer">Apply by Email &rarr;</a>
+                </article>
+
+                <article class="job-card">
+                    <div class="job-number" aria-hidden="true">02</div>
+                    <h3>AI Agents and Web Data Specialists</h3>
+                    <p class="job-summary">Help design practical AI-assisted workflows for finding, extracting, organizing, and validating web-based information at scale.</p>
+                    <p class="skills-label">Skills we are looking for</p>
+                    <ul class="skills-list">
+                        <li>Hands-on experience with web scraping and browser automation</li>
+                        <li>Familiarity with AI agents, LLM-assisted extraction, or evaluation workflows</li>
+                        <li>Ability to build resilient collection processes that respect source terms and technical limits</li>
+                        <li>Strong judgment when validating AI-generated or web-derived outputs</li>
+                    </ul>
+                    <a class="apply-link" href="mailto:bfulghum@curisdata.com?subject=CurisData%20Career%20Inquiry%20-%20AI%20Agents%20and%20Web%20Data">Apply by Email &rarr;</a>
+                </article>
+
+                <article class="job-card">
+                    <div class="job-number" aria-hidden="true">03</div>
+                    <h3>Transparency in Coverage Data Specialist</h3>
+                    <p class="job-summary">Help translate Transparency in Coverage data into useful healthcare-market signals and maintain dependable processes for working with complex payer files.</p>
+                    <p class="skills-label">Skills we are looking for</p>
+                    <ul class="skills-list">
+                        <li>Experience with Transparency in Coverage machine-readable files or healthcare pricing data</li>
+                        <li>Ability to work with large, nested, and inconsistently structured datasets</li>
+                        <li>Strong analytical instincts and attention to source provenance</li>
+                        <li>Interest in connecting healthcare data to real-world market questions</li>
+                    </ul>
+                    <a class="apply-link" href="mailto:bfulghum@curisdata.com?subject=CurisData%20Career%20Inquiry%20-%20TiC%20Data%20Specialist">Apply by Email &rarr;</a>
+                </article>
+            </div>
+        </section>
+
+        <section class="application" aria-labelledby="apply-heading">
+            <div>
+                <p class="eyebrow">How to Apply</p>
+                <h2 id="apply-heading">Tell us what you can build.</h2>
+            </div>
+            <div>
+                <p class="application-copy">Email your resume and a brief description of your relevant abilities, projects, or perspective. Please include the role that interests you in the subject line.</p>
+                <a class="email-button" href="mailto:bfulghum@curisdata.com?subject=CurisData%20Career%20Inquiry">bfulghum@curisdata.com &rarr;</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="page-footer">
+    <span>&copy; 2026 CurisData. All rights reserved.</span>
+    <a href="index.html" target="_blank" rel="noopener noreferrer">Explore CurisData &rarr;</a>
+</footer>
+</body>
+</html>
