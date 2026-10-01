@@ -23,6 +23,82 @@ let acsPctDataByGeoid = null;
 // Optional Curis demand data keyed by GEOID
 let curisDemandByGeoid = null;
 
+// TiC/Snowflake reporting is intentionally dormant. Keep the implementation
+// available for a future product phase, but do not call it from report runs.
+const TIC_REPORTING_ENABLED = false;
+
+const REPORT_PAYLOAD_SCHEMA_VERSION = 1;
+
+/**
+ * Build the single data contract consumed by every report renderer.
+ * Collection code may use Google Maps, CSVs, or fallback data, but the report
+ * template should only receive this normalized object.
+ */
+function buildReportPayload({
+  address = "Address Not Available",
+  latitude = null,
+  longitude = null,
+  stateCode = null,
+  radiiMiles = [1, 3, 5],
+  demographicsByRadius = {},
+  healthcareDemand = null,
+  urgentCare = {},
+  coverMapImageUrl = "",
+  mapZoom = 12,
+  generatedAt = new Date().toISOString()
+} = {}) {
+  const normalizedRadii = normalizeRadii(radiiMiles);
+  const locations = Array.isArray(urgentCare.locations) ? urgentCare.locations : [];
+  const normalizeCoordinate = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+  const count = Number.isFinite(Number(urgentCare.count))
+    ? Number(urgentCare.count)
+    : locations.length;
+
+  return {
+    schemaVersion: REPORT_PAYLOAD_SCHEMA_VERSION,
+    reportType: "urgent-care-site-assessment",
+    generatedAt,
+    location: {
+      address: String(address || "Address Not Available"),
+      latitude: normalizeCoordinate(latitude),
+      longitude: normalizeCoordinate(longitude),
+      stateCode: stateCode ? String(stateCode).trim().toUpperCase() : null
+    },
+    tradeArea: {
+      radiiMiles: normalizedRadii,
+      maxRadiusMiles: Math.max(...normalizedRadii)
+    },
+    demographics: {
+      byRadius: demographicsByRadius || {}
+    },
+    healthcareDemand: healthcareDemand || null,
+    competition: {
+      urgentCare: {
+        count,
+        locations
+      }
+    },
+    maps: {
+      coverImageUrl: coverMapImageUrl || "",
+      zoom: Number.isFinite(Number(mapZoom)) ? Number(mapZoom) : 12
+    }
+  };
+}
+
+function validateReportPayload(payload) {
+  if (!payload || payload.schemaVersion !== REPORT_PAYLOAD_SCHEMA_VERSION) {
+    throw new Error(`Unsupported report payload. Expected schema version ${REPORT_PAYLOAD_SCHEMA_VERSION}.`);
+  }
+  if (!payload.location || !payload.tradeArea || !payload.demographics || !payload.competition) {
+    throw new Error("Report payload is missing a required section.");
+  }
+  return payload;
+}
+
 
 // script.js (frontend)
 
@@ -33,6 +109,10 @@ function buildEndpointCandidates(paths) {
   const basePath = window.location.pathname.replace(/[^/]+$/, '/');
 
   for (const path of paths) {
+    if (/^https?:\/\//i.test(path)) {
+      candidates.push(path);
+      continue;
+    }
     const normalized = path.replace(/^\/+/, '');
     candidates.push('/' + normalized);
     candidates.push(basePath + normalized);
@@ -121,6 +201,10 @@ function getGoogleMapsApiKey() {
 }
 
 async function generateReport(data) {
+  if (!TIC_REPORTING_ENABLED) {
+    throw new Error("TiC reporting is currently disabled.");
+  }
+
   const endpoints = buildEndpointCandidates(["api/report", "report"]);
   let response = null;
   let lastError = null;
@@ -807,6 +891,14 @@ if (typeof window !== "undefined") {
       console.log("Preview mode detected, skipping production data loaders.");
       return;
     }
+    if (window.__CURIS_SUPPRESS_DATA_ALERTS) {
+      console.log("Managed report preview detected, skipping automatic data loaders.");
+      return;
+    }
+    if (window.self !== window.top) {
+      console.log("Report iframe detected, waiting for a normalized report payload.");
+      return;
+    }
 
     console.log("Page loaded, initializing data loaders...");
     try {
@@ -991,6 +1083,8 @@ function formatSignedPercentFromDecimal(value) {
 }
 
 function populateTicBenchmark(doc, ticBenchmark) {
+  if (!TIC_REPORTING_ENABLED) return;
+
   const rows = ticBenchmark?.rows || [];
   const summary = ticBenchmark?.summary || null;
 
@@ -1045,11 +1139,108 @@ function populateTicBenchmark(doc, ticBenchmark) {
   }
 }
 
-function populateReportTemplate(address, demographicData, facilityCounts, mapImageUrl, radii, healthcareDemand = null, ticBenchmark = null) {
+function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
+  const payload = validateReportPayload(reportPayload);
+  const preserveFrozenMaps = Boolean(options.preserveFrozenMaps);
+  const location = payload.location;
+  const radii = payload.tradeArea.radiiMiles;
+  const demographicData = payload.demographics.byRadius;
+  const healthcareDemand = payload.healthcareDemand;
+  const urgentCare = payload.competition.urgentCare;
+  const cLat = location.latitude;
+  const cLng = location.longitude;
+
+  setIfExists(doc, "report-address", location.address);
+  const generatedDate = new Date(payload.generatedAt);
+  const formattedDate = (Number.isNaN(generatedDate.getTime()) ? new Date() : generatedDate)
+    .toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  setIfExists(doc, "report-date", formattedDate);
+  setIfExists(doc, "footer-date", formattedDate);
+
+  const mapImg = doc.getElementById("report-map-image");
+  if (mapImg && !preserveFrozenMaps && payload.maps.coverImageUrl) {
+    mapImg.src = payload.maps.coverImageUrl;
+  }
+
+  if (!preserveFrozenMaps && reportWindow && typeof reportWindow.initReportMap === "function"
+      && cLat !== null && cLng !== null) {
+    try {
+      reportWindow.initReportMap(cLat, cLng, radii, payload.maps.zoom);
+    } catch (error) {
+      console.warn("Cover map render error:", error);
+    }
+  }
+
+  setIfExists(doc, "comp-urgent-care", urgentCare.count);
+  const marketMetrics = calculateMarketMetrics(urgentCare.count || 0);
+  setIfExists(doc, "sat-urgent-care", marketMetrics.saturation);
+  setIfExists(doc, "opp-urgent-care", marketMetrics.opportunity);
+
+  if (reportWindow && typeof reportWindow.populateFacilityTable === "function") {
+    reportWindow.populateFacilityTable("detail-urgent-care", urgentCare.locations);
+  } else {
+    populateFacilityDetailTable(doc, "detail-urgent-care", urgentCare.locations);
+  }
+
+  populateAllDemographics(doc, demographicData, radii);
+  populateHealthcareDemand(doc, healthcareDemand, radii);
+
+  if (!preserveFrozenMaps && reportWindow && typeof reportWindow.buildUrgentCareMap === "function"
+      && cLat !== null && cLng !== null) {
+    setTimeout(() => {
+      try {
+        reportWindow.buildUrgentCareMap(urgentCare.locations, cLat, cLng);
+      } catch (error) {
+        console.warn("Urgent care map render error:", error);
+      }
+    }, 500);
+  }
+
+  if (!preserveFrozenMaps && reportWindow && typeof reportWindow.buildThematicMap === "function"
+      && cLat !== null && cLng !== null
+      && blockGroupData?.features && demographicDataByGeoid) {
+    try {
+      const { allGeoids } = getBlockGroupsByRadius(cLat, cLng, radii);
+      const geoidSet = new Set(allGeoids);
+      const perGeoid = getCSVDataForGeoids(allGeoids);
+      const relevantFeatures = blockGroupData.features.filter((feature) => {
+        const featureGeoid = normalizeGeoid(feature?.properties?.GEOID || feature?.properties?.GEOID20);
+        return featureGeoid && geoidSet.has(featureGeoid);
+      });
+
+      setTimeout(() => {
+        try {
+          reportWindow.buildThematicMap(
+            "thematic-income-map", "income-map-placeholder",
+            relevantFeatures, perGeoid, "medianIncome",
+            ["#ffffcc", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#0c2c84"],
+            cLat, cLng
+          );
+          reportWindow.buildThematicMap(
+            "thematic-pop-map", "pop-map-placeholder",
+            relevantFeatures, perGeoid, "population",
+            ["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#ef3b2c", "#cb181d", "#67000d"],
+            cLat, cLng
+          );
+          console.log("✓ Thematic maps built with", relevantFeatures.length, "block groups");
+        } catch (error) {
+          console.warn("Thematic map render error:", error);
+        }
+      }, 800);
+    } catch (error) {
+      console.warn("Thematic maps could not be built:", error);
+    }
+  }
+
+  console.log("Report payload rendered", payload);
+}
+
+function populateReportTemplate(reportPayload) {
+  const payload = validateReportPayload(reportPayload);
+  window.__lastReportPayload = payload;
   const reportIframe = document.getElementById("report-iframe");
   if (!reportIframe) {
-    console.error("report-iframe not found");
-    return;
+    throw new Error("report-iframe not found");
   }
 
   const reportSection = document.getElementById("report-section");
@@ -1059,121 +1250,19 @@ function populateReportTemplate(address, demographicData, facilityCounts, mapIma
     setTimeout(() => {
       const doc = reportIframe.contentDocument || reportIframe.contentWindow.document;
       const iframeUrl = reportIframe.getAttribute("src") || "";
-      const isFrozenDemoMode = iframeUrl.includes("demoMaps=frozen");
-
-      // Basic info
-      setIfExists(doc, "report-address", address);
-      const formattedDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-      setIfExists(doc, "report-date", formattedDate);
-      setIfExists(doc, "footer-date", formattedDate);
-
-      // Map — static snapshot image (already set by generateMapSnapshot)
-      const mapImg = doc.getElementById("report-map-image");
-      if (mapImg && !isFrozenDemoMode && mapImageUrl) mapImg.src = mapImageUrl;
-
-      // Also inject live map if iframe has initReportMap available
-      try {
-        const iframeWin = reportIframe.contentWindow;
-        if (!isFrozenDemoMode && iframeWin && typeof iframeWin.initReportMap === 'function') {
-          const center = (typeof map !== 'undefined' && map.getCenter) ? map.getCenter() : null;
-          if (center) {
-            iframeWin.initReportMap(center.lat(), center.lng(), radii, map.getZoom ? map.getZoom() : 12);
-          }
-        }
-      } catch(e) {
-        // cross-origin or map not ready — static image fallback is sufficient
-      }
-
-      // Facilities — URGENT CARE ONLY
-      setIfExists(doc, "comp-urgent-care", facilityCounts.urgentCare ?? "N/A");
-
-      const updateSatOpp = (countId, satId, oppId, count) => {
-        const { saturation, opportunity } = calculateMarketMetrics(count);
-        setIfExists(doc, satId, saturation);
-        setIfExists(doc, oppId, opportunity);
-      };
-      updateSatOpp("comp-urgent-care", "sat-urgent-care", "opp-urgent-care", facilityCounts.urgentCare || 0);
-
-      // ===== URGENT CARE DETAIL TABLE + NUMBERED MAP =====
-      const iframeWindow = reportIframe.contentWindow;
-      const ucDetails = facilityCounts.urgentCareDetails || [];
-      const cLat = facilityCounts.centerLat;
-      const cLng = facilityCounts.centerLng;
-
-      // Detail table
-      if (iframeWindow && typeof iframeWindow.populateFacilityTable === 'function') {
-        iframeWindow.populateFacilityTable('detail-urgent-care', ucDetails);
-      } else {
-        populateFacilityDetailTable(doc, 'detail-urgent-care', ucDetails);
-      }
-
-      // Numbered-marker map — needs google.maps in iframe
-      if (iframeWindow && typeof iframeWindow.buildUrgentCareMap === 'function' && cLat && cLng) {
-        // Wait a tick for iframe's google.maps to be ready
-        setTimeout(() => {
-          try { iframeWindow.buildUrgentCareMap(ucDetails, cLat, cLng); }
-          catch(e) { console.warn('UC map error:', e); }
-        }, 500);
-      }
-
-      // ===== THEMATIC MAPS =====
-      try {
-        if (iframeWindow && typeof iframeWindow.buildThematicMap === 'function'
-            && blockGroupData && blockGroupData.features && demographicDataByGeoid) {
-
-          const thematicRadii = normalizeRadii(radii);
-          const { allGeoids } = getBlockGroupsByRadius(cLat, cLng, thematicRadii);
-          const perGeoid = getCSVDataForGeoids(allGeoids);
-
-          const relevantFeatures = blockGroupData.features.filter(function(f) {
-            const featureGeoid = normalizeGeoid(f?.properties?.GEOID || f?.properties?.GEOID20);
-            return featureGeoid && allGeoids.includes(featureGeoid);
-          });
-
-          // Delay to ensure iframe google.maps is initialized
-          setTimeout(() => {
-            try {
-              iframeWindow.buildThematicMap(
-                'thematic-income-map', 'income-map-placeholder',
-                relevantFeatures, perGeoid, 'medianIncome',
-                ['#ffffcc','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84'],
-                cLat, cLng
-              );
-              iframeWindow.buildThematicMap(
-                'thematic-pop-map', 'pop-map-placeholder',
-                relevantFeatures, perGeoid, 'population',
-                ['#fee5d9','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#67000d'],
-                cLat, cLng
-              );
-              console.log('✓ Thematic maps built with', relevantFeatures.length, 'block groups');
-            } catch(e) { console.warn('Thematic map render error:', e); }
-          }, 800);
-        }
-      } catch (thematicError) {
-        console.warn('Thematic maps could not be built:', thematicError);
-      }
-
-      // Demographics
-      populateAllDemographics(doc, demographicData, radii);
-      populateHealthcareDemand(doc, healthcareDemand, radii);
-      populateTicBenchmark(doc, ticBenchmark);
-
-      console.log("Report template populated");
+      renderReportPayload(doc, reportIframe.contentWindow, payload, {
+        preserveFrozenMaps: iframeUrl.includes("demoMaps=frozen")
+      });
     }, 1000);
   };
 
-  const checkAndPopulate = () => {
-    if (reportIframe.contentDocument) {
-      const readyState = reportIframe.contentDocument.readyState;
-      console.log("Iframe readyState:", readyState);
-      if (readyState === "complete") populateData();
-      else reportIframe.contentDocument.addEventListener("DOMContentLoaded", populateData);
-    } else {
-      reportIframe.onload = populateData;
-    }
-  };
-
-  checkAndPopulate();
+  if (reportIframe.contentDocument?.readyState === "complete") {
+    populateData();
+  } else if (reportIframe.contentDocument) {
+    reportIframe.contentDocument.addEventListener("DOMContentLoaded", populateData, { once: true });
+  } else {
+    reportIframe.addEventListener("load", populateData, { once: true });
+  }
 }
 
 /**
@@ -1367,26 +1456,9 @@ async function generateDemographicReport() {
     // Fetch data from CSV instead of Census API
     const demographicData = await fetchMultiRadiusDataFromCSV(lat, lng, radii);
     const healthcareDemand = await buildHealthcareDemandSummary(lat, lng, radii, demographicData);
-    let ticBenchmark = null;
 
-    if (stateCode) {
-      try {
-        const ticResponse = await generateReport({
-          latitude: lat,
-          longitude: lng,
-          stateCode,
-          address,
-          radiusOptions: [20, 30, 40, 50],
-          minLocalNpis: 20,
-          minLocalReimbursementRows: 500
-        });
-        ticBenchmark = ticResponse?.ticBenchmark || null;
-      } catch (ticError) {
-        console.warn("TiC benchmark unavailable:", ticError);
-      }
-    } else {
-      console.warn("State code unavailable; skipping TiC benchmark request.");
-    }
+    // TiC/Snowflake benchmarking is paused. The dormant API implementation is
+    // retained for a future phase, but report generation makes no TiC request.
 
 // Urgent care only — no hospital/derm/autism fetches (saves API cost)
 const urgentCareResults = await fetchNearbyPlaces(lat, lng, maxRadius, 'urgent_care');
@@ -1416,13 +1488,28 @@ console.log('Facility counts:', facilityCounts);
 
     const mapImageUrl = await generateMapSnapshot(new google.maps.LatLng(lat, lng));
 
-    // Your existing report template population (dynamic radii supported)
-    populateReportTemplate(address, demographicData, facilityCounts, mapImageUrl, radii, healthcareDemand, ticBenchmark);
+    const reportPayload = buildReportPayload({
+      address,
+      latitude: lat,
+      longitude: lng,
+      stateCode,
+      radiiMiles: radii,
+      demographicsByRadius: demographicData,
+      healthcareDemand,
+      urgentCare: {
+        count: facilityCounts.urgentCare,
+        locations: facilityCounts.urgentCareDetails
+      },
+      coverMapImageUrl: mapImageUrl,
+      mapZoom: map.getZoom ? map.getZoom() : 12
+    });
+
+    populateReportTemplate(reportPayload);
 
     console.log("Report generated successfully");
   } catch (error) {
     console.error("Error generating report:", error);
-    alert("Error generating report: " + error.message);
+    throw error;
   }
 }
 

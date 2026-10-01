@@ -11,6 +11,10 @@ const DEFAULT_MIN_LOCAL_REIMBURSEMENT_ROWS = 500;
 const DEFAULT_POLL_INTERVAL_MS = 1200;
 const DEFAULT_POLL_TIMEOUT_MS = 45000;
 
+// Preserve the Snowflake/TiC implementation for a future reporting phase,
+// while ensuring the dormant endpoint cannot submit statements today.
+const TIC_REPORTING_ENABLED = false;
+
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body, null, 2), {
     status,
@@ -674,6 +678,13 @@ export async function onRequestOptions() {
 
 export async function onRequestPost(context) {
   const { request, env } = context;
+
+  if (!TIC_REPORTING_ENABLED) {
+    return jsonResponse({
+      success: false,
+      error: "TiC reporting is currently disabled."
+    }, 503);
+  }
 
   try {
     const body = await parseJsonBody(request);

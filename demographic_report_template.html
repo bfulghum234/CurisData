@@ -1809,21 +1809,6 @@ function calcMarketMetrics(count) {
     return { saturation: 'High', opportunity: 'Low' };
 }
 
-// Auto-show static map image if src gets set from report_integration.js
-const _reportMapImg = document.getElementById('report-map-image');
-if (_reportMapImg) {
-    const _observer = new MutationObserver(() => {
-        if (_reportMapImg.src && _reportMapImg.src !== window.location.href) {
-            _reportMapImg.style.display = 'block';
-            const placeholder = document.getElementById('map-placeholder-text');
-            if (placeholder) placeholder.style.display = 'none';
-            const embedDiv = document.getElementById('report-map-embed');
-            if (embedDiv) embedDiv.style.display = 'none';
-        }
-    });
-    _observer.observe(_reportMapImg, { attributes: true, attributeFilter: ['src'] });
-}
-
 // fetchFacilityCounts is called by initMap() callback when API loads standalone,
 // or by the parent via populateReportTemplate when in iframe.
 
@@ -1976,79 +1961,23 @@ async function bootstrapStandaloneAustinSample() {
             }
         }
 
-        setIfExists(document, 'report-address', address);
-        const formattedDate = new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        const reportPayload = buildReportPayload({
+            address,
+            latitude: lat,
+            longitude: lng,
+            stateCode: 'TX',
+            radiiMiles: radii,
+            demographicsByRadius: demographicData,
+            healthcareDemand,
+            urgentCare: {
+                count: facilityCounts.urgentCare,
+                locations: facilityCounts.urgentCareDetails || []
+            },
+            coverMapImageUrl: mapImageUrl,
+            mapZoom: 11
         });
-        setIfExists(document, 'report-date', formattedDate);
-        setIfExists(document, 'footer-date', formattedDate);
 
-        const mapImg = document.getElementById('report-map-image');
-        if (mapImg && mapImageUrl) {
-            mapImg.src = mapImageUrl;
-            mapImg.style.display = 'block';
-        }
-
-        if (typeof initReportMap === 'function') {
-            try { initReportMap(lat, lng, radii, 11); } catch (mapError) { console.warn('Standalone cover map init failed:', mapError); }
-        }
-
-        setIfExists(document, 'comp-urgent-care', facilityCounts.urgentCare || 0);
-        const metrics = calculateMarketMetrics(facilityCounts.urgentCare || 0);
-        setIfExists(document, 'sat-urgent-care', metrics.saturation);
-        setIfExists(document, 'opp-urgent-care', metrics.opportunity);
-
-        populateFacilityTable('detail-urgent-care', facilityCounts.urgentCareDetails || []);
-        try {
-            buildUrgentCareMap(facilityCounts.urgentCareDetails || [], lat, lng);
-        } catch (urgentCareMapError) {
-            console.warn('Standalone urgent care map failed:', urgentCareMapError);
-        }
-
-        populateAllDemographics(document, demographicData, radii);
-        populateHealthcareDemand(document, healthcareDemand, radii);
-
-        if (blockGroupData && blockGroupData.features && demographicDataByGeoid) {
-            const radiusLookup = getBlockGroupsByRadius(lat, lng, radii);
-            const allGeoids = radiusLookup.allGeoids || [];
-            const perGeoid = getCSVDataForGeoids(allGeoids);
-            const relevantFeatures = blockGroupData.features.filter(function(feature) {
-                const featureGeoid = normalizeGeoid(feature && feature.properties && (feature.properties.GEOID || feature.properties.GEOID20));
-                return featureGeoid && allGeoids.includes(featureGeoid);
-            });
-
-            try {
-                buildThematicMap(
-                    'thematic-income-map',
-                    'income-map-placeholder',
-                    relevantFeatures,
-                    perGeoid,
-                    'medianIncome',
-                    ['#ffffcc','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84'],
-                    lat,
-                    lng
-                );
-            } catch (incomeMapError) {
-                console.warn('Standalone income thematic map failed:', incomeMapError);
-            }
-
-            try {
-                buildThematicMap(
-                    'thematic-pop-map',
-                    'pop-map-placeholder',
-                    relevantFeatures,
-                    perGeoid,
-                    'population',
-                    ['#fee5d9','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#67000d'],
-                    lat,
-                    lng
-                );
-            } catch (populationMapError) {
-                console.warn('Standalone population thematic map failed:', populationMapError);
-            }
-        }
+        renderReportPayload(document, window, reportPayload);
     } catch (error) {
         console.error('Failed to bootstrap standalone Austin sample report:', error);
     }

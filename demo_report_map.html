@@ -723,6 +723,10 @@ function buildEndpointCandidates(paths) {
     const basePath = window.location.pathname.replace(/[^/]+$/, '');
 
     for (const path of paths) {
+        if (/^https?:\/\//i.test(path)) {
+            candidates.push(path);
+            continue;
+        }
         const normalized = path.replace(/^\/+/, '');
         candidates.push('/' + normalized);
         candidates.push(basePath + normalized);

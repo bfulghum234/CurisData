@@ -68,10 +68,9 @@
     </div>
   </div>
 
+  <script>window.__CURIS_SUPPRESS_DATA_ALERTS = true;</script>
   <script src="report_integration.js"></script>
   <script>
-    window.__CURIS_SUPPRESS_DATA_ALERTS = true;
-
     let runtimeConfig = {
       GOOGLE_MAPS_API_KEY: "",
       CENSUS_API_KEY: ""
@@ -170,18 +169,25 @@
 
     function buildFortWorthFallbackPayload(reason) {
       console.warn("Using Fort Worth fallback preview payload:", reason);
-      return {
+      const facilityCounts = {
+        ...getFallbackFacilityCounts(),
+        urgentCare: 14
+      };
+      return buildReportPayload({
         address: previewAddress,
-        radii: previewRadii,
-        mapImageUrl: createFortWorthMapPlaceholder("Fort Worth Trade Area", "4455 Camp Bowie Blvd., Fort Worth, TX 76107"),
-        demographicData: {
+        latitude: previewLat,
+        longitude: previewLng,
+        stateCode: "TX",
+        radiiMiles: previewRadii,
+        coverMapImageUrl: createFortWorthMapPlaceholder("Fort Worth Trade Area", "4455 Camp Bowie Blvd., Fort Worth, TX 76107"),
+        demographicsByRadius: {
           "1mile": buildRadiusData(15680, 6280, 3810, 98200, 88100, 76000),
           "3mile": buildRadiusData(89240, 34980, 21140, 101500, 88100, 76000),
           "5mile": buildRadiusData(214600, 84220, 50110, 104800, 88100, 76000)
         },
-        facilityCounts: {
-          ...getFallbackFacilityCounts(),
-          urgentCare: 14
+        urgentCare: {
+          count: facilityCounts.urgentCare,
+          locations: facilityCounts.urgentCareDetails
         },
         healthcareDemand: {
           maxRadius: 5,
@@ -199,7 +205,7 @@
           ],
           summaryText: "Fort Worth sample preview is using a saved CurisData-style fallback snapshot because the live file-based preview could not reach the full data pipeline."
         }
-      };
+      });
     }
 
     function buildEndpointCandidates(paths) {
@@ -207,6 +213,10 @@
       const basePath = window.location.pathname.replace(/[^/]+$/, "");
 
       for (const path of paths) {
+        if (/^https?:\/\//i.test(path)) {
+          candidates.push(path);
+          continue;
+        }
         const normalized = path.replace(/^\/+/, "");
         candidates.push("/" + normalized);
         candidates.push(basePath + normalized);
@@ -358,21 +368,38 @@
           }
         }
 
-        return {
+        return buildReportPayload({
           address: previewAddress,
-          radii: previewRadii,
-          mapImageUrl,
-          demographicData,
-          facilityCounts,
-          healthcareDemand
-        };
+          latitude: previewLat,
+          longitude: previewLng,
+          stateCode: "TX",
+          radiiMiles: previewRadii,
+          coverMapImageUrl: mapImageUrl,
+          demographicsByRadius: demographicData,
+          healthcareDemand,
+          urgentCare: {
+            count: facilityCounts.urgentCare,
+            locations: facilityCounts.urgentCareDetails
+          }
+        });
       } catch (error) {
         return buildFortWorthFallbackPayload(error);
       }
     }
 
+    let renderedPreviewDocument = null;
+
     async function loadPreview() {
+      const currentDocument = iframe?.contentDocument || null;
+      if (currentDocument && currentDocument === renderedPreviewDocument) return;
+      renderedPreviewDocument = currentDocument;
+
       try {
+        if ((iframe.getAttribute("src") || "").includes("demoMaps=frozen")) {
+          populateReportTemplate(buildFortWorthFallbackPayload("Frozen sample mode"));
+          return;
+        }
+
         const hasRuntimeConfig = await loadRuntimeConfig();
         if (!hasRuntimeConfig) {
           console.warn("Preview runtime config unavailable. Falling back to data-only mode.");
@@ -384,25 +411,11 @@
           iframeWindow.google = window.google;
         }
 
-        populateReportTemplate(
-          payload.address,
-          payload.demographicData,
-          payload.facilityCounts,
-          payload.mapImageUrl,
-          payload.radii,
-          payload.healthcareDemand
-        );
+        populateReportTemplate(payload);
       } catch (error) {
         console.error("Failed to build Fort Worth preview payload:", error);
         const payload = buildFortWorthFallbackPayload(error);
-        populateReportTemplate(
-          payload.address,
-          payload.demographicData,
-          payload.facilityCounts,
-          payload.mapImageUrl,
-          payload.radii,
-          payload.healthcareDemand
-        );
+        populateReportTemplate(payload);
       }
     }
 
@@ -411,16 +424,28 @@
     const frozenButton = document.getElementById("open-frozen-preview");
     const templateButton = document.getElementById("open-template");
 
-    iframe.addEventListener("load", loadPreview);
-    reloadButton.addEventListener("click", function() {
-      iframe.src = frozenPreviewSrc;
-    });
-    frozenButton.addEventListener("click", function() {
-      iframe.src = frozenPreviewSrc;
-    });
-    templateButton.addEventListener("click", function() {
-      window.open(frozenPreviewSrc, "_blank");
-    });
+    if (iframe) {
+      iframe.addEventListener("load", loadPreview);
+      const currentUrl = iframe.contentWindow?.location?.href || "";
+      if (iframe.contentDocument?.readyState === "complete" && currentUrl.includes("demographic_report_template.html")) {
+        loadPreview();
+      }
+    }
+    if (reloadButton) {
+      reloadButton.addEventListener("click", function() {
+        iframe.src = frozenPreviewSrc;
+      });
+    }
+    if (frozenButton) {
+      frozenButton.addEventListener("click", function() {
+        iframe.src = frozenPreviewSrc;
+      });
+    }
+    if (templateButton) {
+      templateButton.addEventListener("click", function() {
+        window.open(frozenPreviewSrc, "_blank");
+      });
+    }
   </script>
 </body>
 </html>
