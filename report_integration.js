@@ -246,11 +246,12 @@ async function loadBlockGroupData() {
   try {
     console.log("Loading block group GeoJSON data...");
 
-    // Try both .geojson and .json extensions
-    const dataCandidates = [
-      "https://files.spaitialintel.com/bgZTCA_TX.geojson",
-      "https://files.spaitialintel.com/bgZTCA_TX.json"
-    ];
+    // Load through the same-origin Pages Function, which reads the files from
+    // the bound R2 bucket without exposing a cross-origin data URL.
+    const dataCandidates = buildEndpointCandidates([
+      "data/bgZTCA_TX.geojson",
+      "data/bgZTCA_TX.json"
+    ]);
 
     const { data, source } = await fetchFirstAvailable(dataCandidates, 'json');
     blockGroupData = data;
@@ -314,13 +315,7 @@ async function loadDemographicCSV() {
     console.log("Loading demographic CSV data...");
 
     const csvCandidates = buildEndpointCandidates([
-      'texas_blockgroup_demographics_2022.csv',
-      'data/texas_blockgroup_demographics_2022.csv',
-      'files/texas_blockgroup_demographics_2022.csv',
-      'assets/texas_blockgroup_demographics_2022.csv',
-      'public/texas_blockgroup_demographics_2022.csv',
-      '../texas_blockgroup_demographics_2022.csv',
-      'https://files.spaitialintel.com/texas_blockgroup_demographics_2022.csv'
+      'data/texas_blockgroup_demographics_2022.csv'
     ]);
 
     const { data: csvText, source } = await fetchFirstAvailable(csvCandidates, 'text');
@@ -354,13 +349,7 @@ async function loadAcsPctCSV() {
   try {
     console.log("Loading ACS percentage values CSV...");
     const acsCandidates = buildEndpointCandidates([
-      'ACS_pct_values_by_blockgroup.csv',
-      'data/ACS_pct_values_by_blockgroup.csv',
-      'files/ACS_pct_values_by_blockgroup.csv',
-      'assets/ACS_pct_values_by_blockgroup.csv',
-      'public/ACS_pct_values_by_blockgroup.csv',
-      '../ACS_pct_values_by_blockgroup.csv',
-      'https://files.spaitialintel.com/ACS_pct_values_by_blockgroup.csv'
+      'data/ACS_pct_values_by_blockgroup.csv'
     ]);
 
     const { data: csvText, source } = await fetchFirstAvailable(acsCandidates, 'text');

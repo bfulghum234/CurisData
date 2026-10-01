@@ -865,46 +865,33 @@ function initMap() {
     // Add autocomplete
     const input = document.getElementById('addressInput');
     const autocomplete = new google.maps.places.Autocomplete(input);
+    const geocoder = new google.maps.Geocoder();
+    let selectedPlace = null;
     autocomplete.bindTo('bounds', map);
 
-    // Add the listener immediately:
+    // Keep a selected autocomplete result when one is available. If the user
+    // edits the text afterward, the button will geocode the new value instead.
     autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    
-    if (!place.geometry) {
-        alert('Please select an address from the dropdown');
-        return;
-    }
-    
-    // Process the place data
-    map.setCenter(place.geometry.location);
-    map.setZoom(15);
-    selectedLocationContext = {
-        name: place.name || place.formatted_address || 'Selected Location',
-        address: place.formatted_address || place.name || 'Address Not Available',
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng()
-    };
-});
+        const place = autocomplete.getPlace();
+        selectedPlace = place?.geometry ? place : null;
+    });
 
-// Update the goToAddress function in initMap()
-    const goToAddress = () => {
-    const place = autocomplete.getPlace();
+    input.addEventListener('input', () => {
+        selectedPlace = null;
+    });
 
-        // Add this check
-    if (!place || !place.geometry) {
-        console.error('No place data or geometry found');
-        return;
-    }
-
-    if (place.geometry) {
+    const showPlaceOnMap = (place) => {
         map.setCenter(place.geometry.location);
         map.setZoom(15);
+        const stateCode = place.address_components?.find(component =>
+            component.types.includes('administrative_area_level_1')
+        )?.short_name;
         selectedLocationContext = {
             name: place.name || place.formatted_address || 'Selected Location',
             address: place.formatted_address || place.name || 'Address Not Available',
             lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng()
+            lng: place.geometry.location.lng(),
+            ...(stateCode ? { stateCode } : {})
         };
         
         // Remove previous marker if exists
@@ -919,7 +906,7 @@ function initMap() {
             title: place.formatted_address || place.name,
             animation: google.maps.Animation.DROP,
             icon: {
-                url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
                 scaledSize: new google.maps.Size(50, 50) // Large enough to see
             }
         });
@@ -945,8 +932,43 @@ function initMap() {
         });
         
         drawRadiusCircles(place.geometry.location);
-    }
-};
+    };
+
+    const goToAddress = async () => {
+        const query = input.value.trim();
+
+        if (!query) {
+            alert('Please enter an address');
+            input.focus();
+            return;
+        }
+
+        const goButton = document.getElementById('goButton');
+        goButton.disabled = true;
+
+        try {
+            let place = selectedPlace;
+
+            if (!place?.geometry) {
+                const response = await geocoder.geocode({ address: query });
+                const result = response.results?.[0];
+
+                if (!result?.geometry) {
+                    throw new Error('No matching address was found');
+                }
+
+                place = result;
+                input.value = result.formatted_address;
+            }
+
+            showPlaceOnMap(place);
+        } catch (error) {
+            console.error('Unable to locate address:', error);
+            alert('We could not find that address. Please check it and try again.');
+        } finally {
+            goButton.disabled = false;
+        }
+    };
 
     document.getElementById('goButton').addEventListener('click', goToAddress);
     input.addEventListener('keypress', (e) => {
@@ -1016,7 +1038,10 @@ async function handleZipCodeToggle() {
     
     if (isChecked) {
         // Load the JSON file
-        const response = await fetch('https://files.spaitialintel.com/zipTexas.json');
+        const response = await fetch('/data/zipTexas.json');
+        if (!response.ok) {
+            throw new Error(`Unable to load ZIP boundaries (HTTP ${response.status})`);
+        }
     ;
         const data = await response.json();
         

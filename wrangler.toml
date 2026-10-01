@@ -4,3 +4,8 @@ pages_build_output_dir = "."
 
 [vars]
 SITE_NAME = "CurisData"
+
+[[r2_buckets]]
+binding = "REPORT_DATA_BUCKET"
+bucket_name = "healthdemo-bg"
+preview_bucket_name = "healthdemo-bg"

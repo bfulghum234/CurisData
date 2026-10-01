@@ -68,6 +68,19 @@ Cloudflare Pages will deploy the root static files and pick up `functions/` auto
 
 Use `.dev.vars.example` as a local template if you later need secrets or runtime configuration for Pages Functions.
 
+### Report data in R2
+
+The mapping interface loads its GeoJSON and demographic CSV files through the
+same-origin `/data/<filename>` Pages Function. That Function reads the objects
+directly from the `healthdemo-bg` R2 bucket using the `REPORT_DATA_BUCKET`
+binding declared in `wrangler.toml`. This avoids browser CORS and Cloudflare
+Access redirects without copying large data files into Git.
+
+Because this Pages project is managed by Wrangler, Cloudflare disables manual
+binding edits in the dashboard. Commit and deploy `wrangler.toml` to apply the
+binding; after deployment, the dashboard will show `REPORT_DATA_BUCKET` as a
+Wrangler-managed binding to `healthdemo-bg`.
+
 ## GitHub Setup
 
 ```bash
