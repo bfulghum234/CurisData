@@ -27,3 +27,20 @@ test("temporarily hides the Layers and AI Assistant controls", () => {
   assert.match(html, /<details hidden[^>]*>\s*<summary>Layers<\/summary>/);
   assert.match(html, /<details hidden[^>]*>\s*<summary>AI Assistant<\/summary>/);
 });
+
+test("guides report creation through four numbered steps", () => {
+  for (const step of ["location-step", "specialty-step", "trade-area-step", "report-step"]) {
+    assert.match(html, new RegExp(`id="${step}"`));
+  }
+  assert.match(html, /Set Location &amp; Continue/);
+  assert.match(html, /Use This Trade Area &amp; Continue/);
+  assert.match(html, /id="run-report-button"[^>]*disabled>Run Report<\/button>/);
+  assert.match(html, /function handleWorkflowSpecialtyChange\(\)/);
+  assert.match(html, /function confirmTradeArea\(\)/);
+});
+
+test("places Run Report in the workflow instead of the snapshot header", () => {
+  const panelHeader = html.match(/<div class="panel-header">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] || "";
+  assert.doesNotMatch(panelHeader, /Run Report/);
+  assert.match(html, /id="report-step"[\s\S]*?class="btn-run-report"/);
+});

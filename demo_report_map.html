@@ -802,6 +802,143 @@ header.product-header {
     box-shadow: var(--shadow-sm);
 }
 
+.workflow-intro {
+    margin-bottom: 14px;
+}
+
+.workflow-intro strong {
+    display: block;
+    color: var(--curis-900);
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.workflow-intro span {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.workflow-heading,
+.workflow-summary-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.workflow-heading {
+    margin-bottom: 12px !important;
+}
+
+.workflow-heading-text,
+.workflow-summary-copy {
+    min-width: 0;
+}
+
+.workflow-heading-text small,
+.workflow-summary-copy small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.workflow-step-number {
+    display: inline-flex;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: var(--curis-700);
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.workflow-step {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.workflow-step.is-complete,
+.search-card.is-complete {
+    border-color: var(--curis-400);
+    box-shadow: 0 4px 14px rgba(26, 138, 104, 0.13);
+}
+
+.workflow-summary-title {
+    width: 100%;
+}
+
+.workflow-summary-copy {
+    flex: 1;
+}
+
+.workflow-status {
+    flex: 0 0 auto;
+    padding: 3px 7px;
+    color: var(--muted);
+    background: var(--curis-50);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.workflow-step.is-complete .workflow-status,
+.search-card.is-complete .workflow-status {
+    color: var(--curis-800);
+    background: var(--curis-100);
+    border-color: var(--curis-200);
+}
+
+.specialty-option {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.workflow-run-card {
+    margin-top: 14px;
+    padding: 16px;
+    background: linear-gradient(150deg, #ffffff, var(--curis-100));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.workflow-run-card .workflow-heading {
+    margin-bottom: 10px !important;
+}
+
+.workflow-run-card .btn-run-report {
+    width: 100%;
+}
+
+#confirm-trade-area-button {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.btn-run-report:disabled {
+    cursor: not-allowed !important;
+}
+
+.workflow-run-help {
+    margin: 9px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+    text-align: center;
+}
+
 .controls h3 {
     margin: 0 0 12px;
     color: var(--curis-900);
@@ -854,7 +991,8 @@ header.product-header {
 }
 
 .controls button:disabled,
-#goButton:disabled {
+#goButton:disabled,
+.btn-run-report:disabled {
     cursor: wait;
     opacity: 0.65;
     transform: none;
@@ -1101,39 +1239,43 @@ input[type='range']::-moz-range-thumb {
     <!-- LEFT TOOLBAR -->
     <div class="controls">
    
-    <!-- SEARCH LOCATION -->
-    <div class="search-card">
-        <h3>Search Location</h3>
+    <div class="workflow-intro">
+        <strong>Build Your Report</strong>
+        <span>Complete these four steps to generate a location report.</span>
+    </div>
+
+    <!-- STEP 1: SEARCH LOCATION -->
+    <div class="search-card workflow-step" id="location-step">
+        <h3 class="workflow-heading">
+            <span class="workflow-step-number">1</span>
+            <span class="workflow-heading-text">Choose a location<small>Search for the site you want to analyze</small></span>
+        </h3>
         <input id="addressInput" type="text" value="601 Bailey Ave., Fort Worth, TX 76107"
                style="margin-bottom: 9px;">
         <button id="goButton">
-            Go to Address
+            Set Location &amp; Continue
         </button>
     </div>
 <!-- Eplaceholder="Enter address..."  move to value above-->
     <!-- HEALTHCARE TOOLS -->
-<!-- COLLAPSIBLE GEOGRAPHY SECTION -->
-    <details style="margin-top: 20px;">
-    <summary>Healthcare Specialties</summary>
+<!-- STEP 2: SPECIALTY -->
+    <details id="specialty-step" class="workflow-step" open>
+    <summary><span class="workflow-summary-title"><span class="workflow-step-number">2</span><span class="workflow-summary-copy">Choose a specialty<small>Select one or more specialties</small></span><span class="workflow-status" id="specialty-step-status">Required</span></span></summary>
     <div>
-        <input type="checkbox" id="urgentCareCheckbox" onchange="handleUrgentCareToggle()" 
-               style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer;">
-        <span style="font-size: 14px;">Urgent Care</span>
+        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="urgentCareCheckbox" onchange="handleUrgentCareToggle(); handleWorkflowSpecialtyChange()"
+               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Urgent Care</span></label>
     </div> 
     <div> 
-        <input type="checkbox" id="HospitalCheckbox" onchange="handleHospitalToggle()" 
-               style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer;">
-        <span style="font-size: 14px;">ASC</span>
+        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="HospitalCheckbox" onchange="handleHospitalToggle(); handleWorkflowSpecialtyChange()"
+               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">ASC</span></label>
     </div>
     <div> 
-        <input type="checkbox" id="DermCheckbox" onchange="handleDermToggle()" 
-               style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer;">
-        <span style="font-size: 14px;">Dermatology</span>
+        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="DermCheckbox" onchange="handleDermToggle(); handleWorkflowSpecialtyChange()"
+               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Dermatology</span></label>
     </div>
     <div> 
-        <input type="checkbox" id="AutismCheckbox" onchange="handleAutismToggle()" 
-               style="width: 16px; height: 16px; margin-right: 8px; cursor: pointer;">
-        <span style="font-size: 14px;">Autism</span>
+        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="AutismCheckbox" onchange="handleAutismToggle(); handleWorkflowSpecialtyChange()"
+               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Autism</span></label>
     </div>
  </details>
     
@@ -1162,9 +1304,9 @@ input[type='range']::-moz-range-thumb {
     </div>
  </details>
 
-    <!-- COLLAPSIBLE GEOGRAPHY SECTION -->
-    <details style="margin-top: 20px;">
-        <summary>Trade Area</summary>
+    <!-- STEP 3: TRADE AREA -->
+    <details id="trade-area-step" class="workflow-step">
+        <summary><span class="workflow-summary-title"><span class="workflow-step-number">3</span><span class="workflow-summary-copy">Set the trade area<small>Adjust the three analysis radii</small></span><span class="workflow-status" id="trade-area-step-status">1, 3, 5 mi</span></span></summary>
         <div class="section-content">
             <!-- Radius 1 Slider -->
             <div class="slider-container">
@@ -1204,8 +1346,19 @@ input[type='range']::-moz-range-thumb {
                 <input type="range" id="radius3" min="0" max="30" value="5" 
                        oninput="updateRadiusValue(3, this.value)">
             </div>
+            <button id="confirm-trade-area-button" type="button" onclick="confirmTradeArea()">Use This Trade Area &amp; Continue</button>
         </div>
     </details>
+
+    <!-- STEP 4: RUN REPORT -->
+    <div class="workflow-run-card workflow-step" id="report-step">
+        <h3 class="workflow-heading">
+            <span class="workflow-step-number">4</span>
+            <span class="workflow-heading-text">Generate report<small>Review your choices and create the analysis</small></span>
+        </h3>
+        <button id="run-report-button" class="btn-run-report" onclick="runReport()" disabled>Run Report</button>
+        <p class="workflow-run-help" id="workflow-run-help">Select at least one specialty to continue.</p>
+    </div>
 
 
 
@@ -1262,7 +1415,6 @@ input[type='range']::-moz-range-thumb {
         <div class="panel-header">
             <strong>5-MILE RADIUS DEMOGRAPHICS</strong>
             <div class="header-buttons">
-            <button class="btn-run-report" onclick="runReport()">Run Report</button>
             <button class="btn-close" onclick="closeDemographicsPanel()">×</button>
         </div>
      </div>
@@ -1528,6 +1680,7 @@ let selectedLocationContext = { ...DEFAULT_LOCATION };
 let snapshotRequestSequence = 0;
 let neighborhoodSummaryRequestSequence = 0;
 let displayedNeighborhoodSummaryPlaceId = null;
+let tradeAreaConfirmed = false;
 
 
 
@@ -1580,6 +1733,10 @@ function initMap() {
             ...(stateCode ? { stateCode } : {})
         };
         resetNeighborhoodSummary();
+        tradeAreaConfirmed = false;
+        const specialtyStep = document.getElementById('specialty-step');
+        if (specialtyStep) specialtyStep.open = true;
+        updateWorkflowState();
         
         // Remove previous marker if exists
         if (addressMarker) {
@@ -1687,6 +1844,8 @@ function initMap() {
 ===================== */
 function updateRadiusValue(radiusNum, value) {
     document.getElementById(`radius${radiusNum}-value`).textContent = value + ' mi';
+    tradeAreaConfirmed = false;
+    updateWorkflowState();
     
     // Redraw circles if map center exists
     const center = map.getCenter();
@@ -2203,6 +2362,55 @@ function switchTab(evt, tab) {
     if (tab === 'neighborhood-summary') {
         loadNeighborhoodSummary();
     }
+}
+
+function updateWorkflowState() {
+    const hasLocation = Number.isFinite(Number(selectedLocationContext?.lat)) &&
+        Number.isFinite(Number(selectedLocationContext?.lng));
+    const selectedSpecialties = [...document.querySelectorAll('.specialty-checkbox:checked')];
+    const hasSpecialty = selectedSpecialties.length > 0;
+    const radii = typeof getRadiiFromSidebar === 'function' ? getRadiiFromSidebar() : [1, 3, 5];
+
+    document.getElementById('location-step')?.classList.toggle('is-complete', hasLocation);
+    document.getElementById('specialty-step')?.classList.toggle('is-complete', hasSpecialty);
+    document.getElementById('trade-area-step')?.classList.toggle('is-complete', tradeAreaConfirmed);
+
+    const specialtyStatus = document.getElementById('specialty-step-status');
+    if (specialtyStatus) {
+        specialtyStatus.textContent = hasSpecialty
+            ? `${selectedSpecialties.length} selected`
+            : 'Required';
+    }
+
+    const tradeAreaStatus = document.getElementById('trade-area-step-status');
+    if (tradeAreaStatus) {
+        tradeAreaStatus.textContent = `${radii.join(', ')} mi`;
+    }
+
+    const runButton = document.getElementById('run-report-button');
+    const runHelp = document.getElementById('workflow-run-help');
+    const ready = hasLocation && hasSpecialty && tradeAreaConfirmed;
+    if (runButton) runButton.disabled = !ready;
+    if (runHelp) {
+        if (!hasLocation) runHelp.textContent = 'Set a location to continue.';
+        else if (!hasSpecialty) runHelp.textContent = 'Select at least one specialty to continue.';
+        else if (!tradeAreaConfirmed) runHelp.textContent = 'Review and confirm the trade area to continue.';
+        else runHelp.textContent = 'Your location, specialty, and trade area are ready.';
+    }
+    document.getElementById('report-step')?.classList.toggle('is-complete', ready);
+}
+
+function handleWorkflowSpecialtyChange() {
+    const hasSpecialty = document.querySelector('.specialty-checkbox:checked');
+    const tradeAreaStep = document.getElementById('trade-area-step');
+    if (hasSpecialty && tradeAreaStep) tradeAreaStep.open = true;
+    updateWorkflowState();
+}
+
+function confirmTradeArea() {
+    tradeAreaConfirmed = true;
+    updateWorkflowState();
+    document.getElementById('run-report-button')?.focus();
 }
 
 function resetNeighborhoodSummary() {
