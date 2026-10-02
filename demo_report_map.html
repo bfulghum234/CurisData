@@ -1657,7 +1657,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         await loadGoogleMapsScript();
     } catch (error) {
         console.error(error);
-        setStatus(`Error: ${error.message}`);
+        setStatus(`Error: ${error.message}`, true);
     }
 });
 
@@ -1666,6 +1666,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 ===================== */
 let map;
 let urgentCareMarkers = [];
+let selectedSpecialtyType = null;
 let radiusCircles = [];
 let activeInfoWindow = null;
 let addressMarker = null; 
@@ -1971,6 +1972,7 @@ function handleUrgentCareToggle() {
 
 function loadUrgentCares() {
     urgentCareMarkers = [];
+    setStatus('Loading urgent care locations…');
     const service = new google.maps.places.PlacesService(map);
     const request = {
         location: map.getCenter(),
@@ -1982,15 +1984,21 @@ function loadUrgentCares() {
 
 function performSearch(service, request) {
     service.nearbySearch(request, (results, status, pagination) => {
+        if (selectedSpecialtyType !== 'urgentCare') return;
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             results.forEach(createUrgentCareMarker);
-            
+            setStatus(`${urgentCareMarkers.length} urgent care locations loaded`);
             
             if (pagination && pagination.hasNextPage) {
                 setTimeout(() => {
                     pagination.nextPage();
                 }, 2000);
             }
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+            setStatus('No urgent care locations found in this area.');
+        } else {
+            console.error('Urgent care Places search failed:', status);
+            setStatus(`Unable to load urgent care locations (${status}).`);
         }
     });
 }
@@ -2058,10 +2066,6 @@ function clearUrgentCares() {
    
 }
 
-function setStatus(message) {
-    document.getElementById('status').textContent = message;
-}
-
 /* =====================
   HOSPITALS
 ===================== */
@@ -2078,13 +2082,20 @@ function handleHospitalToggle() {
 let hospitalMarkers = [];
 
 function loadHospitals() {
+    setStatus('Loading ASC locations…');
     const service = new google.maps.places.PlacesService(map);
     service.nearbySearch(
         { location: map.getCenter(), radius: 8000, type: "hospital" },
         (results, status) => {
+            if (selectedSpecialtyType !== 'hospital') return;
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 results.forEach(createHospitalMarker);
-                setStatus(results.length + " hospitals loaded");
+                setStatus(results.length + " ASC locations loaded");
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                setStatus('No ASC locations found in this area.');
+            } else {
+                console.error('ASC Places search failed:', status);
+                setStatus(`Unable to load ASC locations (${status}).`);
             }
         }
     );
@@ -2136,7 +2147,6 @@ function createHospitalMarker(place) {
 function clearHospitals() {
     hospitalMarkers.forEach(m => m.setMap(null));
     hospitalMarkers = [];
-    setStatus("Hospitals cleared");
 }
 
 /* =====================
@@ -2156,13 +2166,20 @@ function handleDermToggle() {
 let dermMarkers = [];
 
 function loadDermatologists() {
+    setStatus('Loading dermatology locations…');
     const service = new google.maps.places.PlacesService(map);
     service.nearbySearch(
         { location: map.getCenter(), radius: 8000, keyword: "dermatologist" },
         (results, status) => {
+            if (selectedSpecialtyType !== 'dermatology') return;
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 results.forEach(createDermMarker);
                 setStatus(results.length + " dermatologists loaded");
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                setStatus('No dermatology locations found in this area.');
+            } else {
+                console.error('Dermatology Places search failed:', status);
+                setStatus(`Unable to load dermatology locations (${status}).`);
             }
         }
     );
@@ -2216,7 +2233,6 @@ function createDermMarker(place) {
 function clearDermatologists() {
     dermMarkers.forEach(m => m.setMap(null));
     dermMarkers = [];
-    setStatus("Dermatologists cleared");
 }
 
 
@@ -2237,13 +2253,20 @@ function handleAutismToggle() {
 let autismMarkers = [];
 
 function loadAutism() {
+    setStatus('Loading autism care locations…');
     const service = new google.maps.places.PlacesService(map);
     service.nearbySearch(
         { location: map.getCenter(), radius: 8000, keyword: "autism center" },
         (results, status) => {
+            if (selectedSpecialtyType !== 'autism') return;
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 results.forEach(createAutismMarker);
-                setStatus(results.length + " dermatologists loaded");
+                setStatus(results.length + " autism care locations loaded");
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                setStatus('No autism care locations found in this area.');
+            } else {
+                console.error('Autism care Places search failed:', status);
+                setStatus(`Unable to load autism care locations (${status}).`);
             }
         }
     );
@@ -2292,9 +2315,8 @@ function createAutismMarker(place) {
 }
 
 function clearAutism() {
-    autismMarkers.push.forEach(m => m.setMap(null));
-    autismMarkers.push = [];
-    setStatus("autism cleared");
+    autismMarkers.forEach(m => m.setMap(null));
+    autismMarkers = [];
 }
 
 
@@ -2402,6 +2424,7 @@ function updateWorkflowState() {
 }
 
 function handleSpecialtySelection(specialty) {
+    selectedSpecialtyType = specialty;
     clearUrgentCares();
     clearHospitals();
     clearDermatologists();
@@ -2517,8 +2540,10 @@ async function loadNeighborhoodSummary() {
     }
 }
 
-function setStatus(msg) {
-    const details = runtimeConfigDebug.length ? ` | Attempts: ${runtimeConfigDebug.join(' ; ')}` : '';
+function setStatus(msg, includeDebug = false) {
+    const details = includeDebug && runtimeConfigDebug.length
+        ? ` | Attempts: ${runtimeConfigDebug.join(' ; ')}`
+        : '';
     document.getElementById("status").innerText = "Status: " + msg + details;
 }
 

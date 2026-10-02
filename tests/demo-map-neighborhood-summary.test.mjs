@@ -57,6 +57,20 @@ test("uses one shared outline healthcare marker for every specialty", () => {
   assert.match(html, /anchor: new google\.maps\.Point\(21, 48\)/);
 });
 
+test("switches specialties without cleanup errors or misleading status text", () => {
+  assert.match(html, /function clearAutism\(\) \{\s*autismMarkers\.forEach/);
+  assert.doesNotMatch(html, /autismMarkers\.push\.forEach/);
+  assert.doesNotMatch(html, /setStatus\(["'](?:Hospitals|Dermatologists|autism) cleared/);
+  assert.match(html, /function handleSpecialtySelection\(specialty\) \{\s*selectedSpecialtyType = specialty;/);
+  assert.match(html, /Unable to load urgent care locations/);
+});
+
+test("shows runtime endpoint attempts only for configuration failures", () => {
+  assert.match(html, /setStatus\(`Error: \$\{error\.message\}`,[ ]*true\)/);
+  assert.match(html, /function setStatus\(msg, includeDebug = false\)/);
+  assert.match(html, /includeDebug && runtimeConfigDebug\.length/);
+});
+
 test("places Run Report in the workflow instead of the snapshot header", () => {
   const panelHeader = html.match(/<div class="panel-header">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] || "";
   assert.doesNotMatch(panelHeader, /Run Report/);
