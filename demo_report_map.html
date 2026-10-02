@@ -362,6 +362,31 @@ input[type="range"]::-moz-range-thumb {
 .bar {
     flex: 1;
     border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: height 0.35s ease;
+}
+
+.age-chart-labels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+    color: #557067;
+    font-size: 11px;
+    line-height: 1.25;
+    text-align: center;
+}
+
+.age-chart-labels strong {
+    display: block;
+    color: var(--curis-800);
+    font-size: 12px;
+}
+
+.snapshot-note {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 11px;
 }
 
 /* =====================
@@ -1069,31 +1094,37 @@ input[type='range']::-moz-range-thumb {
             <div class="stat-row"><span>ZIP Code: </span><span id="zip-code">—</span></div>
         </div>
 
-        <!-- Middle: Chart -->
+        <!-- Middle: Age profile -->
         <div class="demo-column white" >
-            <h4>Demand Potential</h4>
+            <h4>Age Mix</h4>
             <div class="dummy-chart">
-                <div class="bar" style="height: 60%; background: #4CAF50;"></div>
-                <div class="bar" style="height: 80%; background: #2196F3;"></div>
-                <div class="bar" style="height: 45%; background: #FF9800;"></div>
-                <div class="bar" style="height: 70%; background: #9C27B0;"></div>
+                <div class="bar" id="snapshot-age-18-34-bar" style="height: 0; background: #4ecba0;"></div>
+                <div class="bar" id="snapshot-age-35-54-bar" style="height: 0; background: #1a8a68;"></div>
+                <div class="bar" id="snapshot-age-55-64-bar" style="height: 0; background: #f3a847;"></div>
+                <div class="bar" id="snapshot-age-65plus-bar" style="height: 0; background: #8067b7;"></div>
             </div>
-            <div style="text-align: center; margin-top: 10px; font-size: 12px;">
-                18-34 | 35-54 | 55-64 | 65+
+            <div class="age-chart-labels">
+                <span><strong id="snapshot-age-18-34">—</strong>18–34</span>
+                <span><strong id="snapshot-age-35-54">—</strong>35–54</span>
+                <span><strong id="snapshot-age-55-64">—</strong>55–64</span>
+                <span><strong id="snapshot-age-65plus">—</strong>65+</span>
             </div>
+            <p class="snapshot-note">Share of the selected radius population</p>
         </div>
 
         <!-- Right: Future Trends -->
         <div class="demo-column light-blue">
             <h4>Future Outlook</h4>
-            <p><strong>Population Growth:</strong> Expected 8-12% increase over next 5 years.</p>
-            <p><strong>Age Shift:</strong> Growing millennial population moving into area.</p>
-            <p><strong>Economic Trend:</strong> Median income rising 4% annually.</p>
+            <p><strong>Population:</strong> <span id="snapshot-pop-outlook">—</span></p>
+            <p><strong>Households:</strong> <span id="snapshot-hh-outlook">—</span></p>
+            <p><strong>Median HH Income:</strong> <span id="snapshot-income-outlook">—</span></p>
         </div>
     </div>
 </div>
         <div id="trends-tab" class="tab-content">
             <div class="stat-row"><span>Population Growth (5-yr)</span><span id="pop-growth">—</span></div>
+            <div class="stat-row"><span>Household Growth (5-yr)</span><span id="hh-growth">—</span></div>
+            <div class="stat-row"><span>Median Income Growth (annual)</span><span id="income-growth">—</span></div>
         </div>
     </div>
 </div>
@@ -1236,6 +1267,7 @@ const DEFAULT_LOCATION = {
     stateCode: 'TX'
 };
 let selectedLocationContext = { ...DEFAULT_LOCATION };
+let snapshotRequestSequence = 0;
 
 
 
@@ -1246,11 +1278,6 @@ let selectedLocationContext = { ...DEFAULT_LOCATION };
    MAP INIT
 ===================== */
 function initMap() {
-    // Check CONFIG after it's loaded
-    if (!runtimeConfig?.CENSUS_API_KEY) {
-        console.error("CENSUS_API_KEY missing from Cloudflare environment variables");
-    }
-    
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng },
         zoom: 13,
@@ -1403,6 +1430,14 @@ function updateRadiusValue(radiusNum, value) {
     if (center) {
         drawRadiusCircles(center);
     }
+
+    clearTimeout(window.__snapshotRadiusTimer);
+    window.__snapshotRadiusTimer = setTimeout(() => {
+        const panel = document.getElementById('demographics-panel');
+        if (panel?.classList.contains('active') && selectedLocationContext?.lat && selectedLocationContext?.lng) {
+            loadDemographics(selectedLocationContext.lat, selectedLocationContext.lng);
+        }
+    }, 350);
 }
 
 function drawRadiusCircles(location) {
@@ -2101,6 +2136,7 @@ async function generateMultiPagePDFManual() {
    DEMOGRAPHICS FETCH
 ===================== */
 async function loadDemographics(lat, lng) {
+    const requestSequence = ++snapshotRequestSequence;
     document.getElementById("demographics-panel").classList.add("active");
     const radii = typeof getRadiiFromSidebar === 'function' ? getRadiiFromSidebar() : [1, 3, 5];
     const maxRadius = Math.max(...radii);
@@ -2109,48 +2145,152 @@ async function loadDemographics(lat, lng) {
         panelTitle.textContent = `${maxRadius}-MILE RADIUS DEMOGRAPHICS`;
     }
 
-    const geoRes = await fetch(
+    setSnapshotLoadingState();
+
+    const geocodePromise = fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${runtimeConfig.GOOGLE_MAPS_API_KEY}`
-    );
-    const geoData = await geoRes.json();
+    ).then(response => {
+        if (!response.ok) throw new Error(`Reverse geocode failed (${response.status})`);
+        return response.json();
+    });
 
-    const zipComponent = geoData.results
-        .flatMap(r => r.address_components)
-        .find(c => c.types.includes("postal_code"));
+    const radiusDataPromise = (async () => {
+        if (typeof ensureDemographicDataReady === 'function') {
+            await ensureDemographicDataReady();
+        }
+        if (typeof fetchMultiRadiusDataFromCSV !== 'function') {
+            throw new Error('Radius demographic loader is unavailable');
+        }
+        return fetchMultiRadiusDataFromCSV(lat, lng, radii);
+    })();
 
-    if (!zipComponent) {
-        console.error("ZIP not found");
-        return;
+    const [geocodeResult, radiusDataResult] = await Promise.allSettled([
+        geocodePromise,
+        radiusDataPromise
+    ]);
+
+    // A newer address or radius selection superseded this request.
+    if (requestSequence !== snapshotRequestSequence) return;
+
+    if (geocodeResult.status === 'fulfilled') {
+        const geoData = geocodeResult.value;
+        const addressComponents = (geoData.results || []).flatMap(result => result.address_components || []);
+        const zip = addressComponents.find(component => component.types.includes('postal_code'))?.long_name;
+        const stateCode = addressComponents.find(component => component.types.includes('administrative_area_level_1'))?.short_name;
+
+        document.getElementById('zip-code').innerText = zip || '—';
+        selectedLocationContext = {
+            ...(selectedLocationContext || {}),
+            lat,
+            lng,
+            stateCode: stateCode || selectedLocationContext?.stateCode || null,
+            address: geoData.results?.[0]?.formatted_address || selectedLocationContext?.address || 'Address Not Available'
+        };
+    } else {
+        console.warn('Unable to update ZIP code:', geocodeResult.reason);
+        document.getElementById('zip-code').innerText = '—';
     }
 
-    const zip = zipComponent.long_name;
-    document.getElementById("zip-code").innerText = zip;
-    selectedLocationContext = {
-        ...(selectedLocationContext || {}),
-        lat,
-        lng,
-        address: geoData.results[0]?.formatted_address || selectedLocationContext?.address || 'Address Not Available'
-    };
-
-    const url = `https://api.census.gov/data/2023/acs/acs5?get=NAME,B01003_001E,B11001_001E,B11001_002E&for=zip%20code%20tabulation%20area:${zip}&key=${runtimeConfig.CENSUS_API_KEY}`;
-
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (!data || data.length < 2) {
-            console.error("No ACS data", data);
+    if (radiusDataResult.status === 'fulfilled') {
+        const selectedRadiusData = radiusDataResult.value[`${maxRadius}mile`];
+        if (!selectedRadiusData) {
+            showSnapshotError('No demographic data found for this radius.');
             return;
         }
-
-        const [population, households, families] = [data[1][1], data[1][2], data[1][3]];
-
-        document.getElementById("pop-total").innerText = Number(population).toLocaleString();
-        document.getElementById("hh-total").innerText = Number(households).toLocaleString();
-        document.getElementById("fam-total").innerText = Number(families).toLocaleString();
-    } catch (error) {
-        console.error("Census API error:", error);
+        populateDemographicSnapshot(selectedRadiusData);
+    } else {
+        console.error('Radius demographic error:', radiusDataResult.reason);
+        showSnapshotError('Demographic data is temporarily unavailable.');
     }
+}
+
+function setSnapshotLoadingState() {
+    ['pop-total', 'hh-total', 'fam-total', 'snapshot-age-18-34', 'snapshot-age-35-54',
+     'snapshot-age-55-64', 'snapshot-age-65plus', 'snapshot-pop-outlook',
+     'snapshot-hh-outlook', 'snapshot-income-outlook', 'pop-growth', 'hh-growth',
+     'income-growth'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = 'Loading…';
+    });
+
+    ['snapshot-age-18-34-bar', 'snapshot-age-35-54-bar',
+     'snapshot-age-55-64-bar', 'snapshot-age-65plus-bar'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.style.height = '4px';
+    });
+}
+
+function showSnapshotError(message) {
+    ['pop-total', 'hh-total', 'fam-total', 'snapshot-age-18-34', 'snapshot-age-35-54',
+     'snapshot-age-55-64', 'snapshot-age-65plus', 'pop-growth', 'hh-growth',
+     'income-growth'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = '—';
+    });
+    ['snapshot-pop-outlook', 'snapshot-hh-outlook', 'snapshot-income-outlook'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = message;
+    });
+}
+
+function populateDemographicSnapshot(data) {
+    const formatNumber = value => Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const formatCurrency = value => Number(value || 0).toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0
+    });
+    const percentChange = (current, projected) => current > 0 && projected > 0
+        ? ((projected - current) / current) * 100
+        : null;
+    const formatChange = value => value === null || !Number.isFinite(value)
+        ? 'Not available'
+        : `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+    const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    };
+
+    setText('pop-total', formatNumber(data.population));
+    setText('hh-total', formatNumber(data.households));
+    setText('fam-total', formatNumber(data.families));
+
+    const ageGroups = [
+        ['snapshot-age-18-34', 'snapshot-age-18-34-bar', Number(data.age_18_34 || 0)],
+        ['snapshot-age-35-54', 'snapshot-age-35-54-bar', Number(data.age_35_54 || 0)],
+        ['snapshot-age-55-64', 'snapshot-age-55-64-bar', Number(data.age_55_64 || 0)],
+        ['snapshot-age-65plus', 'snapshot-age-65plus-bar', Number(data.age_65plus || 0)]
+    ];
+    const population = Number(data.population || 0);
+    const largestAgeGroup = Math.max(...ageGroups.map(group => group[2]), 1);
+
+    ageGroups.forEach(([labelId, barId, value]) => {
+        const share = population > 0 ? (value / population) * 100 : 0;
+        setText(labelId, `${share.toFixed(1)}%`);
+        const bar = document.getElementById(barId);
+        if (bar) {
+            bar.style.height = `${Math.max(4, (value / largestAgeGroup) * 100)}%`;
+            bar.title = `${formatNumber(value)} people (${share.toFixed(1)}%)`;
+        }
+    });
+
+    const popChange = percentChange(Number(data.population || 0), Number(data.pop_proj || 0));
+    const hhChange = percentChange(Number(data.households || 0), Number(data.hh_proj || 0));
+    const incomeAnnualChange = Number(data.CAGR_med_inc || 0) * 100;
+
+    setText('pop-growth', formatChange(popChange));
+    setText('hh-growth', formatChange(hhChange));
+    setText('income-growth', data.CAGR_med_inc ? formatChange(incomeAnnualChange) : 'Not available');
+
+    setText('snapshot-pop-outlook', data.pop_proj > 0
+        ? `${formatChange(popChange)} to ${formatNumber(data.pop_proj)} projected`
+        : `${formatNumber(data.population)} current`);
+    setText('snapshot-hh-outlook', data.hh_proj > 0
+        ? `${formatChange(hhChange)} to ${formatNumber(data.hh_proj)} projected`
+        : `${formatNumber(data.households)} current`);
+    setText('snapshot-income-outlook', data.med_inc_proj > 0
+        ? `${formatCurrency(data.medianIncome)} now; ${formatCurrency(data.med_inc_proj)} projected`
+        : `${formatCurrency(data.medianIncome)} current`);
 }
 
 </script>

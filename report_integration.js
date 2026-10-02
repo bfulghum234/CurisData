@@ -23,6 +23,11 @@ let acsPctDataByGeoid = null;
 // Optional Curis demand data keyed by GEOID
 let curisDemandByGeoid = null;
 
+// Share one in-flight load across the map snapshot and report generator. The
+// default location can be rendered before the page-level loader finishes, so
+// callers should await this promise instead of assuming the CSVs are ready.
+let demographicDataReadyPromise = null;
+
 // TiC/Snowflake reporting is intentionally dormant. Keep the implementation
 // available for a future product phase, but do not call it from report runs.
 const TIC_REPORTING_ENABLED = false;
@@ -363,6 +368,25 @@ async function loadAcsPctCSV() {
     acsPctDataByGeoid = new Map();
     return acsPctDataByGeoid;
   }
+}
+
+async function ensureDemographicDataReady() {
+  if (blockGroupData && demographicDataByGeoid && acsPctDataByGeoid) {
+    return;
+  }
+
+  if (!demographicDataReadyPromise) {
+    demographicDataReadyPromise = Promise.all([
+      blockGroupData ? Promise.resolve(blockGroupData) : loadBlockGroupData(),
+      demographicDataByGeoid ? Promise.resolve(demographicDataByGeoid) : loadDemographicCSV(),
+      acsPctDataByGeoid ? Promise.resolve(acsPctDataByGeoid) : loadAcsPctCSV()
+    ]).catch((error) => {
+      demographicDataReadyPromise = null;
+      throw error;
+    });
+  }
+
+  await demographicDataReadyPromise;
 }
 
 /**
@@ -891,11 +915,7 @@ if (typeof window !== "undefined") {
 
     console.log("Page loaded, initializing data loaders...");
     try {
-      await Promise.all([
-        loadBlockGroupData(),
-        loadDemographicCSV(),
-        loadAcsPctCSV()
-      ]);
+      await ensureDemographicDataReady();
       await loadCurisDemandCSV();
       console.log("✓ All data loaded successfully");
     } catch (error) {
