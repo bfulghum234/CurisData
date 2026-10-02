@@ -496,7 +496,7 @@ input[type="range"]::-moz-range-thumb {
     <!-- SEARCH LOCATION -->
     <div style="margin-bottom: 20px;">
         <h3 style="margin-bottom: 10px;">Search Location</h3>
-        <input id="addressInput" type="text" value="1805 Carleton Ave, Fort Worth, TX, USA"  
+        <input id="addressInput" type="text" value="601 Bailey Ave., Fort Worth, TX 76107"
                style="width: 90%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">
         <button id="goButton" style="width: 95%; padding: 10px; background: #007bff; 
                 color: white; border: none; border-radius: 4px; cursor: pointer;">
@@ -837,7 +837,14 @@ let urgentCareMarkers = [];
 let radiusCircles = [];
 let activeInfoWindow = null;
 let addressMarker = null; 
-let selectedLocationContext = null;
+const DEFAULT_LOCATION = {
+    name: '601 Bailey Ave.',
+    address: '601 Bailey Ave., Fort Worth, TX 76107',
+    lat: 32.753079934041,
+    lng: -97.362923890503,
+    stateCode: 'TX'
+};
+let selectedLocationContext = { ...DEFAULT_LOCATION };
 
 
 
@@ -854,7 +861,7 @@ function initMap() {
     }
     
     map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 32.8286, lng: -96.7 },
+        center: { lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng },
         zoom: 13,
         minZoom: 10,
         streetViewControl: false
@@ -969,6 +976,17 @@ function initMap() {
             goButton.disabled = false;
         }
     };
+
+    showPlaceOnMap({
+        name: DEFAULT_LOCATION.name,
+        formatted_address: DEFAULT_LOCATION.address,
+        geometry: {
+            location: new google.maps.LatLng(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng)
+        },
+        address_components: [
+            { short_name: DEFAULT_LOCATION.stateCode, types: ['administrative_area_level_1'] }
+        ]
+    });
 
     document.getElementById('goButton').addEventListener('click', goToAddress);
     input.addEventListener('keypress', (e) => {
