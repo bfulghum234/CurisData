@@ -723,11 +723,17 @@ input[type='range']::-moz-range-thumb {
 }
 
 #demographics-panel {
+    max-height: 255px;
+    overflow-y: auto;
     border-color: var(--border);
     box-shadow: 0 -12px 30px rgba(7, 59, 44, 0.14);
 }
 
 .panel-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 16px;
     color: #ffffff;
     background: linear-gradient(100deg, var(--curis-900), var(--curis-700));
     border: 0;
@@ -748,6 +754,7 @@ input[type='range']::-moz-range-thumb {
 }
 
 .tabs {
+    padding: 6px 16px;
     background: #ffffff;
     border-color: var(--border);
 }
@@ -760,6 +767,22 @@ input[type='range']::-moz-range-thumb {
 .tab.active {
     color: var(--curis-700);
     border-color: var(--curis-400);
+}
+
+.tab-content {
+    padding: 10px 14px;
+}
+
+.demo-column {
+    padding: 12px 14px;
+}
+
+.demo-column h4 {
+    margin: 0 0 8px;
+}
+
+.dummy-chart {
+    height: 105px;
 }
 
 .demo-column.light-gray { background: var(--curis-50); }
@@ -1265,6 +1288,11 @@ function initMap() {
         });
         
         drawRadiusCircles(place.geometry.location);
+        openDemoPanel(
+            selectedLocationContext.name,
+            selectedLocationContext.lat,
+            selectedLocationContext.lng
+        );
     };
 
     const goToAddress = async () => {
@@ -1808,6 +1836,7 @@ function openDemoPanel(name, lat, lng) {
     document.getElementById('map').classList.add('shrunk');
     google.maps.event.trigger(map, 'resize');
     selectedLocationContext = {
+        ...(selectedLocationContext || {}),
         name: name || 'Selected Location',
         address: selectedLocationContext?.address || name || 'Address Not Available',
         lat,
@@ -1815,8 +1844,6 @@ function openDemoPanel(name, lat, lng) {
     };
 
     document.getElementById("demographics-panel").classList.add("active");
-    document.getElementById("demographics-panel")
-        .scrollIntoView({ behavior: "smooth" });
 	loadDemographics(lat, lng); 
 }
 
