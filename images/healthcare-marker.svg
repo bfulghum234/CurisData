@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" role="img" aria-labelledby="title desc">
+  <title id="title">Healthcare location</title>
+  <desc id="desc">Green outlined map pin with a stethoscope symbol</desc>
+  <path d="M32 2C15.4 2 2 15.4 2 32c0 21.5 30 38 30 38s30-16.5 30-38C62 15.4 48.6 2 32 2Z" fill="#fff" stroke="#26a87e" stroke-width="4"/>
+  <g fill="none" stroke="#146c50" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+    <path d="M25 18v4M39 18v4"/>
+    <path d="M25 20h-2.5A3.5 3.5 0 0 0 19 23.5V29a13 13 0 0 0 26 0v-5.5a3.5 3.5 0 0 0-3.5-3.5H39"/>
+    <path d="M32 42v2a9 9 0 0 0 18 0v-3"/>
+    <circle cx="50" cy="37" r="3" fill="#e0f5ec"/>
+  </g>
+</svg>

@@ -49,6 +49,14 @@ test("allows only one report specialty at a time", () => {
   assert.match(html, /clearUrgentCares\(\);[\s\S]*clearHospitals\(\);[\s\S]*clearDermatologists\(\);[\s\S]*clearAutism\(\);/);
 });
 
+test("uses one shared outline healthcare marker for every specialty", () => {
+  const sharedMarkers = html.match(/url: 'images\/healthcare-marker\.svg'/g) || [];
+  assert.equal(sharedMarkers.length, 4);
+  assert.doesNotMatch(html, /url: 'images\/(urgentcare|hosp|dermatology|autism)\.png'/);
+  assert.match(html, /scaledSize: new google\.maps\.Size\(42, 48\)/);
+  assert.match(html, /anchor: new google\.maps\.Point\(21, 48\)/);
+});
+
 test("places Run Report in the workflow instead of the snapshot header", () => {
   const panelHeader = html.match(/<div class="panel-header">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] || "";
   assert.doesNotMatch(panelHeader, /Run Report/);
