@@ -9,6 +9,3 @@ SITE_NAME = "CurisData"
 binding = "REPORT_DATA_BUCKET"
 bucket_name = "demographic-files"
 preview_bucket_name = "demographic-files"
-
-[[kv_namespaces]]
-binding = "PLACES_CACHE"

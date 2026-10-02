@@ -85,15 +85,16 @@ Wrangler-managed binding to `demographic-files`.
 
 `POST /api/places-aggregate` proxies count-only Google Places Aggregate queries
 without exposing the server request logic to the browser. Successful responses
-are cached in the `PLACES_CACHE` Workers KV namespace for 28 days, inside
-Google's 30-day limit for temporarily caching POI counts used to calculate a
-CurisData value. Cache keys include the normalized coordinates, radius, place
-types, and other filters, so only identical queries share an entry.
+are cached for 28 days, inside Google's 30-day limit for temporarily caching POI
+counts used to calculate a CurisData value. Cache keys include the normalized
+coordinates, radius, place types, and other filters, so only identical queries
+share an entry.
 
-The KV binding is declared without a resource ID in `wrangler.toml`. Current
-Wrangler deployments automatically provision the namespace and attach it to the
-Pages project. If the binding is temporarily unavailable, the endpoint still
-returns live Google data and reports `cache.status` as `unavailable`.
+The endpoint uses a `PLACES_CACHE` Workers KV binding when one is configured.
+Otherwise, production automatically uses Cloudflare's built-in edge Cache API,
+which requires no additional binding. If neither cache is available (for
+example, in a basic unit-test runtime), the endpoint still returns live Google
+data and reports `cache.status` as `unavailable`.
 
 Example request:
 
@@ -107,7 +108,8 @@ Example request:
 ```
 
 The endpoint returns Google Maps attribution, the data refresh and expiration
-timestamps, and a cache status of `hit`, `miss`, or `unavailable`.
+timestamps, its active cache backend, and a cache status of `hit`, `miss`, or
+`unavailable`.
 
 ## GitHub Setup
 

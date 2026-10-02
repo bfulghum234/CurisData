@@ -206,6 +206,43 @@ async function buildCacheKey(query) {
   return `places-aggregate:v${CACHE_SCHEMA_VERSION}:${digest}`;
 }
 
+function getCacheBackend(env, cacheKey) {
+  if (env.PLACES_CACHE) {
+    return {
+      name: "kv",
+      async get() {
+        return env.PLACES_CACHE.get(cacheKey, { type: "json" });
+      },
+      async put(value) {
+        await env.PLACES_CACHE.put(cacheKey, JSON.stringify(value), {
+          expirationTtl: CACHE_TTL_SECONDS
+        });
+      }
+    };
+  }
+
+  if (globalThis.caches?.default) {
+    const cacheRequest = new Request(`https://places-cache.curisdata.internal/${cacheKey}`);
+    return {
+      name: "edge",
+      async get() {
+        const response = await globalThis.caches.default.match(cacheRequest);
+        return response ? response.json() : null;
+      },
+      async put(value) {
+        await globalThis.caches.default.put(cacheRequest, new Response(JSON.stringify(value), {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": `public, max-age=${CACHE_TTL_SECONDS}`
+          }
+        }));
+      }
+    };
+  }
+
+  return null;
+}
+
 async function fetchGoogleCount(query, apiKey) {
   const response = await fetch(GOOGLE_ENDPOINT, {
     method: "POST",
@@ -244,7 +281,7 @@ function buildStoredValue(query, count, fetchedAt) {
   };
 }
 
-function buildSuccessPayload(value, cacheStatus) {
+function buildSuccessPayload(value, cacheStatus, cacheBackend) {
   return {
     success: true,
     count: value.count,
@@ -254,6 +291,7 @@ function buildSuccessPayload(value, cacheStatus) {
     attribution: value.attribution,
     cache: {
       status: cacheStatus,
+      backend: cacheBackend,
       ttlDays: 28
     }
   };
@@ -284,12 +322,12 @@ export async function onRequestPost(context) {
     });
     const query = normalizeRequest(body);
     const cacheKey = await buildCacheKey(query);
-    const cache = env.PLACES_CACHE;
+    const cache = getCacheBackend(env, cacheKey);
 
     if (cache) {
-      const cached = await cache.get(cacheKey, { type: "json" });
+      const cached = await cache.get();
       if (cached?.schemaVersion === CACHE_SCHEMA_VERSION) {
-        return jsonResponse(buildSuccessPayload(cached, "hit"));
+        return jsonResponse(buildSuccessPayload(cached, "hit", cache.name));
       }
     }
 
@@ -305,16 +343,18 @@ export async function onRequestPost(context) {
     const storedValue = buildStoredValue(query, count, new Date().toISOString());
 
     if (cache) {
-      const write = cache.put(cacheKey, JSON.stringify(storedValue), {
-        expirationTtl: CACHE_TTL_SECONDS
-      }).catch((error) => {
+      const write = cache.put(storedValue).catch((error) => {
         console.error("Unable to write Places Aggregate cache entry:", error);
       });
       if (typeof context.waitUntil === "function") context.waitUntil(write);
       else await write;
     }
 
-    return jsonResponse(buildSuccessPayload(storedValue, cache ? "miss" : "unavailable"));
+    return jsonResponse(buildSuccessPayload(
+      storedValue,
+      cache ? "miss" : "unavailable",
+      cache?.name || null
+    ));
   } catch (error) {
     const clientError = /must|required|cannot|invalid|unsupported/i.test(error.message);
     return jsonResponse({
