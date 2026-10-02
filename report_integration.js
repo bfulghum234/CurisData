@@ -47,6 +47,7 @@ function buildReportPayload({
   radiiMiles = [1, 3, 5],
   demographicsByRadius = {},
   healthcareDemand = null,
+  healthcareMarketContext = null,
   urgentCare = {},
   coverMapImageUrl = "",
   mapZoom = 12,
@@ -81,6 +82,7 @@ function buildReportPayload({
       byRadius: demographicsByRadius || {}
     },
     healthcareDemand: healthcareDemand || null,
+    marketContext: healthcareMarketContext || null,
     competition: {
       urgentCare: {
         count,
@@ -1155,6 +1157,7 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
   const radii = payload.tradeArea.radiiMiles;
   const demographicData = payload.demographics.byRadius;
   const healthcareDemand = payload.healthcareDemand;
+  const healthcareMarketContext = payload.marketContext;
   const urgentCare = payload.competition.urgentCare;
   const cLat = location.latitude;
   const cLng = location.longitude;
@@ -1193,6 +1196,7 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
 
   populateAllDemographics(doc, demographicData, radii);
   populateHealthcareDemand(doc, healthcareDemand, radii);
+  populateHealthcareMarketContext(doc, healthcareMarketContext);
 
   if (!preserveFrozenMaps && reportWindow && typeof reportWindow.buildUrgentCareMap === "function"
       && cLat !== null && cLng !== null) {
@@ -1242,6 +1246,44 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
   }
 
   console.log("Report payload rendered", payload);
+}
+
+function populateHealthcareMarketContext(doc, marketContext) {
+  const rows = [
+    ['medical-clinics', 'Medical clinics'],
+    ['physicians', 'Doctor listings'],
+    ['hospitals', 'Hospitals'],
+    ['pharmacies', 'Pharmacies'],
+    ['medical-labs', 'Medical labs']
+  ];
+  const categories = new Map(
+    (marketContext?.categories || []).map(category => [category.key, category])
+  );
+  let availableCount = 0;
+
+  rows.forEach(([key]) => {
+    const category = categories.get(key);
+    const available = Boolean(category?.available) && Number.isFinite(Number(category?.count));
+    if (available) availableCount += 1;
+    setIfExists(
+      doc,
+      `report-market-${key}-count`,
+      available ? formatNumber(Number(category.count)) : 'Unavailable'
+    );
+    setIfExists(
+      doc,
+      `report-market-${key}-density`,
+      available && Number.isFinite(Number(category.densityPer100k))
+        ? Number(category.densityPer100k).toFixed(1)
+        : '—'
+    );
+  });
+
+  const radius = Number(marketContext?.radiusMiles);
+  const status = !marketContext || !availableCount
+    ? 'Google Maps healthcare location counts were unavailable when this report was generated.'
+    : `${availableCount} of ${rows.length} Google Maps healthcare categories loaded for the ${Number.isFinite(radius) ? radius : 'selected'}-mile trade area. Density is listings per 100,000 residents. Directory listings are not licensed-facility or clinician rosters.`;
+  setIfExists(doc, 'report-market-context-note', status);
 }
 
 function populateReportTemplate(reportPayload) {
@@ -1465,6 +1507,20 @@ async function generateDemographicReport() {
     // Fetch data from CSV instead of Census API
     const demographicData = await fetchMultiRadiusDataFromCSV(lat, lng, radii);
     const healthcareDemand = await buildHealthcareDemandSummary(lat, lng, radii, demographicData);
+    const marketPopulation = demographicData[`${maxRadius}mile`]?.population;
+    let healthcareMarketContext = null;
+
+    if (typeof currentHealthcareMarketContext !== 'undefined'
+        && currentHealthcareMarketContext
+        && Math.abs(Number(currentHealthcareMarketContext.latitude) - Number(lat)) < 0.000001
+        && Math.abs(Number(currentHealthcareMarketContext.longitude) - Number(lng)) < 0.000001
+        && Number(currentHealthcareMarketContext.radiusMiles) === Number(maxRadius)) {
+      healthcareMarketContext = currentHealthcareMarketContext;
+    } else if (typeof fetchHealthcareMarketCounts === 'function'
+        && typeof buildHealthcareMarketContext === 'function') {
+      const marketCounts = await fetchHealthcareMarketCounts(lat, lng, maxRadius);
+      healthcareMarketContext = buildHealthcareMarketContext(marketCounts, marketPopulation);
+    }
 
     // TiC/Snowflake benchmarking is paused. The dormant API implementation is
     // retained for a future phase, but report generation makes no TiC request.
@@ -1505,6 +1561,7 @@ console.log('Facility counts:', facilityCounts);
       radiiMiles: radii,
       demographicsByRadius: demographicData,
       healthcareDemand,
+      healthcareMarketContext,
       urgentCare: {
         count: facilityCounts.urgentCare,
         locations: facilityCounts.urgentCareDetails

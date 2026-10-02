@@ -451,6 +451,47 @@ input[type="range"]::-moz-range-thumb {
     color: #963535;
 }
 
+.market-context-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.market-context-table th,
+.market-context-table td {
+    padding: 9px 5px;
+    border-bottom: 1px solid rgba(7, 59, 44, 0.12);
+}
+
+.market-context-table th:first-child,
+.market-context-table td:first-child {
+    text-align: left;
+}
+
+.market-context-table th:not(:first-child),
+.market-context-table td:not(:first-child) {
+    text-align: right;
+}
+
+.market-context-table thead th {
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.market-context-table tbody th {
+    color: var(--curis-900);
+    font-weight: 700;
+}
+
+.market-context-table tbody tr:last-child th,
+.market-context-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
 .snapshot-economic-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1517,6 +1558,28 @@ input[type='range']::-moz-range-thumb {
             </div>
             <p class="snapshot-note">FY values are five-year projections for the selected radius.</p>
         </div>
+
+        <div class="demo-column white">
+            <h4>Healthcare Market Context</h4>
+            <table class="market-context-table" aria-label="Healthcare place counts and population-normalized density">
+                <thead>
+                    <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col">Listings</th>
+                        <th scope="col">Per 100K</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><th scope="row">Medical clinics</th><td id="market-medical-clinics-count">—</td><td id="market-medical-clinics-density">—</td></tr>
+                    <tr><th scope="row">Doctor listings</th><td id="market-physicians-count">—</td><td id="market-physicians-density">—</td></tr>
+                    <tr><th scope="row">Hospitals</th><td id="market-hospitals-count">—</td><td id="market-hospitals-density">—</td></tr>
+                    <tr><th scope="row">Pharmacies</th><td id="market-pharmacies-count">—</td><td id="market-pharmacies-density">—</td></tr>
+                    <tr><th scope="row">Medical labs</th><td id="market-medical-labs-count">—</td><td id="market-medical-labs-density">—</td></tr>
+                </tbody>
+            </table>
+            <p class="snapshot-note" id="market-context-status">Google Maps place-listing counts for the selected radius. Density is listings per 100,000 residents.</p>
+            <p class="snapshot-note">Directory listings are not licensed-facility or clinician rosters.</p>
+        </div>
     </div>
 </div>
         <div id="neighborhood-summary-tab" class="tab-content">
@@ -1684,6 +1747,14 @@ let snapshotRequestSequence = 0;
 let neighborhoodSummaryRequestSequence = 0;
 let displayedNeighborhoodSummaryPlaceId = null;
 let tradeAreaConfirmed = false;
+let currentHealthcareMarketContext = null;
+const HEALTHCARE_MARKET_CATEGORIES = Object.freeze([
+    { key: 'medical-clinics', label: 'Medical clinics', includedPrimaryTypes: ['medical_clinic', 'medical_center'] },
+    { key: 'physicians', label: 'Doctor listings', includedPrimaryTypes: ['doctor'] },
+    { key: 'hospitals', label: 'Hospitals', includedPrimaryTypes: ['hospital'] },
+    { key: 'pharmacies', label: 'Pharmacies', includedPrimaryTypes: ['pharmacy'] },
+    { key: 'medical-labs', label: 'Medical labs', includedPrimaryTypes: ['medical_lab'] }
+]);
 
 
 
@@ -2740,6 +2811,101 @@ async function generateMultiPagePDFManual() {
 /* =====================
    DEMOGRAPHICS FETCH
 ===================== */
+async function fetchHealthcareMarketCounts(lat, lng, radiusMiles) {
+    const categories = await Promise.all(HEALTHCARE_MARKET_CATEGORIES.map(async category => {
+        try {
+            const response = await fetch('/api/places-aggregate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    latitude: lat,
+                    longitude: lng,
+                    radiusMiles,
+                    includedPrimaryTypes: category.includedPrimaryTypes
+                })
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload.success) {
+                throw new Error(payload.error || `Places Aggregate request failed (${response.status})`);
+            }
+            return {
+                ...category,
+                count: Number(payload.count),
+                fetchedAt: payload.fetchedAt || null,
+                expiresAt: payload.expiresAt || null,
+                cache: payload.cache || null,
+                available: Number.isFinite(Number(payload.count))
+            };
+        } catch (error) {
+            console.warn(`Unable to load ${category.label} market count:`, error);
+            return { ...category, count: null, available: false };
+        }
+    }));
+
+    return {
+        latitude: Number(lat),
+        longitude: Number(lng),
+        radiusMiles: Number(radiusMiles),
+        attribution: 'Google Maps',
+        categories
+    };
+}
+
+function buildHealthcareMarketContext(counts, population) {
+    const numericPopulation = Number(population);
+    return {
+        ...counts,
+        population: Number.isFinite(numericPopulation) && numericPopulation > 0 ? numericPopulation : null,
+        categories: counts.categories.map(category => ({
+            ...category,
+            densityPer100k: category.available && numericPopulation > 0
+                ? (category.count / numericPopulation) * 100000
+                : null
+        }))
+    };
+}
+
+function setHealthcareMarketLoadingState() {
+    HEALTHCARE_MARKET_CATEGORIES.forEach(category => {
+        const count = document.getElementById(`market-${category.key}-count`);
+        const density = document.getElementById(`market-${category.key}-density`);
+        if (count) count.textContent = 'Loading…';
+        if (density) density.textContent = 'Loading…';
+    });
+    const status = document.getElementById('market-context-status');
+    if (status) status.textContent = 'Loading Google Maps healthcare location counts…';
+}
+
+function renderHealthcareMarketContext(context) {
+    let availableCount = 0;
+    context.categories.forEach(category => {
+        const count = document.getElementById(`market-${category.key}-count`);
+        const density = document.getElementById(`market-${category.key}-density`);
+        if (category.available) {
+            availableCount += 1;
+            if (count) count.textContent = Number(category.count).toLocaleString('en-US');
+            if (density) {
+                density.textContent = Number.isFinite(category.densityPer100k)
+                    ? category.densityPer100k.toFixed(1)
+                    : '—';
+            }
+        } else {
+            if (count) count.textContent = 'Unavailable';
+            if (density) density.textContent = '—';
+        }
+    });
+
+    const status = document.getElementById('market-context-status');
+    if (!status) return;
+    if (!availableCount) {
+        status.textContent = 'Google Maps healthcare location counts are temporarily unavailable.';
+    } else if (availableCount < context.categories.length) {
+        status.textContent = `${availableCount} of ${context.categories.length} Google Maps categories loaded. Density is listings per 100,000 residents.`;
+    } else {
+        status.textContent = `Google Maps place-listing counts for the selected ${context.radiusMiles}-mile radius. Density is listings per 100,000 residents.`;
+    }
+}
+
 async function loadDemographics(lat, lng) {
     const requestSequence = ++snapshotRequestSequence;
     document.getElementById("demographics-panel").classList.add("active");
@@ -2751,6 +2917,8 @@ async function loadDemographics(lat, lng) {
     }
 
     setSnapshotLoadingState();
+    setHealthcareMarketLoadingState();
+    currentHealthcareMarketContext = null;
 
     const geocodePromise = fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${runtimeConfig.GOOGLE_MAPS_API_KEY}`
@@ -2769,9 +2937,12 @@ async function loadDemographics(lat, lng) {
         return fetchMultiRadiusDataFromCSV(lat, lng, radii);
     })();
 
-    const [geocodeResult, radiusDataResult] = await Promise.allSettled([
+    const marketCountsPromise = fetchHealthcareMarketCounts(lat, lng, maxRadius);
+
+    const [geocodeResult, radiusDataResult, marketCountsResult] = await Promise.allSettled([
         geocodePromise,
-        radiusDataPromise
+        radiusDataPromise,
+        marketCountsPromise
     ]);
 
     // A newer address or radius selection superseded this request.
@@ -2797,16 +2968,42 @@ async function loadDemographics(lat, lng) {
         document.getElementById('zip-code').innerText = '—';
     }
 
+    const selectedRadiusData = radiusDataResult.status === 'fulfilled'
+        ? radiusDataResult.value[`${maxRadius}mile`]
+        : null;
+
     if (radiusDataResult.status === 'fulfilled') {
-        const selectedRadiusData = radiusDataResult.value[`${maxRadius}mile`];
         if (!selectedRadiusData) {
             showSnapshotError('No demographic data found for this radius.');
-            return;
+        } else {
+            populateDemographicSnapshot(selectedRadiusData);
         }
-        populateDemographicSnapshot(selectedRadiusData);
     } else {
         console.error('Radius demographic error:', radiusDataResult.reason);
         showSnapshotError('Demographic data is temporarily unavailable.');
+    }
+
+    if (marketCountsResult.status === 'fulfilled') {
+        currentHealthcareMarketContext = buildHealthcareMarketContext(
+            marketCountsResult.value,
+            selectedRadiusData?.population
+        );
+        renderHealthcareMarketContext(currentHealthcareMarketContext);
+    } else {
+        console.error('Healthcare market context error:', marketCountsResult.reason);
+        const unavailableContext = buildHealthcareMarketContext({
+            latitude: Number(lat),
+            longitude: Number(lng),
+            radiusMiles: maxRadius,
+            attribution: 'Google Maps',
+            categories: HEALTHCARE_MARKET_CATEGORIES.map(category => ({
+                ...category,
+                count: null,
+                available: false
+            }))
+        }, selectedRadiusData?.population);
+        currentHealthcareMarketContext = unavailableContext;
+        renderHealthcareMarketContext(unavailableContext);
     }
 }
 

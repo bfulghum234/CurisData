@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const html = await readFile(new URL("../demo_report_map.html", import.meta.url), "utf8");
+const reportIntegration = await readFile(new URL("../report_integration.js", import.meta.url), "utf8");
+const reportTemplate = await readFile(new URL("../demographic_report_template.html", import.meta.url), "utf8");
 
 test("replaces the Trends tab with the AI neighborhood summary", () => {
   assert.match(html, />AI Neighborhood Summary<\/button>/);
@@ -81,6 +83,28 @@ test("shows runtime endpoint attempts only for configuration failures", () => {
 test("keeps diagnostic status hidden from the production interface", () => {
   assert.match(html, /#status \{\s*display: none;/);
   assert.match(html, /<div id="status" hidden aria-live="polite"><\/div>/);
+});
+
+test("loads healthcare market counts and calculates population-normalized density", () => {
+  assert.match(html, /fetch\('\/api\/places-aggregate'/);
+  for (const type of ["medical_clinic", "medical_center", "doctor", "hospital", "pharmacy", "medical_lab"]) {
+    assert.match(html, new RegExp(`['"]${type}['"]`));
+  }
+  assert.match(html, /\(category\.count \/ numericPopulation\) \* 100000/);
+  assert.match(html, /Healthcare Market Context/);
+  assert.match(html, /Google Maps place-listing counts/);
+  assert.match(html, /not licensed-facility or clinician rosters/);
+});
+
+test("carries healthcare market context into the generated report", () => {
+  assert.match(reportIntegration, /healthcareMarketContext = null/);
+  assert.match(reportIntegration, /marketContext: healthcareMarketContext \|\| null/);
+  assert.match(reportIntegration, /populateHealthcareMarketContext\(doc, healthcareMarketContext\)/);
+  assert.match(reportTemplate, /<h3>Healthcare Market Context<\/h3>/);
+  for (const key of ["medical-clinics", "physicians", "hospitals", "pharmacies", "medical-labs"]) {
+    assert.match(reportTemplate, new RegExp(`id="report-market-${key}-count"`));
+    assert.match(reportTemplate, new RegExp(`id="report-market-${key}-density"`));
+  }
 });
 
 test("places Run Report in the workflow instead of the snapshot header", () => {
