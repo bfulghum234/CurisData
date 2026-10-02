@@ -1050,7 +1050,8 @@ details > div:not(.section-content):last-child {
     padding-bottom: 14px;
 }
 
-input[type='checkbox'] {
+input[type='checkbox'],
+input[type='radio'] {
     accent-color: var(--curis-600);
 }
 
@@ -1260,21 +1261,21 @@ input[type='range']::-moz-range-thumb {
     <!-- HEALTHCARE TOOLS -->
 <!-- STEP 2: SPECIALTY -->
     <details id="specialty-step" class="workflow-step" open>
-    <summary><span class="workflow-summary-title"><span class="workflow-step-number">2</span><span class="workflow-summary-copy">Choose a specialty<small>Select one or more specialties</small></span><span class="workflow-status" id="specialty-step-status">Required</span></span></summary>
+    <summary><span class="workflow-summary-title"><span class="workflow-step-number">2</span><span class="workflow-summary-copy">Choose a specialty<small>Select one specialty for this report</small></span><span class="workflow-status" id="specialty-step-status">Required</span></span></summary>
     <div>
-        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="urgentCareCheckbox" onchange="handleUrgentCareToggle(); handleWorkflowSpecialtyChange()"
+        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="urgentCare" data-label="Urgent Care" id="urgentCareCheckbox" onchange="handleSpecialtySelection('urgentCare')"
                style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Urgent Care</span></label>
     </div> 
     <div> 
-        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="HospitalCheckbox" onchange="handleHospitalToggle(); handleWorkflowSpecialtyChange()"
+        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="hospital" data-label="ASC" id="HospitalCheckbox" onchange="handleSpecialtySelection('hospital')"
                style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">ASC</span></label>
     </div>
     <div> 
-        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="DermCheckbox" onchange="handleDermToggle(); handleWorkflowSpecialtyChange()"
+        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="dermatology" data-label="Dermatology" id="DermCheckbox" onchange="handleSpecialtySelection('dermatology')"
                style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Dermatology</span></label>
     </div>
     <div> 
-        <label class="specialty-option"><input class="specialty-checkbox" type="checkbox" id="AutismCheckbox" onchange="handleAutismToggle(); handleWorkflowSpecialtyChange()"
+        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="autism" data-label="Autism" id="AutismCheckbox" onchange="handleSpecialtySelection('autism')"
                style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Autism</span></label>
     </div>
  </details>
@@ -2367,8 +2368,8 @@ function switchTab(evt, tab) {
 function updateWorkflowState() {
     const hasLocation = Number.isFinite(Number(selectedLocationContext?.lat)) &&
         Number.isFinite(Number(selectedLocationContext?.lng));
-    const selectedSpecialties = [...document.querySelectorAll('.specialty-checkbox:checked')];
-    const hasSpecialty = selectedSpecialties.length > 0;
+    const selectedSpecialty = document.querySelector('.specialty-checkbox:checked');
+    const hasSpecialty = Boolean(selectedSpecialty);
     const radii = typeof getRadiiFromSidebar === 'function' ? getRadiiFromSidebar() : [1, 3, 5];
 
     document.getElementById('location-step')?.classList.toggle('is-complete', hasLocation);
@@ -2378,7 +2379,7 @@ function updateWorkflowState() {
     const specialtyStatus = document.getElementById('specialty-step-status');
     if (specialtyStatus) {
         specialtyStatus.textContent = hasSpecialty
-            ? `${selectedSpecialties.length} selected`
+            ? selectedSpecialty.dataset.label || 'Selected'
             : 'Required';
     }
 
@@ -2400,7 +2401,17 @@ function updateWorkflowState() {
     document.getElementById('report-step')?.classList.toggle('is-complete', ready);
 }
 
-function handleWorkflowSpecialtyChange() {
+function handleSpecialtySelection(specialty) {
+    clearUrgentCares();
+    clearHospitals();
+    clearDermatologists();
+    clearAutism();
+
+    if (specialty === 'urgentCare') loadUrgentCares();
+    else if (specialty === 'hospital') loadHospitals();
+    else if (specialty === 'dermatology') loadDermatologists();
+    else if (specialty === 'autism') loadAutism();
+
     const hasSpecialty = document.querySelector('.specialty-checkbox:checked');
     const tradeAreaStep = document.getElementById('trade-area-step');
     if (hasSpecialty && tradeAreaStep) tradeAreaStep.open = true;

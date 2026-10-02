@@ -35,8 +35,18 @@ test("guides report creation through four numbered steps", () => {
   assert.match(html, /Set Location &amp; Continue/);
   assert.match(html, /Use This Trade Area &amp; Continue/);
   assert.match(html, /id="run-report-button"[^>]*disabled>Run Report<\/button>/);
-  assert.match(html, /function handleWorkflowSpecialtyChange\(\)/);
+  assert.match(html, /function handleSpecialtySelection\(specialty\)/);
   assert.match(html, /function confirmTradeArea\(\)/);
+});
+
+test("allows only one report specialty at a time", () => {
+  const specialtyInputs = [...html.matchAll(/class="specialty-checkbox"[^>]+/g)].map(match => match[0]);
+  assert.equal(specialtyInputs.length, 4);
+  for (const input of specialtyInputs) {
+    assert.match(input, /type="radio"/);
+    assert.match(input, /name="reportSpecialty"/);
+  }
+  assert.match(html, /clearUrgentCares\(\);[\s\S]*clearHospitals\(\);[\s\S]*clearDermatologists\(\);[\s\S]*clearAutism\(\);/);
 });
 
 test("places Run Report in the workflow instead of the snapshot header", () => {
