@@ -389,6 +389,20 @@ input[type="range"]::-moz-range-thumb {
     font-size: 11px;
 }
 
+.snapshot-economic-stats {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.snapshot-economic-stats .stat-row {
+    justify-content: space-between;
+}
+
+.snapshot-economic-stats strong {
+    color: var(--curis-800);
+}
+
 /* =====================
    REPORT MODAL
 ===================== */
@@ -1092,6 +1106,10 @@ input[type='range']::-moz-range-thumb {
             <div class="stat-row"><span>Households: </span><span id="hh-total">—</span></div>
             <div class="stat-row"><span>Families: </span><span id="fam-total">—</span></div>
             <div class="stat-row"><span>ZIP Code: </span><span id="zip-code">—</span></div>
+            <div class="snapshot-economic-stats">
+                <div class="stat-row"><span>Median HH Income:</span><strong id="snapshot-median-income">—</strong></div>
+                <div class="stat-row"><span>Median Home Value:</span><strong id="snapshot-home-value">—</strong></div>
+            </div>
         </div>
 
         <!-- Middle: Age profile -->
@@ -2205,7 +2223,8 @@ async function loadDemographics(lat, lng) {
 }
 
 function setSnapshotLoadingState() {
-    ['pop-total', 'hh-total', 'fam-total', 'snapshot-age-18-34', 'snapshot-age-35-54',
+    ['pop-total', 'hh-total', 'fam-total', 'snapshot-median-income', 'snapshot-home-value',
+     'snapshot-age-18-34', 'snapshot-age-35-54',
      'snapshot-age-55-64', 'snapshot-age-65plus', 'snapshot-pop-outlook',
      'snapshot-hh-outlook', 'snapshot-income-outlook', 'pop-growth', 'hh-growth',
      'income-growth'].forEach(id => {
@@ -2221,7 +2240,8 @@ function setSnapshotLoadingState() {
 }
 
 function showSnapshotError(message) {
-    ['pop-total', 'hh-total', 'fam-total', 'snapshot-age-18-34', 'snapshot-age-35-54',
+    ['pop-total', 'hh-total', 'fam-total', 'snapshot-median-income', 'snapshot-home-value',
+     'snapshot-age-18-34', 'snapshot-age-35-54',
      'snapshot-age-55-64', 'snapshot-age-65plus', 'pop-growth', 'hh-growth',
      'income-growth'].forEach(id => {
         const element = document.getElementById(id);
@@ -2254,6 +2274,8 @@ function populateDemographicSnapshot(data) {
     setText('pop-total', formatNumber(data.population));
     setText('hh-total', formatNumber(data.households));
     setText('fam-total', formatNumber(data.families));
+    setText('snapshot-median-income', data.medianIncome > 0 ? formatCurrency(data.medianIncome) : '—');
+    setText('snapshot-home-value', data.housing?.medianValue > 0 ? formatCurrency(data.housing.medianValue) : '—');
 
     const ageGroups = [
         ['snapshot-age-18-34', 'snapshot-age-18-34-bar', Number(data.age_18_34 || 0)],
