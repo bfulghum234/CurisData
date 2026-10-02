@@ -111,6 +111,28 @@ The endpoint returns Google Maps attribution, the data refresh and expiration
 timestamps, its active cache backend, and a cache status of `hit`, `miss`, or
 `unavailable`.
 
+### AI neighborhood summaries
+
+`POST /api/neighborhood-summary` retrieves Google's AI-powered neighborhood
+summary for a Place ID. It requests only the Place Details fields needed for
+the summary and returns the summary exactly as Google supplies it, including
+the required disclosure and content-reporting link when available.
+
+Example request:
+
+```json
+{
+  "placeId": "ChIJMyK3f-hzToYRlstOM8gDzd4"
+}
+```
+
+Google's Places policies permit Place IDs to be retained, but do not permit the
+generated neighborhood-summary content to be persistently cached. Therefore,
+this endpoint fetches the summary live for each request and sends
+`Cache-Control: no-store`. It does not use the aggregate-data KV/edge cache.
+The eventual interface must display the returned summary in full along with
+Google's `disclosureText` and `flagContentUri`.
+
 ## GitHub Setup
 
 ```bash
