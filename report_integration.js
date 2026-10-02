@@ -1757,8 +1757,10 @@ function processCSVRecord(record) {
   return {
     population: record.B01003_001E_curr || 0,
     households: record.B11001_001E_curr || 0,
+    householdsPrior: record.B11001_001E_prior || 0,
     families: record.B11001_002E_curr || 0,
     medianIncome: record.B19013_001E_curr || 0,
+    medianIncomePrior: record.B19013_001E_prior || 0,
     perCapitaIncome: record.B19301_001E_curr || 0,
 
     age_0_17,
@@ -1819,8 +1821,10 @@ function aggregateFromPerGeoid(geoids, perGeoid) {
   const aggregated = {
     population: 0,
     households: 0,
+    householdsPrior: 0,
     families: 0,
     medianIncome: 0,
+    medianIncomePrior: 0,
     perCapitaIncome: 0,
 
     age_0_17: 0,
@@ -1897,7 +1901,10 @@ function aggregateFromPerGeoid(geoids, perGeoid) {
     per_capita_proj: 0,
   };
 
-  let incomeCount = 0;
+  let currentIncomeWeightedSum = 0;
+  let currentIncomeWeight = 0;
+  let priorIncomeWeightedSum = 0;
+  let priorIncomeWeight = 0;
   let housingValueCount = 0;
   let housingRentCount = 0;
 
@@ -1908,8 +1915,6 @@ function aggregateFromPerGeoid(geoids, perGeoid) {
   let cagrMedIncCount = 0;
   let cagrPerCapitaCount = 0;
   let perCapitaCount = 0;
-  let medIncProjSum = 0;
-  let medIncProjCount = 0;
   let perCapProjSum = 0;
   let perCapProjCount = 0;
 
@@ -1919,6 +1924,7 @@ function aggregateFromPerGeoid(geoids, perGeoid) {
 
     aggregated.population += d.population || 0;
     aggregated.households += d.households || 0;
+    aggregated.householdsPrior += d.householdsPrior || 0;
     aggregated.families += d.families || 0;
 
     aggregated.age_0_17 += d.age_0_17 || 0;
@@ -1940,15 +1946,16 @@ function aggregateFromPerGeoid(geoids, perGeoid) {
       }
     }
 
-    if (d.med_inc_proj && d.med_inc_proj > 0) {
-    medIncProjSum += d.med_inc_proj;
-    medIncProjCount++;
-  }
-
-
     if (d.medianIncome && d.medianIncome > 0) {
-      aggregated.medianIncome += d.medianIncome;
-      incomeCount++;
+      const weight = d.households > 0 ? d.households : 1;
+      currentIncomeWeightedSum += d.medianIncome * weight;
+      currentIncomeWeight += weight;
+    }
+
+    if (d.medianIncomePrior && d.medianIncomePrior > 0) {
+      const priorWeight = d.householdsPrior > 0 ? d.householdsPrior : 1;
+      priorIncomeWeightedSum += d.medianIncomePrior * priorWeight;
+      priorIncomeWeight += priorWeight;
     }
 
      if (d.perCapitaIncome && d.perCapitaIncome > 0) {
@@ -1989,7 +1996,6 @@ function aggregateFromPerGeoid(geoids, perGeoid) {
       cagrFamCount++;
     }
     
-    aggregated.change_med_inc += d.change_med_inc || 0;
     if (d.CAGR_med_inc && d.CAGR_med_inc !== 0) {
       aggregated.CAGR_med_inc += d.CAGR_med_inc;
       cagrMedIncCount++;
@@ -2093,22 +2099,15 @@ if (d.per_capita_proj && d.per_capita_proj > 0) {
   // Family projection
   aggregated.fam_proj = Math.round(aggregated.families + aggregated.change_fam);
   
-  // Median income projection
-  aggregated.med_inc_proj = medIncProjCount > 0 
-    ? Math.round(medIncProjSum / medIncProjCount) 
-    : 0;
-
-  // Calculate % change from current to projected
-  const currentMedInc = aggregated.medianIncome || 0;
-  const projectedMedInc = aggregated.med_inc_proj || 0;
-  aggregated.med_inc_change_pct = currentMedInc > 0 
-    ? ((projectedMedInc - currentMedInc) / currentMedInc * 100) 
-    : 0;
-
   aggregated.per_capita_proj = perCapProjCount > 0 ? Math.round(perCapProjSum / perCapProjCount) : 0;
 
   // Average the median values
-  aggregated.medianIncome = incomeCount > 0 ? Math.round(aggregated.medianIncome / incomeCount) : 65000;
+  aggregated.medianIncome = currentIncomeWeight > 0
+    ? Math.round(currentIncomeWeightedSum / currentIncomeWeight)
+    : 65000;
+  aggregated.medianIncomePrior = priorIncomeWeight > 0
+    ? Math.round(priorIncomeWeightedSum / priorIncomeWeight)
+    : 0;
   aggregated.perCapitaIncome = perCapitaCount > 0 ? Math.round(aggregated.perCapitaIncome / perCapitaCount) : 38000;
   aggregated.housing.medianValue = housingValueCount > 0 ? Math.round(aggregated.housing.medianValue / housingValueCount) : 285000;
   aggregated.housing.medianRent = housingRentCount > 0 ? Math.round(aggregated.housing.medianRent / housingRentCount) : 1450;
@@ -2117,7 +2116,23 @@ if (d.per_capita_proj && d.per_capita_proj > 0) {
   aggregated.CAGR_pop = cagrPopCount > 0 ? aggregated.CAGR_pop / cagrPopCount : 0;
   aggregated.CAGR_hh = cagrHhCount > 0 ? aggregated.CAGR_hh / cagrHhCount : 0;
   aggregated.CAGR_fam = cagrFamCount > 0 ? aggregated.CAGR_fam / cagrFamCount : 0;
-  aggregated.CAGR_med_inc = cagrMedIncCount > 0 ? aggregated.CAGR_med_inc / cagrMedIncCount : 0;
+  const fallbackIncomeCagr = cagrMedIncCount > 0 ? aggregated.CAGR_med_inc / cagrMedIncCount : 0;
+  const historicalIncomeCagr = aggregated.medianIncomePrior > 0 && aggregated.medianIncome > 0
+    ? Math.pow(aggregated.medianIncome / aggregated.medianIncomePrior, 1 / 5) - 1
+    : fallbackIncomeCagr;
+
+  // Project the radius-level, household-weighted median forward five years.
+  // Recent block-group income changes can be volatile, so constrain the
+  // annual rate to a conservative -2% to +5% range rather than compounding
+  // the source CSV's nine-year med_inc_proj value.
+  aggregated.CAGR_med_inc = Math.min(0.05, Math.max(-0.02, historicalIncomeCagr || 0));
+  aggregated.med_inc_proj = Math.round(
+    aggregated.medianIncome * Math.pow(1 + aggregated.CAGR_med_inc, 5)
+  );
+  aggregated.change_med_inc = aggregated.med_inc_proj - aggregated.medianIncome;
+  aggregated.med_inc_change_pct = aggregated.medianIncome > 0
+    ? (aggregated.change_med_inc / aggregated.medianIncome) * 100
+    : 0;
   aggregated.CAGR_per_capita = cagrPerCapitaCount > 0 ? aggregated.CAGR_per_capita / cagrPerCapitaCount : 0;
 
  

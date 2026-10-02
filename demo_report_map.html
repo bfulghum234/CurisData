@@ -2436,7 +2436,7 @@ function populateDemographicSnapshot(data) {
         ? `${formatChange(hhChange)} to ${formatNumber(data.hh_proj)} projected`
         : `${formatNumber(data.households)} current`);
     setText('snapshot-income-outlook', data.med_inc_proj > 0
-        ? `${formatCurrency(data.medianIncome)} now; ${formatCurrency(data.med_inc_proj)} projected`
+        ? `${formatCurrency(data.medianIncome)} now; ${formatCurrency(data.med_inc_proj)} 5-year projection`
         : `${formatCurrency(data.medianIncome)} current`);
 }
 
