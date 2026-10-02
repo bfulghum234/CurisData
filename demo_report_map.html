@@ -526,6 +526,59 @@ input[type="range"]::-moz-range-thumb {
     text-align: right;
 }
 
+.neighborhood-summary-card {
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+}
+
+.neighborhood-summary-status {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.neighborhood-summary-copy[hidden],
+.neighborhood-summary-meta[hidden] {
+    display: none;
+}
+
+.neighborhood-summary-copy p {
+    margin: 0 0 14px;
+    color: var(--curis-900);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.neighborhood-summary-copy p:last-child {
+    margin-bottom: 0;
+}
+
+.neighborhood-summary-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 18px;
+    padding-top: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+}
+
+.neighborhood-summary-meta a {
+    color: var(--curis-700);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.neighborhood-summary-meta a:hover {
+    text-decoration: underline;
+}
+
 /* =====================
    REPORT MODAL
 ===================== */
@@ -1216,7 +1269,7 @@ input[type='range']::-moz-range-thumb {
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab(event,'demographics')">Snapshot</button>
-            <button class="tab" onclick="switchTab(event,'trends')">Trends</button>
+            <button class="tab" onclick="switchTab(event,'neighborhood-summary')">AI Neighborhood Summary</button>
         </div>
 
 <div id="demographics-tab" class="tab-content active">
@@ -1312,10 +1365,23 @@ input[type='range']::-moz-range-thumb {
         </div>
     </div>
 </div>
-        <div id="trends-tab" class="tab-content">
-            <div class="stat-row"><span>Population Growth (5-yr)</span><span id="pop-growth">—</span></div>
-            <div class="stat-row"><span>Household Growth (5-yr)</span><span id="hh-growth">—</span></div>
-            <div class="stat-row"><span>Median Income Growth (annual)</span><span id="income-growth">—</span></div>
+        <div id="neighborhood-summary-tab" class="tab-content">
+            <div class="neighborhood-summary-card">
+                <p id="neighborhood-summary-status" class="neighborhood-summary-status">
+                    Open this tab to load the AI neighborhood summary.
+                </p>
+                <div id="neighborhood-summary-copy" class="neighborhood-summary-copy" hidden>
+                    <p id="neighborhood-summary-overview"></p>
+                    <p id="neighborhood-summary-description"></p>
+                </div>
+                <div id="neighborhood-summary-meta" class="neighborhood-summary-meta" hidden>
+                    <span>Google Maps</span>
+                    <span aria-hidden="true">•</span>
+                    <span id="neighborhood-summary-disclosure"></span>
+                    <span aria-hidden="true">•</span>
+                    <a id="neighborhood-summary-report" href="#" target="_blank" rel="noopener noreferrer">Report an issue</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1455,10 +1521,13 @@ const DEFAULT_LOCATION = {
     address: '601 Bailey Ave., Fort Worth, TX 76107',
     lat: 32.753079934041,
     lng: -97.362923890503,
-    stateCode: 'TX'
+    stateCode: 'TX',
+    placeId: 'ChIJMyK3f-hzToYRlstOM8gDzd4'
 };
 let selectedLocationContext = { ...DEFAULT_LOCATION };
 let snapshotRequestSequence = 0;
+let neighborhoodSummaryRequestSequence = 0;
+let displayedNeighborhoodSummaryPlaceId = null;
 
 
 
@@ -1507,8 +1576,10 @@ function initMap() {
             address: place.formatted_address || place.name || 'Address Not Available',
             lat: place.geometry.location.lat(),
             lng: place.geometry.location.lng(),
+            placeId: place.place_id || place.placeId || null,
             ...(stateCode ? { stateCode } : {})
         };
+        resetNeighborhoodSummary();
         
         // Remove previous marker if exists
         if (addressMarker) {
@@ -1594,6 +1665,7 @@ function initMap() {
     showPlaceOnMap({
         name: DEFAULT_LOCATION.name,
         formatted_address: DEFAULT_LOCATION.address,
+        place_id: DEFAULT_LOCATION.placeId,
         geometry: {
             location: new google.maps.LatLng(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng)
         },
@@ -2128,6 +2200,102 @@ function switchTab(evt, tab) {
     document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
     evt.target.classList.add("active");
     document.getElementById(tab + "-tab").classList.add("active");
+    if (tab === 'neighborhood-summary') {
+        loadNeighborhoodSummary();
+    }
+}
+
+function resetNeighborhoodSummary() {
+    neighborhoodSummaryRequestSequence += 1;
+    displayedNeighborhoodSummaryPlaceId = null;
+
+    const status = document.getElementById('neighborhood-summary-status');
+    const copy = document.getElementById('neighborhood-summary-copy');
+    const meta = document.getElementById('neighborhood-summary-meta');
+    if (status) {
+        status.textContent = 'Open this tab to load the AI neighborhood summary.';
+        status.hidden = false;
+    }
+    if (copy) copy.hidden = true;
+    if (meta) meta.hidden = true;
+
+    if (document.getElementById('neighborhood-summary-tab')?.classList.contains('active')) {
+        loadNeighborhoodSummary();
+    }
+}
+
+function neighborhoodSummaryText(section) {
+    return section?.content?.text || section?.text || '';
+}
+
+async function loadNeighborhoodSummary() {
+    const placeId = selectedLocationContext?.placeId;
+    const status = document.getElementById('neighborhood-summary-status');
+    const copy = document.getElementById('neighborhood-summary-copy');
+    const meta = document.getElementById('neighborhood-summary-meta');
+
+    if (!placeId) {
+        status.textContent = 'A neighborhood summary is not available for this location.';
+        status.hidden = false;
+        copy.hidden = true;
+        meta.hidden = true;
+        return;
+    }
+    if (displayedNeighborhoodSummaryPlaceId === placeId) return;
+
+    const requestSequence = ++neighborhoodSummaryRequestSequence;
+    status.textContent = 'Generating neighborhood summary…';
+    status.hidden = false;
+    copy.hidden = true;
+    meta.hidden = true;
+
+    try {
+        const response = await fetch('/api/neighborhood-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ placeId })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.error || `Neighborhood summary request failed (${response.status})`);
+        }
+        if (requestSequence !== neighborhoodSummaryRequestSequence) return;
+
+        const summary = payload.neighborhoodSummary;
+        const overview = neighborhoodSummaryText(summary?.overview);
+        const description = neighborhoodSummaryText(summary?.description);
+        if (!payload.available || (!overview && !description)) {
+            status.textContent = 'Google does not currently have an AI neighborhood summary for this location.';
+            return;
+        }
+
+        const overviewElement = document.getElementById('neighborhood-summary-overview');
+        const descriptionElement = document.getElementById('neighborhood-summary-description');
+        overviewElement.textContent = overview;
+        overviewElement.hidden = !overview;
+        descriptionElement.textContent = description;
+        descriptionElement.hidden = !description;
+
+        const disclosure = summary?.disclosureText?.text || 'Summarized with Gemini';
+        document.getElementById('neighborhood-summary-disclosure').textContent = disclosure;
+        const reportLink = document.getElementById('neighborhood-summary-report');
+        if (summary?.flagContentUri) {
+            reportLink.href = summary.flagContentUri;
+            reportLink.hidden = false;
+        } else {
+            reportLink.hidden = true;
+        }
+
+        status.hidden = true;
+        copy.hidden = false;
+        meta.hidden = false;
+        displayedNeighborhoodSummaryPlaceId = placeId;
+    } catch (error) {
+        if (requestSequence !== neighborhoodSummaryRequestSequence) return;
+        console.error('Unable to load neighborhood summary:', error);
+        status.textContent = 'The AI neighborhood summary is temporarily unavailable.';
+        status.hidden = false;
+    }
 }
 
 function setStatus(msg) {
@@ -2375,7 +2543,8 @@ async function loadDemographics(lat, lng) {
             lat,
             lng,
             stateCode: stateCode || selectedLocationContext?.stateCode || null,
-            address: geoData.results?.[0]?.formatted_address || selectedLocationContext?.address || 'Address Not Available'
+            address: geoData.results?.[0]?.formatted_address || selectedLocationContext?.address || 'Address Not Available',
+            placeId: selectedLocationContext?.placeId || geoData.results?.[0]?.place_id || null
         };
     } else {
         console.warn('Unable to update ZIP code:', geocodeResult.reason);
