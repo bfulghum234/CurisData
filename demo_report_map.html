@@ -389,6 +389,67 @@ input[type="range"]::-moz-range-thumb {
     font-size: 11px;
 }
 
+.outlook-table-wrap {
+    overflow-x: auto;
+    margin-top: 10px;
+}
+
+.outlook-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.outlook-table th,
+.outlook-table td {
+    padding: 10px 6px;
+    text-align: right;
+    border-bottom: 1px solid rgba(7, 59, 44, 0.14);
+    white-space: nowrap;
+}
+
+.outlook-table th:first-child,
+.outlook-table td:first-child {
+    text-align: left;
+    white-space: normal;
+}
+
+.outlook-table thead th {
+    padding-top: 4px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.outlook-table tbody th {
+    color: var(--curis-900);
+    font-weight: 700;
+}
+
+.outlook-table tbody tr:last-child th,
+.outlook-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.outlook-growth {
+    display: inline-block;
+    min-width: 52px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: rgba(26, 138, 104, 0.12);
+    color: var(--curis-800);
+    font-weight: 800;
+    text-align: center;
+}
+
+.outlook-growth.negative {
+    background: rgba(184, 63, 63, 0.12);
+    color: #963535;
+}
+
 .snapshot-economic-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1215,9 +1276,39 @@ input[type='range']::-moz-range-thumb {
         <!-- Right: Future Trends -->
         <div class="demo-column light-blue">
             <h4>Future Outlook</h4>
-            <p><strong>Population:</strong> <span id="snapshot-pop-outlook">—</span></p>
-            <p><strong>Households:</strong> <span id="snapshot-hh-outlook">—</span></p>
-            <p><strong>Median HH Income:</strong> <span id="snapshot-income-outlook">—</span></p>
+            <div class="outlook-table-wrap">
+                <table class="outlook-table" aria-label="Current and five-year demographic outlook">
+                    <thead>
+                        <tr>
+                            <th scope="col">Metric</th>
+                            <th scope="col">Current<br>(CY)</th>
+                            <th scope="col">5-Year<br>(FY)</th>
+                            <th scope="col">Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Population</th>
+                            <td id="outlook-pop-cy">—</td>
+                            <td id="outlook-pop-fy">—</td>
+                            <td><span class="outlook-growth" id="outlook-pop-growth">—</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Households</th>
+                            <td id="outlook-hh-cy">—</td>
+                            <td id="outlook-hh-fy">—</td>
+                            <td><span class="outlook-growth" id="outlook-hh-growth">—</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Median HH Income</th>
+                            <td id="outlook-income-cy">—</td>
+                            <td id="outlook-income-fy">—</td>
+                            <td><span class="outlook-growth" id="outlook-income-growth">—</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="snapshot-note">FY values are five-year projections for the selected radius.</p>
         </div>
     </div>
 </div>
@@ -2307,11 +2398,15 @@ async function loadDemographics(lat, lng) {
 function setSnapshotLoadingState() {
     ['pop-total', 'hh-total', 'fam-total', 'snapshot-median-income', 'snapshot-home-value',
      'snapshot-age-18-34', 'snapshot-age-35-54',
-     'snapshot-age-55-64', 'snapshot-age-65plus', 'snapshot-pop-outlook',
-     'snapshot-hh-outlook', 'snapshot-income-outlook', 'pop-growth', 'hh-growth',
-     'income-growth'].forEach(id => {
+     'snapshot-age-55-64', 'snapshot-age-65plus', 'outlook-pop-cy', 'outlook-pop-fy',
+     'outlook-pop-growth', 'outlook-hh-cy', 'outlook-hh-fy', 'outlook-hh-growth',
+     'outlook-income-cy', 'outlook-income-fy', 'outlook-income-growth',
+     'pop-growth', 'hh-growth', 'income-growth'].forEach(id => {
         const element = document.getElementById(id);
-        if (element) element.textContent = 'Loading…';
+        if (element) {
+            element.textContent = 'Loading…';
+            element.classList.remove('negative');
+        }
     });
 
     ['snapshot-age-18-34-bar', 'snapshot-age-35-54-bar',
@@ -2336,9 +2431,15 @@ function showSnapshotError(message) {
         const element = document.getElementById(id);
         if (element) element.textContent = '—';
     });
-    ['snapshot-pop-outlook', 'snapshot-hh-outlook', 'snapshot-income-outlook'].forEach(id => {
+    ['outlook-pop-cy', 'outlook-pop-fy', 'outlook-pop-growth',
+     'outlook-hh-cy', 'outlook-hh-fy', 'outlook-hh-growth',
+     'outlook-income-cy', 'outlook-income-fy', 'outlook-income-growth'].forEach(id => {
         const element = document.getElementById(id);
-        if (element) element.textContent = message;
+        if (element) {
+            element.textContent = '—';
+            element.title = message;
+            element.classList.remove('negative');
+        }
     });
     ['under25', '25-49', '50-74', '75-99', '100-149', '150plus'].forEach(key => {
         const value = document.getElementById(`income-${key}-value`);
@@ -2363,7 +2464,10 @@ function populateDemographicSnapshot(data) {
         : `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
     const setText = (id, value) => {
         const element = document.getElementById(id);
-        if (element) element.textContent = value;
+        if (element) {
+            element.removeAttribute('title');
+            element.textContent = value;
+        }
     };
 
     setText('pop-total', formatNumber(data.population));
@@ -2423,21 +2527,30 @@ function populateDemographicSnapshot(data) {
 
     const popChange = percentChange(Number(data.population || 0), Number(data.pop_proj || 0));
     const hhChange = percentChange(Number(data.households || 0), Number(data.hh_proj || 0));
+    const incomeChange = percentChange(Number(data.medianIncome || 0), Number(data.med_inc_proj || 0));
     const incomeAnnualChange = Number(data.CAGR_med_inc || 0) * 100;
 
     setText('pop-growth', formatChange(popChange));
     setText('hh-growth', formatChange(hhChange));
     setText('income-growth', data.CAGR_med_inc ? formatChange(incomeAnnualChange) : 'Not available');
 
-    setText('snapshot-pop-outlook', data.pop_proj > 0
-        ? `${formatChange(popChange)} to ${formatNumber(data.pop_proj)} projected`
-        : `${formatNumber(data.population)} current`);
-    setText('snapshot-hh-outlook', data.hh_proj > 0
-        ? `${formatChange(hhChange)} to ${formatNumber(data.hh_proj)} projected`
-        : `${formatNumber(data.households)} current`);
-    setText('snapshot-income-outlook', data.med_inc_proj > 0
-        ? `${formatCurrency(data.medianIncome)} now; ${formatCurrency(data.med_inc_proj)} 5-year projection`
-        : `${formatCurrency(data.medianIncome)} current`);
+    setText('outlook-pop-cy', formatNumber(data.population));
+    setText('outlook-pop-fy', data.pop_proj > 0 ? formatNumber(data.pop_proj) : '—');
+    setOutlookGrowth('outlook-pop-growth', data.pop_proj > 0 ? popChange : null);
+    setText('outlook-hh-cy', formatNumber(data.households));
+    setText('outlook-hh-fy', data.hh_proj > 0 ? formatNumber(data.hh_proj) : '—');
+    setOutlookGrowth('outlook-hh-growth', data.hh_proj > 0 ? hhChange : null);
+    setText('outlook-income-cy', formatCurrency(data.medianIncome));
+    setText('outlook-income-fy', data.med_inc_proj > 0 ? formatCurrency(data.med_inc_proj) : '—');
+    setOutlookGrowth('outlook-income-growth', data.med_inc_proj > 0 ? incomeChange : null);
+
+    function setOutlookGrowth(id, value) {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.removeAttribute('title');
+        element.textContent = Number.isFinite(value) ? formatChange(value) : '—';
+        element.classList.toggle('negative', Number.isFinite(value) && value < 0);
+    }
 }
 
 </script>
