@@ -71,6 +71,11 @@ test("shows runtime endpoint attempts only for configuration failures", () => {
   assert.match(html, /includeDebug && runtimeConfigDebug\.length/);
 });
 
+test("keeps diagnostic status hidden from the production interface", () => {
+  assert.match(html, /#status \{\s*display: none;/);
+  assert.match(html, /<div id="status" hidden aria-live="polite"><\/div>/);
+});
+
 test("places Run Report in the workflow instead of the snapshot header", () => {
   const panelHeader = html.match(/<div class="panel-header">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] || "";
   assert.doesNotMatch(panelHeader, /Run Report/);
