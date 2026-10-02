@@ -454,7 +454,7 @@ input[type="range"]::-moz-range-thumb {
 .income-range-bar {
     width: 0;
     height: 100%;
-    background: linear-gradient(90deg, var(--curis-500), var(--curis-700));
+    background: linear-gradient(90deg, var(--curis-400), var(--curis-700));
     border-radius: inherit;
     transition: width 0.35s ease;
 }
@@ -2381,14 +2381,23 @@ function populateDemographicSnapshot(data) {
         ['$150,000+', '150plus']
     ];
     const incomeHouseholds = incomeRanges.reduce((sum, [label]) => sum + Number(data.income?.[label] || 0), 0);
-    incomeRanges.forEach(([label, key]) => {
+    const incomeChartData = incomeRanges.map(([label, key]) => {
         const count = Number(data.income?.[label] || 0);
-        const share = incomeHouseholds > 0 ? (count / incomeHouseholds) * 100 : 0;
+        return {
+            key,
+            count,
+            share: incomeHouseholds > 0 ? (count / incomeHouseholds) * 100 : 0
+        };
+    });
+    const largestIncomeShare = Math.max(...incomeChartData.map(item => item.share), 1);
+
+    incomeChartData.forEach(({ key, count, share }) => {
         const value = document.getElementById(`income-${key}-value`);
         const bar = document.getElementById(`income-${key}-bar`);
         if (value) value.textContent = `${share.toFixed(1)}%`;
         if (bar) {
-            bar.style.width = `${Math.max(share > 0 ? 2 : 0, share)}%`;
+            const relativeWidth = share > 0 ? (share / largestIncomeShare) * 100 : 0;
+            bar.style.width = `${relativeWidth}%`;
             bar.title = `${formatNumber(count)} households (${share.toFixed(1)}%)`;
         }
     });
