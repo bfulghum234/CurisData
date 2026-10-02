@@ -22,3 +22,8 @@ test("includes Google's disclosure and content reporting controls", () => {
   assert.match(html, /id="neighborhood-summary-report"/);
   assert.match(html, />Google Maps<\/span>/);
 });
+
+test("temporarily hides the Layers and AI Assistant controls", () => {
+  assert.match(html, /<details hidden[^>]*>\s*<summary>Layers<\/summary>/);
+  assert.match(html, /<details hidden[^>]*>\s*<summary>AI Assistant<\/summary>/);
+});
