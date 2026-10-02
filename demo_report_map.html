@@ -3,7 +3,7 @@
 <head>
     <base href="./">
     <meta charset="UTF-8">
-    <title>Spaitial Intel</title>
+    <title>CurisData+ | Mapping &amp; Reports</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- 1. Turf.js FIRST -->
@@ -473,6 +473,333 @@ input[type="range"]::-moz-range-thumb {
     background: #218838;
 }
 
+/* =====================
+   CURISDATA+ THEME
+===================== */
+:root {
+    --curis-900: #073b2c;
+    --curis-800: #0b4f3a;
+    --curis-700: #146c50;
+    --curis-600: #1a8a68;
+    --curis-400: #4ecba0;
+    --curis-200: #b8e7d5;
+    --curis-100: #e0f5ec;
+    --curis-50: #f4faf7;
+    --ink: #1a2e2a;
+    --muted: #537665;
+    --border: #cfe8de;
+    --surface: #ffffff;
+    --shadow-sm: 0 4px 14px rgba(7, 59, 44, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: var(--ink);
+    background: var(--curis-50);
+}
+
+header.product-header {
+    position: relative;
+    z-index: 10;
+    height: 68px;
+    padding: 0 24px;
+    background: linear-gradient(110deg, var(--curis-900), var(--curis-800) 58%, #116249);
+    border-bottom: 1px solid rgba(78, 203, 160, 0.28);
+    box-shadow: 0 8px 24px rgba(4, 35, 26, 0.2);
+}
+
+.product-header .hero-section {
+    display: flex;
+    align-items: center;
+}
+
+.home-link,
+.home-link:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.brand-primary,
+.brand-accent,
+.brand-plus {
+    letter-spacing: -1.2px;
+}
+
+.brand-accent,
+.brand-plus {
+    color: var(--curis-400);
+}
+
+.brand-plus {
+    display: inline-block;
+    margin-left: 2px;
+    font-size: 22px;
+    transform: translateY(-5px);
+}
+
+.product-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #cde8dd;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.product-label::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--curis-400);
+    box-shadow: 0 0 0 5px rgba(78, 203, 160, 0.13);
+}
+
+.app-container {
+    height: calc(100dvh - 68px);
+}
+
+.controls {
+    width: 360px;
+    padding: 20px;
+    color: var(--ink);
+    background: linear-gradient(180deg, #ffffff 0%, var(--curis-50) 100%);
+    border-right: 1px solid var(--border);
+    box-shadow: 8px 0 24px rgba(7, 59, 44, 0.08);
+    scrollbar-color: var(--curis-200) transparent;
+}
+
+.search-card {
+    margin-bottom: 18px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.controls h3 {
+    margin: 0 0 12px;
+    color: var(--curis-900);
+    font-size: 17px;
+    letter-spacing: -0.25px;
+}
+
+#addressInput,
+#chat-input {
+    width: 100% !important;
+    padding: 11px 12px !important;
+    color: var(--ink);
+    background: #fbfefc;
+    border: 1px solid var(--border) !important;
+    border-radius: 9px !important;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+#addressInput:focus,
+#chat-input:focus {
+    background: #ffffff;
+    border-color: var(--curis-400) !important;
+    box-shadow: 0 0 0 3px rgba(78, 203, 160, 0.18);
+}
+
+.controls button,
+#goButton,
+.btn-run-report {
+    min-height: 40px;
+    margin: 0;
+    padding: 10px 14px !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--curis-700), var(--curis-600)) !important;
+    border: 1px solid transparent !important;
+    border-radius: 9px !important;
+    font-family: inherit;
+    font-weight: 700;
+    box-shadow: 0 6px 14px rgba(26, 138, 104, 0.18);
+    transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+}
+
+.controls button:hover,
+#goButton:hover,
+.btn-run-report:hover {
+    background: linear-gradient(135deg, var(--curis-800), var(--curis-600)) !important;
+    box-shadow: 0 8px 18px rgba(11, 79, 58, 0.24);
+    transform: translateY(-1px);
+}
+
+.controls button:disabled,
+#goButton:disabled {
+    cursor: wait;
+    opacity: 0.65;
+    transform: none;
+}
+
+#goButton {
+    width: 100% !important;
+}
+
+#chat-input + button {
+    width: auto;
+    min-width: 72px;
+    flex: 0 0 auto;
+}
+
+details {
+    margin: 0 0 12px !important;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(7, 59, 44, 0.05);
+}
+
+details summary {
+    padding: 13px 15px;
+    color: var(--curis-900);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+details summary:hover,
+details[open] summary {
+    color: var(--curis-800);
+    background: var(--curis-100);
+}
+
+details summary::before {
+    color: var(--curis-600);
+}
+
+details .section-content {
+    background: #ffffff;
+    border-color: var(--border);
+}
+
+details > div:not(.section-content) {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    background: #ffffff;
+}
+
+details > div:not(.section-content):last-child {
+    padding-bottom: 14px;
+}
+
+input[type='checkbox'] {
+    accent-color: var(--curis-600);
+}
+
+.slider-value {
+    color: var(--curis-600);
+}
+
+input[type='range'] {
+    background: var(--curis-100);
+}
+
+input[type='range']::-webkit-slider-thumb,
+input[type='range']::-moz-range-thumb {
+    background: var(--curis-600);
+}
+
+#chat-messages {
+    background: var(--curis-50) !important;
+    border: 1px solid var(--border);
+    border-radius: 9px !important;
+}
+
+.map-container {
+    position: relative;
+    background: #dbece5;
+}
+
+#demographics-panel {
+    border-color: var(--border);
+    box-shadow: 0 -12px 30px rgba(7, 59, 44, 0.14);
+}
+
+.panel-header {
+    color: #ffffff;
+    background: linear-gradient(100deg, var(--curis-900), var(--curis-700));
+    border: 0;
+}
+
+.panel-header strong {
+    letter-spacing: 0.06em;
+}
+
+.btn-close {
+    min-width: 38px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.tabs {
+    background: #ffffff;
+    border-color: var(--border);
+}
+
+.tab {
+    color: var(--muted);
+    border-radius: 7px 7px 0 0;
+}
+
+.tab.active {
+    color: var(--curis-700);
+    border-color: var(--curis-400);
+}
+
+.demo-column.light-gray { background: var(--curis-50); }
+.demo-column.light-blue { background: var(--curis-100); }
+
+.report-header {
+    border-color: var(--curis-400);
+}
+
+.report-header h1,
+.report-section h3,
+.report-table td:last-child {
+    color: var(--curis-800);
+}
+
+#download-btn {
+    background: linear-gradient(135deg, var(--curis-700), var(--curis-600));
+    border-radius: 9px;
+}
+
+@media (max-width: 820px) {
+    header.product-header {
+        height: 60px;
+        padding: 0 16px;
+    }
+
+    .product-label {
+        display: none;
+    }
+
+    .app-container {
+        height: calc(100dvh - 60px);
+    }
+
+    .controls {
+        width: 310px;
+        padding: 14px;
+    }
+}
+
 
 
 </style>
@@ -480,12 +807,13 @@ input[type="range"]::-moz-range-thumb {
 
 <body>
 
-<header>
+<header class="product-header">
     <div class="hero-section">
-        <a class="home-link" href="https://spaitialinte.com">
-            Sp<span class="ai-box">AI</span>tial Intel
+        <a class="home-link" href="https://www.curiscorp.com" aria-label="CurisData+ home">
+            <span class="brand-primary">Curis</span><span class="brand-accent">Data</span><span class="brand-plus">+</span>
         </a>
     </div>
+    <div class="product-label">Mapping &amp; Reports</div>
 </header>
 
 <div class="app-container">
@@ -494,12 +822,11 @@ input[type="range"]::-moz-range-thumb {
     <div class="controls">
    
     <!-- SEARCH LOCATION -->
-    <div style="margin-bottom: 20px;">
-        <h3 style="margin-bottom: 10px;">Search Location</h3>
+    <div class="search-card">
+        <h3>Search Location</h3>
         <input id="addressInput" type="text" value="601 Bailey Ave., Fort Worth, TX 76107"
-               style="width: 90%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">
-        <button id="goButton" style="width: 95%; padding: 10px; background: #007bff; 
-                color: white; border: none; border-radius: 4px; cursor: pointer;">
+               style="margin-bottom: 9px;">
+        <button id="goButton">
             Go to Address
         </button>
     </div>
@@ -639,8 +966,7 @@ input[type="range"]::-moz-range-thumb {
             <div style="display: flex; gap: 5px;">
                 <input id="chat-input" type="text" placeholder="Type message..." 
                        style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
-                <button onclick="sendChatMessage()" style="padding: 8px 15px; background: #007bff; 
-                        color: white; border: none; border-radius: 4px; cursor: pointer;">Send</button>
+                <button onclick="sendChatMessage()">Send</button>
             </div>
         </div>
     </details>
@@ -1468,7 +1794,7 @@ function sendChatMessage() {
     
     if (input.value.trim()) {
         messagesDiv.innerHTML += `<div style="margin: 5px 0;"><strong>You:</strong> ${input.value}</div>`;
-        messagesDiv.innerHTML += `<div style="margin: 5px 0; color: #007bff;"><strong>AI:</strong> Feature coming soon...</div>`;
+        messagesDiv.innerHTML += `<div style="margin: 5px 0; color: #1a8a68;"><strong>AI:</strong> Feature coming soon...</div>`;
         input.value = '';
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
@@ -1764,7 +2090,7 @@ async function loadDemographics(lat, lng) {
 <!-- Report Modal with iframe -->
 <div id="report-modal">
     <div style="position: relative; background-color: #fefefe; margin: 2% auto; padding: 0; width: 95%; max-width: 1400px; height: 90vh; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 8px; display: flex; flex-direction: column;">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #1f2933; color: white; border-radius: 8px 8px 0 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(100deg,#073b2c,#146c50); color: white; border-radius: 8px 8px 0 0;">
             <h2 style="margin: 0; font-size: 20px; border: none; padding: 0; color: white;">Demographic Analysis Report</h2>
             <button class="close-report" onclick="closeReport()">Close</button>
         </div>
