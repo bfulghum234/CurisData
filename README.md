@@ -81,6 +81,34 @@ binding edits in the dashboard. Commit and deploy `wrangler.toml` to apply the
 binding; after deployment, the dashboard will show `REPORT_DATA_BUCKET` as a
 Wrangler-managed binding to `demographic-files`.
 
+### Places Aggregate cache
+
+`POST /api/places-aggregate` proxies count-only Google Places Aggregate queries
+without exposing the server request logic to the browser. Successful responses
+are cached in the `PLACES_CACHE` Workers KV namespace for 28 days, inside
+Google's 30-day limit for temporarily caching POI counts used to calculate a
+CurisData value. Cache keys include the normalized coordinates, radius, place
+types, and other filters, so only identical queries share an entry.
+
+The KV binding is declared without a resource ID in `wrangler.toml`. Current
+Wrangler deployments automatically provision the namespace and attach it to the
+Pages project. If the binding is temporarily unavailable, the endpoint still
+returns live Google data and reports `cache.status` as `unavailable`.
+
+Example request:
+
+```json
+{
+  "latitude": 32.752,
+  "longitude": -97.356,
+  "radiusMiles": 5,
+  "includedPrimaryTypes": ["hospital"]
+}
+```
+
+The endpoint returns Google Maps attribution, the data refresh and expiration
+timestamps, and a cache status of `hit`, `miss`, or `unavailable`.
+
 ## GitHub Setup
 
 ```bash
