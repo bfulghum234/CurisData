@@ -418,6 +418,53 @@ input[type="range"]::-moz-range-thumb {
     line-height: 1.2;
 }
 
+.income-distribution {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.income-distribution h5 {
+    margin: 0 0 10px;
+    color: var(--curis-900);
+    font-size: 13px;
+}
+
+.income-range-row {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 7px;
+    margin: 7px 0;
+    font-size: 11px;
+}
+
+.income-range-label {
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.income-range-track {
+    height: 9px;
+    overflow: hidden;
+    background: var(--curis-100);
+    border-radius: 999px;
+}
+
+.income-range-bar {
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--curis-500), var(--curis-700));
+    border-radius: inherit;
+    transition: width 0.35s ease;
+}
+
+.income-range-value {
+    color: var(--curis-800);
+    font-weight: 700;
+    text-align: right;
+}
+
 /* =====================
    REPORT MODAL
 ===================== */
@@ -1134,6 +1181,16 @@ input[type='range']::-moz-range-thumb {
                     <span>Median Home Value</span>
                     <strong id="snapshot-home-value">—</strong>
                 </div>
+            </div>
+            <div class="income-distribution">
+                <h5>Household Income Distribution</h5>
+                <div class="income-range-row"><span class="income-range-label">Under $25K</span><div class="income-range-track"><div class="income-range-bar" id="income-under25-bar"></div></div><span class="income-range-value" id="income-under25-value">—</span></div>
+                <div class="income-range-row"><span class="income-range-label">$25–49K</span><div class="income-range-track"><div class="income-range-bar" id="income-25-49-bar"></div></div><span class="income-range-value" id="income-25-49-value">—</span></div>
+                <div class="income-range-row"><span class="income-range-label">$50–74K</span><div class="income-range-track"><div class="income-range-bar" id="income-50-74-bar"></div></div><span class="income-range-value" id="income-50-74-value">—</span></div>
+                <div class="income-range-row"><span class="income-range-label">$75–99K</span><div class="income-range-track"><div class="income-range-bar" id="income-75-99-bar"></div></div><span class="income-range-value" id="income-75-99-value">—</span></div>
+                <div class="income-range-row"><span class="income-range-label">$100–149K</span><div class="income-range-track"><div class="income-range-bar" id="income-100-149-bar"></div></div><span class="income-range-value" id="income-100-149-value">—</span></div>
+                <div class="income-range-row"><span class="income-range-label">$150K+</span><div class="income-range-track"><div class="income-range-bar" id="income-150plus-bar"></div></div><span class="income-range-value" id="income-150plus-value">—</span></div>
+                <p class="snapshot-note">Share of households in the selected radius</p>
             </div>
         </div>
 
@@ -2262,6 +2319,13 @@ function setSnapshotLoadingState() {
         const element = document.getElementById(id);
         if (element) element.style.height = '4px';
     });
+
+    ['under25', '25-49', '50-74', '75-99', '100-149', '150plus'].forEach(key => {
+        const value = document.getElementById(`income-${key}-value`);
+        const bar = document.getElementById(`income-${key}-bar`);
+        if (value) value.textContent = '…';
+        if (bar) bar.style.width = '0';
+    });
 }
 
 function showSnapshotError(message) {
@@ -2275,6 +2339,12 @@ function showSnapshotError(message) {
     ['snapshot-pop-outlook', 'snapshot-hh-outlook', 'snapshot-income-outlook'].forEach(id => {
         const element = document.getElementById(id);
         if (element) element.textContent = message;
+    });
+    ['under25', '25-49', '50-74', '75-99', '100-149', '150plus'].forEach(key => {
+        const value = document.getElementById(`income-${key}-value`);
+        const bar = document.getElementById(`income-${key}-bar`);
+        if (value) value.textContent = '—';
+        if (bar) bar.style.width = '0';
     });
 }
 
@@ -2301,6 +2371,27 @@ function populateDemographicSnapshot(data) {
     setText('fam-total', formatNumber(data.families));
     setText('snapshot-median-income', data.medianIncome > 0 ? formatCurrency(data.medianIncome) : '—');
     setText('snapshot-home-value', data.housing?.medianValue > 0 ? formatCurrency(data.housing.medianValue) : '—');
+
+    const incomeRanges = [
+        ['Under $25,000', 'under25'],
+        ['$25,000 - $49,999', '25-49'],
+        ['$50,000 - $74,999', '50-74'],
+        ['$75,000 - $99,999', '75-99'],
+        ['$100,000 - $149,999', '100-149'],
+        ['$150,000+', '150plus']
+    ];
+    const incomeHouseholds = incomeRanges.reduce((sum, [label]) => sum + Number(data.income?.[label] || 0), 0);
+    incomeRanges.forEach(([label, key]) => {
+        const count = Number(data.income?.[label] || 0);
+        const share = incomeHouseholds > 0 ? (count / incomeHouseholds) * 100 : 0;
+        const value = document.getElementById(`income-${key}-value`);
+        const bar = document.getElementById(`income-${key}-bar`);
+        if (value) value.textContent = `${share.toFixed(1)}%`;
+        if (bar) {
+            bar.style.width = `${Math.max(share > 0 ? 2 : 0, share)}%`;
+            bar.title = `${formatNumber(count)} households (${share.toFixed(1)}%)`;
+        }
+    });
 
     const ageGroups = [
         ['snapshot-age-18-34', 'snapshot-age-18-34-bar', Number(data.age_18_34 || 0)],
