@@ -57,6 +57,13 @@ test("uses one shared outline healthcare marker for every specialty", () => {
   assert.match(html, /anchor: new google\.maps\.Point\(21, 48\)/);
 });
 
+test("uses a prominent branded star for the selected report address", () => {
+  assert.match(html, /url: 'images\/selected-address-star\.svg'/);
+  assert.match(html, /scaledSize: new google\.maps\.Size\(72, 72\)/);
+  assert.match(html, /anchor: new google\.maps\.Point\(36, 36\)/);
+  assert.doesNotMatch(html, /maps\.google\.com\/mapfiles\/ms\/icons\/red-dot\.png/);
+});
+
 test("switches specialties without cleanup errors or misleading status text", () => {
   assert.match(html, /function clearAutism\(\) \{\s*autismMarkers\.forEach/);
   assert.doesNotMatch(html, /autismMarkers\.push\.forEach/);

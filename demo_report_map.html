@@ -1753,8 +1753,9 @@ function initMap() {
             title: place.formatted_address || place.name,
             animation: google.maps.Animation.DROP,
             icon: {
-                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                scaledSize: new google.maps.Size(50, 50) // Large enough to see
+                url: 'images/selected-address-star.svg',
+                scaledSize: new google.maps.Size(72, 72),
+                anchor: new google.maps.Point(36, 36)
             }
         });
 
