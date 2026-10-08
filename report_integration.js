@@ -1249,9 +1249,14 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
   const mapImg = doc.getElementById("report-map-image");
   if (mapImg && !preserveFrozenMaps && payload.maps.coverImageUrl) {
     mapImg.src = payload.maps.coverImageUrl;
+    mapImg.style.display = 'block';
+    const embed = doc.getElementById('report-map-embed');
+    const placeholder = doc.getElementById('map-placeholder-text');
+    if (embed) embed.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'none';
   }
 
-  if (!preserveFrozenMaps && reportWindow && typeof reportWindow.initReportMap === "function"
+  if (!preserveFrozenMaps && !payload.maps.coverImageUrl && reportWindow && typeof reportWindow.initReportMap === "function"
       && cLat !== null && cLng !== null) {
     try {
       reportWindow.initReportMap(cLat, cLng, radii, payload.maps.zoom);
@@ -1524,14 +1529,25 @@ function getCountyAndStateName(geoid) {
    5) Map Snapshot
    ========================================================= */
 
-   // Instead of html2canvas for map snapshot, use Google Static Maps API:
-async function generateMapSnapshot(center) {
-    const zoom = map.getZoom();
-    const size = '800x400';
-    
-    const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${center.lat()},${center.lng()}&zoom=${zoom}&size=${size}&markers=color:red|${center.lat()},${center.lng()}&key=${getGoogleMapsApiKey()}`;
-    
-    return imageUrl; // Direct image URL, no rendering needed
+async function generateMapSnapshot() {
+  const mapElement = map.getDiv();
+  if (!mapElement || mapElement.clientWidth < 2 || mapElement.clientHeight < 2) {
+    throw new Error('The overview map must be visible before generating a report.');
+  }
+  if (typeof html2canvas !== 'function') throw new Error('Map capture is unavailable. Reload the mapping page and try again.');
+  // Capture the rendered map itself, including overlay panes and Google attribution.
+  // Raster tiles avoid the blank WebGL canvas produced by DOM screenshot libraries.
+  await Promise.all(Array.from(mapElement.querySelectorAll('img')).map(image =>
+    image.decode ? image.decode().catch(() => {}) : Promise.resolve()));
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const canvas = await html2canvas(mapElement, {
+    useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
+    scale: 2, logging: false, imageTimeout: 15000,
+    width: mapElement.clientWidth, height: mapElement.clientHeight
+  });
+  const imageUrl = canvas.toDataURL('image/png');
+  if (!imageUrl.startsWith('data:image/png;base64,')) throw new Error('The overview map could not be captured. Please try again.');
+  return imageUrl;
 }
 
 
@@ -1540,18 +1556,6 @@ async function generateMapSnapshot(center) {
 ----------------------------------------------------- */
 async function generateDemographicReport() {
   try {
-    if (!blockGroupData) {
-      console.log("Block group data not loaded, loading now...");
-      await loadBlockGroupData();
-    }
-
-    if (!demographicDataByGeoid) {
-      console.log("Demographic CSV not loaded, loading now...");
-      await loadDemographicCSV();
-    }
-
- 
-
     // Get address data (which should include lat/lng if your code does)
     const addressData = await getCurrentAddress();
 
@@ -1574,13 +1578,15 @@ async function generateDemographicReport() {
     console.log("Generating report for:", address, "at coordinates:", lat, lng);
 
     const radii = getRadiiFromSidebar();
-    const maxRadius = Math.max(...radii);
   
     
     console.log("Using radii (miles):", radii);
 
+    const mapZoom = map.getZoom();
+    const coverMapImageUrl = await generateMapSnapshot();
     const reportPayload = await collectLiveReportPayload({ address, latitude: lat, longitude: lng, stateCode }, radii);
-    reportPayload.maps.coverImageUrl = await generateMapSnapshot(new google.maps.LatLng(lat, lng));
+    reportPayload.maps.coverImageUrl = coverMapImageUrl;
+    reportPayload.maps.zoom = mapZoom;
 
     populateReportTemplate(reportPayload);
 

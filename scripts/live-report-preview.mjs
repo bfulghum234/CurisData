@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { onRequest as urgentCare } from '../functions/api/urgent-care.js';
 const root = process.cwd();
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.css': 'text/css' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.css': 'text/css', '.svg': 'image/svg+xml' };
 // Local preview uses deployed source endpoints; no keys or source files are saved.
 http.createServer(async (request, response) => {
   try {
@@ -33,7 +33,7 @@ http.createServer(async (request, response) => {
       return;
     }
     const file = path.resolve(root, '.' + decodeURIComponent(url.pathname));
-    if (!file.startsWith(root + path.sep) || !['.html', '.js', '.png', '.css'].includes(path.extname(file))) {
+    if (!file.startsWith(root + path.sep) || !Object.hasOwn(types, path.extname(file))) {
       response.writeHead(404); response.end(); return;
     }
     const data = await fs.readFile(file);

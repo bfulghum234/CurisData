@@ -1769,6 +1769,7 @@ function initMap() {
         center: { lat: DEFAULT_LOCATION.lat, lng: DEFAULT_LOCATION.lng },
         zoom: 13,
         minZoom: 10,
+        renderingType: google.maps.RenderingType.RASTER,
         streetViewControl: false
     });
 
@@ -2960,7 +2961,7 @@ async function loadDemographics(lat, lng) {
             lat,
             lng,
             stateCode: stateCode || selectedLocationContext?.stateCode || null,
-            address: geoData.results?.[0]?.formatted_address || selectedLocationContext?.address || 'Address Not Available',
+            address: selectedLocationContext?.address || geoData.results?.[0]?.formatted_address || 'Address Not Available',
             placeId: selectedLocationContext?.placeId || geoData.results?.[0]?.place_id || null
         };
     } else {

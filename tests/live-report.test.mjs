@@ -13,6 +13,42 @@ function runtime(extra = {}) {
   return context;
 }
 
+test('map capture uses the rendered viewport and produces an embedded PNG', async () => {
+  const element = { clientWidth: 800, clientHeight: 500, querySelectorAll: () => [{ decode: async () => {} }] };
+  let captured;
+  const context = runtime({ map: { getDiv: () => element }, requestAnimationFrame: callback => callback(),
+    html2canvas: async (target, options) => {
+      captured = { target, options };
+      return { toDataURL: type => `data:${type};base64,captured` };
+    } });
+  assert.equal(await context.generateMapSnapshot(), 'data:image/png;base64,captured');
+  assert.equal(captured.target, element);
+  assert.equal(captured.options.width, 800);
+  assert.equal(captured.options.height, 500);
+  assert.equal(captured.options.useCORS, true);
+  assert.equal(captured.options.allowTaint, false);
+  element.clientWidth = 0;
+  await assert.rejects(context.generateMapSnapshot(), /must be visible/);
+});
+
+test('report preserves a captured map instead of replacing it with an interactive map', () => {
+  const elements = new Map();
+  const doc = { getElementById(id) {
+    if (!elements.has(id)) elements.set(id, { textContent: '', style: {}, removeAttribute() {}, classList: { toggle() {} } });
+    return elements.get(id);
+  } };
+  const context = runtime();
+  const payload = context.buildReportPayload({ address: '601 Bailey Ave', latitude: 32.75, longitude: -97.36,
+    radiiMiles: [1, 3, 5], demographicsByRadius: {}, coverMapImageUrl: 'data:image/png;base64,captured' });
+  let rebuilt = false;
+  context.renderReportPayload(doc, { populateFacilityTable() {}, initReportMap() { rebuilt = true; } }, payload);
+  assert.equal(rebuilt, false);
+  assert.equal(doc.getElementById('report-map-image').src, payload.maps.coverImageUrl);
+  assert.equal(doc.getElementById('report-map-image').style.display, 'block');
+  assert.equal(doc.getElementById('report-map-embed').style.display, 'none');
+  assert.equal(doc.getElementById('map-placeholder-text').style.display, 'none');
+});
+
 test('missing geographic coverage fails rather than inventing demographics', async () => {
   const context = runtime();
   vm.runInContext('getBlockGroupsByRadius = () => ({ byRadius: { "1mile": [], "3mile": [], "5mile": [] }, allGeoids: [] })', context);
