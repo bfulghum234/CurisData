@@ -432,6 +432,7 @@ td:not(:first-child) {
     height: calc(10in - 1px);
     margin: 0;
     padding: 0;
+    overflow: hidden;
     break-after: page;
     page-break-after: always;
   }
@@ -444,9 +445,18 @@ td:not(:first-child) {
     top: 0;
     left: var(--report-print-left, 0px);
     margin: 0 !important;
-    transform: scale(var(--report-print-scale, 1));
-    transform-origin: top left;
+    /* Zoom changes the layout height before Chromium paginates tables.
+       A transform only shrinks paint, allowing the final rows to fragment. */
+    zoom: var(--report-print-scale, 1);
+    break-inside: avoid;
+    page-break-inside: avoid;
     box-shadow: none;
+  }
+  .report-print-sheet table,
+  .report-print-sheet tbody,
+  .report-print-sheet tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   #download-btn {
@@ -1943,7 +1953,7 @@ function prepareReportPrintLayout() {
     const sheet = document.createElement('div');
     sheet.className = 'report-print-sheet';
     sheet.style.setProperty('--report-print-scale', String(scale));
-    sheet.style.setProperty('--report-print-left', `${(720 - width * scale) / 2}px`);
+    sheet.style.setProperty('--report-print-left', `${(720 / scale - width) / 2}px`);
     page.before(sheet);
     sheet.appendChild(page);
   });
