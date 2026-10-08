@@ -419,7 +419,6 @@ td:not(:first-child) {
     background: #ffffff !important;
   }
 
-  /* Remove fixed widths so content scales to paper size */
   body, html, .main-container {
     width: 100% !important;
     margin: 0 !important;
@@ -427,31 +426,27 @@ td:not(:first-child) {
     overflow: visible !important;
   }
 
-  .page {
-    width: 7.5in !important;
-    height: auto !important;
-    min-height: 0 !important;       /* FIX: no forced blank pages */
-    padding: 0.5in !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-    page-break-after: always !important;
-    break-after: page !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+  .report-print-sheet {
+    position: relative;
+    width: 7.5in;
+    height: calc(10in - 1px);
+    margin: 0;
+    padding: 0;
+    break-after: page;
+    page-break-after: always;
   }
-
-  /* Last page: no trailing blank page */
-  .page:last-of-type {
-    page-break-after: auto !important;
-    break-after: auto !important;
+  .report-print-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
-
-  h2, h3, table, .chart-container, .stats-grid, .stat-card, .info-box {
-      page-break-inside: avoid;
-      break-inside: avoid;
+  .report-print-sheet > .page {
+    position: absolute;
+    top: 0;
+    left: var(--report-print-left, 0px);
+    margin: 0 !important;
+    transform: scale(var(--report-print-scale, 1));
+    transform-origin: top left;
+    box-shadow: none;
   }
 
   #download-btn {
@@ -1937,7 +1932,36 @@ if (window.self === window.top && getPreviewParams().get('demoMaps') !== 'frozen
 }
 
 // PDF DOWNLOAD FUNCTION
-function downloadPDF() {
+function prepareReportPrintLayout() {
+  if (document.querySelector('.report-print-sheet')) return;
+  // Keep the preview's 720px content layout. Fit its complete height (including
+  // the cover footer) onto one 7.5 x 10 inch printable Letter sheet.
+  document.querySelectorAll('#pdf-root > .page').forEach(page => {
+    const width = page.getBoundingClientRect().width;
+    const height = Math.max(page.getBoundingClientRect().height, page.scrollHeight);
+    const scale = Math.min(1, 959 / height);
+    const sheet = document.createElement('div');
+    sheet.className = 'report-print-sheet';
+    sheet.style.setProperty('--report-print-scale', String(scale));
+    sheet.style.setProperty('--report-print-left', `${(720 - width * scale) / 2}px`);
+    page.before(sheet);
+    sheet.appendChild(page);
+  });
+}
+
+function restoreReportPreviewLayout() {
+  document.querySelectorAll('.report-print-sheet').forEach(sheet => {
+    sheet.replaceWith(...sheet.childNodes);
+  });
+}
+
+window.addEventListener('beforeprint', prepareReportPrintLayout);
+window.addEventListener('afterprint', restoreReportPreviewLayout);
+
+async function downloadPDF() {
+  if (document.fonts?.ready) await document.fonts.ready;
+  await Promise.all(Array.from(document.querySelectorAll('#pdf-root img')).map(image =>
+    image.decode ? image.decode().catch(() => {}) : Promise.resolve()));
   window.focus();
   window.print();
 }
