@@ -31,6 +31,28 @@ test('map capture uses the rendered viewport and produces an embedded PNG', asyn
   await assert.rejects(context.generateMapSnapshot(), /must be visible/);
 });
 
+test('thematic classes join normalized block groups and distinguish missing data from zero population', () => {
+  const context = runtime();
+  const features = [
+    { properties: { GEOID: '484390001001' } }, { properties: { GEOID20: '484390001002' } },
+    { properties: { GEOID: '484390001003' } }, { properties: { GEOID: '484390001004' } }
+  ];
+  const records = new Map([
+    ['484390001001', { population: 0, medianIncome: 0 }],
+    ['484390001002', { population: 250, medianIncome: 50000 }],
+    ['484390001003', { population: 1000, medianIncome: 100000 }]
+  ]);
+  const population = context.buildThematicClasses(features, records, 'population', ['#aaa', '#bbb']);
+  assert.equal(population.matched, 3);
+  assert.equal(population.valueFor(features[0]), 0);
+  assert.equal(population.colorFor(null), '#d9d9d9');
+  assert.equal(population.legend.at(-1).label, 'No source data');
+  const income = context.buildThematicClasses(features, records, 'medianIncome', ['#aaa', '#bbb']);
+  assert.equal(income.matched, 2);
+  assert.equal(income.valueFor(features[0]), null);
+  assert.ok(income.legend[0].label.includes('$50,000'));
+});
+
 test('nearest care map numbers table order, fits the site and ten rows, and cleans up', async () => {
   const markers = [], points = [];
   let ready, removed = false, captured;

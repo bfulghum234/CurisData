@@ -1344,7 +1344,7 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
     }
   }
 
-  if (!preserveFrozenMaps && reportWindow && typeof reportWindow.buildUrgentCareMap === "function"
+  if (!preserveFrozenMaps && !payload.maps.urgentCareImageUrl && reportWindow && typeof reportWindow.buildUrgentCareMap === "function"
       && cLat !== null && cLng !== null) {
     setTimeout(() => {
       try {
@@ -1355,7 +1355,44 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
     }, 500);
   }
 
-  if (!preserveFrozenMaps && reportWindow && typeof reportWindow.buildThematicMap === "function"
+  for (const [key, mapId, placeholderId, legendId] of [
+    ['thematicIncome', 'thematic-income-map', 'income-map-placeholder', 'income-legend'],
+    ['thematicPopulation', 'thematic-pop-map', 'pop-map-placeholder', 'pop-legend']
+  ]) {
+    const thematic = payload.maps[key];
+    if (preserveFrozenMaps || !thematic?.imageUrl) continue;
+    const container = doc.getElementById(mapId);
+    if (container) {
+      container.innerHTML = '';
+      const image = doc.createElement('img');
+      image.src = thematic.imageUrl;
+      image.alt = `${thematic.title} by Census block group`;
+      image.style.cssText = 'display:block;width:100%;height:auto;';
+      container.style.height = 'auto';
+      if (container.parentElement) container.parentElement.style.height = 'auto';
+      container.appendChild(image);
+    }
+    const placeholder = doc.getElementById(placeholderId);
+    if (placeholder) placeholder.style.display = 'none';
+    const legend = doc.getElementById(legendId);
+    if (legend) {
+      legend.style.flexWrap = 'wrap';
+      legend.innerHTML = '';
+      thematic.legend.forEach(entry => {
+        const item = doc.createElement('span');
+        item.textContent = entry.label;
+        item.style.cssText = `border-left:16px solid ${entry.color};padding-left:4px;`;
+        legend.appendChild(item);
+      });
+      const note = doc.createElement('span');
+      note.textContent = thematic.coverage;
+      note.style.cssText = 'flex-basis:100%;text-align:center;';
+      legend.appendChild(note);
+    }
+  }
+
+  if (!preserveFrozenMaps && !payload.maps.thematicIncome && !payload.maps.thematicPopulation
+      && reportWindow && typeof reportWindow.buildThematicMap === "function"
       && cLat !== null && cLng !== null
       && blockGroupData?.features && demographicDataByGeoid) {
     try {
@@ -1631,6 +1668,73 @@ async function generateNearestUrgentCareSnapshot(payload) {
   }
 }
 
+function buildThematicClasses(features, records, metric, colors) {
+  const valueFor = feature => {
+    const geoid = normalizeGeoid(feature?.properties?.GEOID || feature?.properties?.GEOID20);
+    const value = records.get(geoid)?.[metric];
+    return Number.isFinite(value) && (metric === 'medianIncome' ? value > 0 : value >= 0) ? value : null;
+  };
+  const values = features.map(valueFor).filter(value => value !== null).sort((a, b) => a - b);
+  const breaks = [...new Set(colors.map((_, index) => values[Math.max(0, Math.ceil((index + 1) / colors.length * values.length) - 1)]))]
+    .filter(value => value !== undefined);
+  const format = value => (metric === 'medianIncome' ? '$' : '') + Math.round(value).toLocaleString('en-US');
+  const legend = breaks.map((value, index) => ({ color: colors[index],
+    label: index === 0 ? `≤ ${format(value)}` : `> ${format(breaks[index - 1])} – ${format(value)}` }));
+  if (values.length < features.length) legend.push({ color: '#d9d9d9', label: 'No source data' });
+  return { valueFor, legend, matched: values.length, colorFor(value) {
+    if (value === null) return '#d9d9d9';
+    return colors[Math.max(0, breaks.findIndex(limit => value <= limit))];
+  } };
+}
+
+async function generateThematicSnapshots(payload) {
+  const { allGeoids } = getBlockGroupsByRadius(payload.location.latitude, payload.location.longitude, payload.tradeArea.radiiMiles);
+  const selected = new Set(allGeoids);
+  const features = blockGroupData.features.filter(feature => selected.has(normalizeGeoid(feature?.properties?.GEOID || feature?.properties?.GEOID20)));
+  if (!features.length) throw new Error('No Census block group boundaries are available for the thematic maps.');
+  const records = getCSVDataForGeoids(allGeoids);
+  for (const [key, metric, title, colors] of [
+    ['thematicIncome', 'medianIncome', 'Median household income', ['#ffffcc', '#c7e9b4', '#7fcdbb', '#41b6c4', '#1d91c0', '#225ea8', '#0c2c84']],
+    ['thematicPopulation', 'population', 'Population', ['#fee5d9', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#67000d']]
+  ]) {
+    const classes = buildThematicClasses(features, records, metric, colors);
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:0;top:0;width:900px;height:600px;z-index:-1;pointer-events:none;';
+    document.body.appendChild(container);
+    let thematicMap, site;
+    try {
+      const center = { lat: payload.location.latitude, lng: payload.location.longitude };
+      thematicMap = new google.maps.Map(container, { center, zoom: 12, mapTypeId: 'roadmap',
+        renderingType: google.maps.RenderingType.RASTER, disableDefaultUI: true,
+        styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }] });
+      const byGeoid = new Map(features.map(feature => [normalizeGeoid(feature.properties.GEOID || feature.properties.GEOID20), feature]));
+      thematicMap.data.addGeoJson({ type: 'FeatureCollection', features: features.map(feature => ({ ...feature,
+        properties: { ...feature.properties, reportGeoid: normalizeGeoid(feature.properties.GEOID || feature.properties.GEOID20) } })) });
+      thematicMap.data.setStyle(feature => ({ fillColor: classes.colorFor(classes.valueFor(byGeoid.get(feature.getProperty('reportGeoid')))),
+        fillOpacity: 0.65, strokeColor: '#42584f', strokeOpacity: 0.6, strokeWeight: 1 }));
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(center);
+      thematicMap.data.forEach(feature => feature.getGeometry().forEachLatLng(point => bounds.extend(point)));
+      site = new google.maps.Marker({ map: thematicMap, position: center, title: payload.location.address, zIndex: 1000000,
+        icon: { url: 'images/selected-address-star.svg', scaledSize: new google.maps.Size(44, 44), anchor: new google.maps.Point(22, 22) } });
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => { google.maps.event.removeListener(listener); reject(new Error(`${title} map did not finish loading. Please try again.`)); }, 20000);
+        const listener = google.maps.event.addListenerOnce(thematicMap, 'tilesloaded', () => { clearTimeout(timeout); resolve(); });
+        thematicMap.fitBounds(bounds, 45);
+      });
+      payload.maps[key] = { imageUrl: await generateMapSnapshot(container), title, legend: classes.legend,
+        coverage: `${classes.matched}/${features.length} block groups with source data (2022 ACS). Colors show local quantile classes. Whole block groups intersecting the ${payload.tradeArea.maxRadiusMiles}-mile trade area are shown. Green star: analysis address.${metric === 'population' ? ' Population is a count, not density.' : ''}` };
+    } finally {
+      if (site) site.setMap(null);
+      if (thematicMap) {
+        thematicMap.data.forEach(feature => thematicMap.data.remove(feature));
+        google.maps.event.clearInstanceListeners(thematicMap);
+      }
+      container.remove();
+    }
+  }
+}
+
 
 /* ----------------------------------------------------
    2) MAIN: Generate and display demographic report
@@ -1669,6 +1773,7 @@ async function generateDemographicReport() {
     reportPayload.maps.coverImageUrl = coverMapImageUrl;
     reportPayload.maps.zoom = mapZoom;
     reportPayload.maps.urgentCareImageUrl = await generateNearestUrgentCareSnapshot(reportPayload);
+    await generateThematicSnapshots(reportPayload);
 
     populateReportTemplate(reportPayload);
 
