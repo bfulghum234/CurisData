@@ -31,6 +31,35 @@ test('map capture uses the rendered viewport and produces an embedded PNG', asyn
   await assert.rejects(context.generateMapSnapshot(), /must be visible/);
 });
 
+test('nearest care map numbers table order, fits the site and ten rows, and cleans up', async () => {
+  const markers = [], points = [];
+  let ready, removed = false, captured;
+  const container = { style: {}, remove() { removed = true; } };
+  class Overlay { setMap() {} }
+  const context = runtime({ document: { createElement: () => container, body: { appendChild() {} } },
+    map: { getMapTypeId: () => 'roadmap' }, google: { maps: {
+      Map: class { fitBounds(bounds, padding) { assert.equal(padding, 60); ready(); } },
+      Marker: class extends Overlay { constructor(options) { super(); markers.push(options); } },
+      Circle: Overlay, Size: class {}, Point: class {}, SymbolPath: { CIRCLE: 'circle' },
+      RenderingType: { RASTER: 'raster' },
+      LatLngBounds: class { extend(position) { points.push(position); } },
+      event: { addListenerOnce(target, event, callback) { ready = callback; }, removeListener() {}, clearInstanceListeners() {} }
+    } } });
+  context.capture = element => { captured = element; return 'data:image/png;base64,nearest'; };
+  vm.runInContext('generateMapSnapshot = capture', context);
+  const locations = Array.from({ length: 12 }, (_, index) => ({ name: `Care ${index}`, lat: 32 + index / 100, lng: -97 }));
+  const result = await context.generateNearestUrgentCareSnapshot({ location: { latitude: 32, longitude: -97, address: 'Site' },
+    tradeArea: { radiiMiles: [1, 3, 5] }, competition: { urgentCare: { locations } } });
+  assert.equal(result, 'data:image/png;base64,nearest');
+  markers.slice(1).forEach((marker, index) => assert.ok(decodeURIComponent(marker.icon.url).includes(`>${index + 1}</text>`)));
+  assert.equal(points.length, 11);
+  assert.equal(markers[1].title, '1. Care 0');
+  assert.equal(markers[10].title, '10. Care 9');
+  assert.equal(markers[0].icon.url, 'images/selected-address-star.svg');
+  assert.equal(captured, container);
+  assert.equal(removed, true);
+});
+
 test('report preserves a captured map instead of replacing it with an interactive map', () => {
   const elements = new Map();
   const doc = { getElementById(id) {

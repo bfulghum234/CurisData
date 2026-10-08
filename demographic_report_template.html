@@ -299,6 +299,15 @@ td:not(:first-child) {
     line-height: 1.2;
 }
 
+.stat-card h4.radius-stat-heading {
+    display: block;
+}
+
+.radius-stat-heading .radius-line {
+    display: block;
+    white-space: nowrap;
+}
+
 .stat-card .label {
     color: var(--cd-ink-soft);
 }
@@ -589,13 +598,13 @@ window.initMap = initMap;
     
     <div class="stats-grid">
       <div class="stat-card">
-    <h4><span id="max-radius-value">5</span>-Mile Radius POPULATION</h4>
+    <h4 class="radius-stat-heading"><span class="radius-line"><span id="max-radius-value">5</span>-Mile Radius</span>POPULATION</h4>
             <div class="value" id="exec-pop-5mi">0</div>
             <div class="label">Total Residents</div>
 </div>
 
 <div class="stat-card">
-    <h4><span id="max-radius-value-2">5</span>-Mile Radius HOUSEHOLDS</h4>
+    <h4 class="radius-stat-heading"><span class="radius-line"><span id="max-radius-value-2">5</span>-Mile Radius</span>HOUSEHOLDS</h4>
             <div class="value" id="exec-hh-5mi">0</div>
             <div class="label">Total Households</div>
 </div>

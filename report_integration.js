@@ -1290,6 +1290,21 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
   } else {
     populateFacilityDetailTable(doc, "detail-urgent-care", urgentCare.locations);
   }
+  if (!preserveFrozenMaps && payload.maps.urgentCareImageUrl) {
+    const container = doc.getElementById('urgent-care-map');
+    if (container) {
+      container.innerHTML = '';
+      const image = doc.createElement('img');
+      image.src = payload.maps.urgentCareImageUrl;
+      image.alt = 'Ten nearest urgent care locations, numbered to match the table';
+      image.style.cssText = 'display:block;width:100%;height:auto;';
+      container.style.height = 'auto';
+      if (container.parentElement) container.parentElement.style.height = 'auto';
+      container.appendChild(image);
+    }
+    const placeholder = doc.getElementById('uc-map-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+  }
 
   populateAllDemographics(doc, demographicData, radii);
   populateHealthcareDemand(doc, healthcareDemand, radii);
@@ -1539,8 +1554,7 @@ function getCountyAndStateName(geoid) {
    5) Map Snapshot
    ========================================================= */
 
-async function generateMapSnapshot() {
-  const mapElement = map.getDiv();
+async function generateMapSnapshot(mapElement = map.getDiv()) {
   if (!mapElement || mapElement.clientWidth < 2 || mapElement.clientHeight < 2) {
     throw new Error('The overview map must be visible before generating a report.');
   }
@@ -1558,6 +1572,63 @@ async function generateMapSnapshot() {
   const imageUrl = canvas.toDataURL('image/png');
   if (!imageUrl.startsWith('data:image/png;base64,')) throw new Error('The overview map could not be captured. Please try again.');
   return imageUrl;
+}
+
+async function generateNearestUrgentCareSnapshot(payload) {
+  const container = document.createElement('div');
+  // Keep it within the viewport so Google loads tiles; existing app panels cover it.
+  container.style.cssText = 'position:fixed;left:0;top:0;width:900px;height:420px;z-index:-1;pointer-events:none;';
+  document.body.appendChild(container);
+  const overlays = [];
+  let detailMap;
+  try {
+    const center = { lat: payload.location.latitude, lng: payload.location.longitude };
+    detailMap = new google.maps.Map(container, {
+      center, zoom: 14, mapTypeId: map.getMapTypeId(),
+      renderingType: google.maps.RenderingType.RASTER, disableDefaultUI: true
+    });
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(center);
+    const colors = ['#FF6B6B', '#4ECDC4', '#95E1D3'];
+    payload.tradeArea.radiiMiles.forEach((radius, index) => overlays.push(new google.maps.Circle({
+      map: detailMap, center, radius: radius * 1609.34,
+      strokeColor: colors[index % colors.length], strokeOpacity: 0.8, strokeWeight: 2,
+      fillColor: colors[index % colors.length], fillOpacity: 0.2
+    })));
+    overlays.push(new google.maps.Marker({
+      map: detailMap, position: center, title: payload.location.address, zIndex: 1000000,
+      icon: { url: 'images/selected-address-star.svg', scaledSize: new google.maps.Size(52, 52), anchor: new google.maps.Point(26, 26) }
+    }));
+    // Use the exact table order; never re-sort or renumber only the mappable rows.
+    payload.competition.urgentCare.locations.slice(0, 10).forEach((place, index) => {
+      if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return;
+      const position = { lat: place.lat, lng: place.lng };
+      bounds.extend(position);
+      const markerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="#08785f" stroke="white" stroke-width="2"/><text x="18" y="23" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="bold" fill="white">${index + 1}</text></svg>`;
+      overlays.push(new google.maps.Marker({
+        map: detailMap, position, title: `${index + 1}. ${place.name}`, optimized: false,
+        zIndex: 1000001 + index,
+        icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(markerSvg),
+          scaledSize: new google.maps.Size(30, 30), anchor: new google.maps.Point(15, 15) }
+      }));
+    });
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        google.maps.event.removeListener(listener);
+        reject(new Error('The nearest urgent care map did not finish loading. Please try again.'));
+      }, 20000);
+      const listener = google.maps.event.addListenerOnce(detailMap, 'tilesloaded', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      detailMap.fitBounds(bounds, 60);
+    });
+    return await generateMapSnapshot(container);
+  } finally {
+    overlays.forEach(overlay => overlay.setMap(null));
+    if (detailMap) google.maps.event.clearInstanceListeners(detailMap);
+    container.remove();
+  }
 }
 
 
@@ -1597,6 +1668,7 @@ async function generateDemographicReport() {
     const reportPayload = await collectLiveReportPayload({ address, latitude: lat, longitude: lng, stateCode }, radii);
     reportPayload.maps.coverImageUrl = coverMapImageUrl;
     reportPayload.maps.zoom = mapZoom;
+    reportPayload.maps.urgentCareImageUrl = await generateNearestUrgentCareSnapshot(reportPayload);
 
     populateReportTemplate(reportPayload);
 
