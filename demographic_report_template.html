@@ -601,9 +601,9 @@ window.initMap = initMap;
 </div>
         
         <div class="stat-card">
-            <h4>MARKET POTENTIAL</h4>
-            <div class="value" id="exec-potential">High</div>
-            <div class="label">Growth Rating</div>
+            <h4>PROJECTED POPULATION CHANGE</h4>
+            <div class="value" id="exec-potential">—</div>
+            <div class="label">Source-based projection</div>
         </div>
     </div>
     </div>
@@ -612,23 +612,23 @@ window.initMap = initMap;
     <table>
         <tr>
             <td><strong>Primary Trade Area</strong></td>
-            <td>Urban/Suburban Mix</td>
+            <td id="exec-trade-area">—</td>
         </tr>
         <tr>
             <td><strong>Population Density</strong></td>
-            <td>Medium-High</td>
+            <td id="exec-density">—</td>
         </tr>
         <tr>
             <td><strong>Growth Trend (5-Year)</strong></td>
-            <td><span class="trend-positive">+8.4%</span></td>
+            <td><span id="exec-growth">—</span></td>
         </tr>
         <tr>
             <td><strong>Market Maturity</strong></td>
-            <td>Developing</td>
+            <td>Not assessed</td>
         </tr>
         <tr>
             <td><strong>Competitive Landscape</strong></td>
-            <td>Moderate Competition</td>
+            <td id="exec-competition">—</td>
         </tr>
     </table>
     
@@ -641,6 +641,7 @@ window.initMap = initMap;
 <!-- ==================== PAGE 3: DEMOGRAPHIC PROFILE ==================== -->
 <div class="page">
     <h2>Demographic Profile</h2>
+    <p id="report-data-coverage" style="font-size:12px;color:#4f6f63;">Source coverage is checked when the report loads.</p>
     
     <h3>Population & Households by Radius</h3>
     
@@ -865,9 +866,9 @@ window.initMap = initMap;
         <thead>
             <tr>
                 <th>Category</th>
-                <th>Number of Locations: <span id="max-radius-value">5</span>Mile Radius</th>
-                <th>Market Saturation</th>
-                <th>Opportunity</th>
+                <th>Number of Locations: <span id="competition-max-radius">5</span>-Mile Radius</th>
+                <th>Residents per Listing</th>
+                <th>Site Viability</th>
             </tr>
         </thead>
         <tbody>
@@ -880,6 +881,7 @@ window.initMap = initMap;
         </tbody>
     </table>
 
+    <p id="report-competition-note" style="font-size:12px;color:#4f6f63;"></p>
     <h3>Healthcare Market Context</h3>
     <table aria-label="Healthcare place counts and population-normalized density">
         <thead>
@@ -903,7 +905,7 @@ window.initMap = initMap;
     
     <div class="info-box warning">
         <strong>⚠️ Market Opportunity:</strong>
-        Analysis indicates underserved demand in urgent care services. The population-to-provider ratio suggests capacity for additional urgent care facilities.
+        Facility counts describe Google Maps search results within the selected radius. Counts alone do not establish unmet demand or site viability; search coverage may be incomplete.
     </div>
 </div>
 
@@ -1047,7 +1049,7 @@ window.initMap = initMap;
     
     <div class="info-box success">
         <strong>✓ Economic Strength:</strong>
-        The trade area demonstrates economic characteristics that can support urgent care utilization, including workforce participation, household stability, and income levels that often correlate with commercially insured patient demand.
+        Income, workforce participation, and education describe the trade area. Insurance coverage and patient demand require separate evidence.
     </div>
     
     <h3>Housing Characteristics</h3>
@@ -1077,10 +1079,11 @@ window.initMap = initMap;
 <!-- ==================== PAGE 6: GROWTH PROJECTIONS ==================== -->
 <div class="page">
     <h2>5-Year Growth Projections</h2>
+    <p id="report-forecast-note" style="font-size:12px;color:#4f6f63;">Forecasts use source growth rates where historical records are available.</p>
     
     <div class="info-box">
-        <strong>📈 Forecast Period: 2026-2031</strong>
-        Projections are based on historical growth patterns, regional economic trends, planned developments, and demographic shifts. These estimates help frame how urgent care demand may evolve from the current baseline over the next five years.
+        <strong>📈 Source Baseline &amp; Modeled Projections</strong>
+        Projections are modeled estimates derived from the source demographic data and historical changes; they are not observed future populations. These estimates help frame how urgent care demand may evolve from the current baseline over the next five years.
     </div>
     
     <h3>Population Growth Forecast</h3>
@@ -1089,8 +1092,8 @@ window.initMap = initMap;
         <thead>
             <tr>
                 <th>Radius</th>
-                <th>Current (2026)</th>
-                <th>Projected (2031)</th>
+                <th>Source Baseline</th>
+                <th>Modeled Projection</th>
                 <th>Change</th>
                 <th>CAGR</th>
             </tr>
@@ -1128,8 +1131,8 @@ window.initMap = initMap;
         <thead>
             <tr>
                 <th>Metric (5-Mile)</th>
-                <th>2026</th>
-                <th>2031</th>
+                <th>Source Baseline</th>
+                <th>Modeled Projection</th>
                 <th>% Change</th>
             </tr>
         </thead>
@@ -1164,13 +1167,13 @@ window.initMap = initMap;
     <h3>Age Group Shifts</h3>
     
     <div class="chart-container">
-        <h4>Projected Age Distribution Changes (2026-2031)</h4>
+        <h4>Modeled Age Distribution Changes (Five Years After Source Baseline)</h4>
         <table>
             <thead>
                 <tr>
                     <th>Age Group</th>
                     <th>Current Share</th>
-                    <th>2031 Projected Share</th>
+                    <th>Modeled Projected Share</th>
                     <th>Trend</th>
                 </tr>
             </thead>
@@ -1248,7 +1251,7 @@ window.initMap = initMap;
 
 <!-- ==================== THEMATIC MAP: POPULATION BY BLOCK GROUP ==================== -->
 <div class="page">
-    <h2>Thematic Map — Population Density</h2>
+    <h2>Thematic Map — Population by Block Group</h2>
     
     <div class="info-box">
         <strong>👥 Population Distribution by Block Group</strong>
@@ -1307,6 +1310,7 @@ function initReportMap(lat, lng, radiusMiles, zoom) {
 
     // Prefer Google Maps JS (already loaded via config.js in parent scope)
     if (typeof google !== 'undefined' && google.maps) {
+        if (imgEl) imgEl.style.display = 'none';
         if (mapDiv) mapDiv.style.display = 'block';
         const reportMap = new google.maps.Map(mapDiv, {
             center: { lat: parseFloat(lat), lng: parseFloat(lng) },
@@ -1651,6 +1655,7 @@ function injectPreviewMapImage(containerId, placeholderId, svgMarkup) {
 
 async function renderPreviewPlaceholderMaps() {
     var params = getPreviewParams();
+    if (params.get('preview') !== '1') return;
     var isPreviewMode = params.get("preview") === "1";
     var reportAddress = document.getElementById("report-address");
     var isStandaloneTemplate = !isPreviewMode && reportAddress && reportAddress.textContent.trim() === "Address";
@@ -1918,94 +1923,9 @@ function getStandaloneFallbackFacilities() {
     };
 }
 
-async function bootstrapStandaloneAustinSample() {
-    const params = getPreviewParams();
-    if (params.get("demoMaps") === "frozen") return;
-
-    const isInIframe = window.self !== window.top;
-    const reportAddress = document.getElementById('report-address');
-    if (isInIframe || !reportAddress || reportAddress.textContent.trim() !== 'Address') return;
-    if (typeof loadBlockGroupData !== 'function' || typeof fetchMultiRadiusDataFromCSV !== 'function') return;
-
-    const address = '5900 Balcones Dr, Austin, TX 78731';
-    const lat = 30.3346;
-    const lng = -97.7607;
-    const radii = [1, 3, 5];
-
-    try {
-        await loadStandaloneRuntimeConfig();
-        await Promise.all([
-            loadBlockGroupData(),
-            loadDemographicCSV(),
-            loadAcsPctCSV()
-        ]);
-        await loadCurisDemandCSV();
-
-        try {
-            await loadStandaloneGoogleMapsScript();
-            ensureStandaloneHiddenMap(lat, lng);
-        } catch (mapsError) {
-            console.warn('Standalone Austin sample could not load Google Maps:', mapsError);
-        }
-
-        const demographicData = await fetchMultiRadiusDataFromCSV(lat, lng, radii);
-        const healthcareDemand = await buildHealthcareDemandSummary(lat, lng, radii, demographicData);
-        let facilityCounts = getStandaloneFallbackFacilities();
-        let mapImageUrl = '';
-
-        if (typeof google !== 'undefined' && google.maps) {
-            try {
-                const urgentCareResults = await fetchNearbyPlaces(lat, lng, Math.max.apply(null, radii), 'urgent_care');
-                if (urgentCareResults && urgentCareResults.length) {
-                    facilityCounts = {
-                        urgentCare: urgentCareResults.length,
-                        centerLat: lat,
-                        centerLng: lng,
-                        urgentCareDetails: urgentCareResults.slice(0, 10).map(function(place) {
-                            return {
-                                name: place.name || 'Unknown',
-                                address: place.formatted_address || place.vicinity || 'N/A',
-                                lat: place.geometry ? place.geometry.location.lat() : null,
-                                lng: place.geometry ? place.geometry.location.lng() : null
-                            };
-                        })
-                    };
-                }
-            } catch (placesError) {
-                console.warn('Standalone Austin urgent care lookup failed, using fallback facilities:', placesError);
-            }
-
-            try {
-                mapImageUrl = await generateMapSnapshot(new google.maps.LatLng(lat, lng));
-            } catch (snapshotError) {
-                console.warn('Standalone Austin static map snapshot failed:', snapshotError);
-            }
-        }
-
-        const reportPayload = buildReportPayload({
-            address,
-            latitude: lat,
-            longitude: lng,
-            stateCode: 'TX',
-            radiiMiles: radii,
-            demographicsByRadius: demographicData,
-            healthcareDemand,
-            urgentCare: {
-                count: facilityCounts.urgentCare,
-                locations: facilityCounts.urgentCareDetails || []
-            },
-            coverMapImageUrl: mapImageUrl,
-            mapZoom: 11
-        });
-
-        renderReportPayload(document, window, reportPayload);
-    } catch (error) {
-        console.error('Failed to bootstrap standalone Austin sample report:', error);
-    }
+if (window.self === window.top && getPreviewParams().get('demoMaps') !== 'frozen') {
+  window.location.replace('urgent_care_live.html');
 }
-
-setTimeout(bootstrapStandaloneAustinSample, 150);
-setTimeout(bootstrapStandaloneAustinSample, 900);
 
 // PDF DOWNLOAD FUNCTION
 function downloadPDF() {

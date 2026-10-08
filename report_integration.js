@@ -27,12 +27,86 @@ let curisDemandByGeoid = null;
 // default location can be rendered before the page-level loader finishes, so
 // callers should await this promise instead of assuming the CSVs are ready.
 let demographicDataReadyPromise = null;
+let spatialMembershipCache = null;
+let curisDemandLoadAttempted = false;
 
 // TiC/Snowflake reporting is intentionally dormant. Keep the implementation
 // available for a future product phase, but do not call it from report runs.
 const TIC_REPORTING_ENABLED = false;
 
 const REPORT_PAYLOAD_SCHEMA_VERSION = 1;
+
+// Shared by the live test and report callers; never constructs sample data.
+async function collectLiveReportPayload(location, radiiMiles) {
+  await ensureDemographicDataReady();
+  await loadCurisDemandCSV();
+  const { latitude: lat, longitude: lng } = location;
+  const maxRadius = Math.max(...radiiMiles);
+  const demographicsByRadius = await fetchMultiRadiusDataFromCSV(lat, lng, radiiMiles);
+  const [healthcareDemand, places, healthcareMarketContext] = await Promise.all([
+    buildHealthcareDemandSummary(lat, lng, radiiMiles, demographicsByRadius),
+    fetchReportUrgentCare(lat, lng, maxRadius),
+    collectReportMarketContext(lat, lng, maxRadius, demographicsByRadius[`${maxRadius}mile`].population)
+  ]);
+  return buildReportPayload({
+    ...location, radiiMiles, demographicsByRadius, healthcareDemand, healthcareMarketContext,
+    urgentCare: {
+      count: places.length,
+      searchLimitReached: Boolean(places.searchLimitReached),
+      locations: places.slice(0, 10)
+    }
+  });
+}
+
+async function fetchReportUrgentCare(latitude, longitude, radiusMiles) {
+  const response = await fetch('/api/urgent-care', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ latitude, longitude, radiusMiles })
+  });
+  const result = await response.json();
+  if (!response.ok || !result.success) throw new Error(result.error || 'Urgent care search unavailable.');
+  const unique = new Map();
+  for (const place of result.locations) {
+    if (Number.isFinite(place.lat) && Number.isFinite(place.lng) &&
+        getDistanceMiles(latitude, longitude, place.lat, place.lng) <= radiusMiles) {
+      unique.set(place.id || `${place.name}:${place.lat}:${place.lng}`, place);
+    }
+  }
+  const places = [...unique.values()].sort((a, b) =>
+    getDistanceMiles(latitude, longitude, a.lat, a.lng) - getDistanceMiles(latitude, longitude, b.lat, b.lng));
+  places.searchLimitReached = Boolean(result.searchLimitReached);
+  return places;
+}
+
+async function collectReportMarketContext(latitude, longitude, radiusMiles, population) {
+  const categories = [
+    { key: 'medical-clinics', label: 'Medical clinics', includedPrimaryTypes: ['medical_clinic', 'medical_center'] },
+    { key: 'physicians', label: 'Doctor listings', includedPrimaryTypes: ['doctor'] },
+    { key: 'hospitals', label: 'Hospitals', includedPrimaryTypes: ['hospital'] },
+    { key: 'pharmacies', label: 'Pharmacies', includedPrimaryTypes: ['pharmacy'] },
+    { key: 'medical-labs', label: 'Medical labs', includedPrimaryTypes: ['medical_lab'] }
+  ];
+  return {
+    latitude, longitude, radiusMiles, population, attribution: 'Google Maps',
+    categories: await Promise.all(categories.map(async category => {
+      try {
+        const response = await fetch('/api/places-aggregate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude, longitude, radiusMiles, includedPrimaryTypes: category.includedPrimaryTypes })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success || result.count == null || !Number.isFinite(Number(result.count))) {
+          throw new Error(result.error || 'Count unavailable');
+        }
+        const count = Number(result.count);
+        return { ...category, count, available: true, densityPer100k: population > 0 ? count / population * 100000 : null,
+          fetchedAt: result.fetchedAt, expiresAt: result.expiresAt, cache: result.cache };
+      } catch (error) {
+        return { ...category, count: null, available: false, densityPer100k: null };
+      }
+    }))
+  };
+}
 
 /**
  * Build the single data contract consumed by every report renderer.
@@ -86,6 +160,7 @@ function buildReportPayload({
     competition: {
       urgentCare: {
         count,
+        searchLimitReached: Boolean(urgentCare.searchLimitReached),
         locations
       }
     },
@@ -167,7 +242,7 @@ async function fetchFirstAvailable(candidates, responseType = 'text') {
 
   for (const url of candidates) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: 'no-store' });
       if (!response.ok) {
         lastError = new Error(`HTTP ${response.status} from ${url}`);
         continue;
@@ -506,6 +581,8 @@ function parseAcsPctCSV(csvText) {
 }
 
 async function loadCurisDemandCSV() {
+  if (curisDemandLoadAttempted) return curisDemandByGeoid;
+  curisDemandLoadAttempted = true;
   if (curisDemandByGeoid) return curisDemandByGeoid;
 
   try {
@@ -1060,7 +1137,7 @@ function populateHealthcareDemand(doc, healthcareDemand, radii) {
     setIfExists(doc, "curis-total-demand", "N/A");
     setIfExists(doc, "curis-demand-per-1000", "N/A");
     setIfExists(doc, "curis-top-service-line", "No Curis file");
-    setIfExists(doc, "curis-summary-text", "Add a Curis demand CSV to populate this section. The expected schema is documented in curis_urgent_care_demand_template.csv.");
+    setIfExists(doc, "curis-summary-text", "Curis demand source unavailable for this report. No estimated demand has been substituted.");
     return;
   }
 
@@ -1184,9 +1261,14 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
   }
 
   setIfExists(doc, "comp-urgent-care", urgentCare.count);
-  const marketMetrics = calculateMarketMetrics(urgentCare.count || 0);
-  setIfExists(doc, "sat-urgent-care", marketMetrics.saturation);
-  setIfExists(doc, "opp-urgent-care", marketMetrics.opportunity);
+  setIfExists(doc, 'competition-max-radius', payload.tradeArea.maxRadiusMiles);
+  const tradePopulation = demographicData[`${payload.tradeArea.maxRadiusMiles}mile`]?.population;
+  setIfExists(doc, "sat-urgent-care", urgentCare.count > 0 && Number.isFinite(tradePopulation)
+    ? formatNumber(Math.round(tradePopulation / urgentCare.count)) : 'Unavailable');
+  setIfExists(doc, "opp-urgent-care", 'Not assessed');
+  setIfExists(doc, 'report-competition-note', urgentCare.searchLimitReached
+    ? 'Google search reached its 60-result limit before radius filtering. Counts and nearby locations may be incomplete.'
+    : 'Google Maps search results are filtered to the selected radius and sorted by distance; listing coverage may be incomplete.');
 
   if (reportWindow && typeof reportWindow.populateFacilityTable === "function") {
     reportWindow.populateFacilityTable("detail-urgent-care", urgentCare.locations);
@@ -1197,6 +1279,40 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
   populateAllDemographics(doc, demographicData, radii);
   populateHealthcareDemand(doc, healthcareDemand, radii);
   populateHealthcareMarketContext(doc, healthcareMarketContext);
+  const largest = demographicData[`${payload.tradeArea.maxRadiusMiles}mile`];
+  if (largest) {
+    const coverage = radii.map(radius => {
+      const source = demographicData[`${radius}mile`]?.sourceCoverage;
+      return source ? `${radius} mi: ${source.matched}/${source.total} block groups matched` : '';
+    }).filter(Boolean);
+    setIfExists(doc, 'report-data-coverage', 'Demographics: 2022 ACS source file supplemented by live Census API records. ' + coverage.join('; ') +
+      '. Whole intersecting block groups are included. Forecasts use the same calculations as the mapping snapshot.');
+    setIfExists(doc, 'report-forecast-note', 'These modeled forecasts use the same source data and calculations as the mapping snapshot for each selected radius.');
+    const growth = largest.population > 0 && Number.isFinite(largest.pop_proj)
+      ? (largest.pop_proj / largest.population - 1) * 100 : NaN;
+    setIfExists(doc, 'exec-potential', formatReportPercent(growth));
+    setIfExists(doc, 'exec-growth', formatReportPercent(growth));
+    setIfExists(doc, 'exec-trade-area', radii.join(', ') + '-mile radii');
+    setIfExists(doc, 'exec-density', formatNumber(Math.round(largest.population / (Math.PI * payload.tradeArea.maxRadiusMiles ** 2))) + ' residents/sq. mile');
+    setIfExists(doc, 'exec-competition', urgentCare.count + ' Google Maps listings');
+    for (const [field, id] of [['medianValue', 'housing-median-value'], ['medianRent', 'housing-median-rent']]) {
+      if (!Number.isFinite(largest.housing?.[field])) setIfExists(doc, id, 'Unavailable');
+    }
+    radii.forEach((radius, index) => {
+      const suffix = ['1mi', '3mi', '5mi'][index];
+      if (!Number.isFinite(demographicData[`${radius}mile`]?.medianIncome)) {
+        setIfExists(doc, `median-income-${suffix}`, 'Unavailable');
+      }
+    });
+    if (!Number.isFinite(largest.countyMedianIncome)) {
+      setIfExists(doc, 'county-median-income', 'Unavailable');
+      setIfExists(doc, 'income-vs-county', 'Unavailable');
+    }
+    if (!Number.isFinite(largest.stateMedianIncome)) {
+      setIfExists(doc, 'state-median-income', 'Unavailable');
+      setIfExists(doc, 'income-vs-state', 'Unavailable');
+    }
+  }
 
   if (!preserveFrozenMaps && reportWindow && typeof reportWindow.buildUrgentCareMap === "function"
       && cLat !== null && cLng !== null) {
@@ -1322,89 +1438,48 @@ function populateReportTemplate(reportPayload) {
  * Each subsequent page requires a 2-second delay (API requirement).
  */
 async function fetchNearbyPlaces(lat, lng, radiusMiles, searchType) {
-  // Resolve the Google Maps map instance — must be a google.maps.Map, not a DOM element
-  let mapInstance = (typeof map !== 'undefined' && map instanceof google.maps.Map) ? map : null;
-
-  // If no valid map instance, create a hidden one specifically for Places queries
+  let mapInstance = typeof map !== 'undefined' && map instanceof google.maps.Map ? map : window.map;
   if (!mapInstance) {
-    const hiddenDiv = document.createElement('div');
-    document.body.appendChild(hiddenDiv);
-    mapInstance = new google.maps.Map(hiddenDiv, {
-      center: { lat, lng },
-      zoom: 12
-    });
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    mapInstance = new google.maps.Map(div, { center: { lat, lng }, zoom: 12 });
   }
-
-  const service     = new google.maps.places.PlacesService(mapInstance);
-  const radiusMeters = radiusMiles * 1609.34;
-
-  const queries = {
-    'urgent_care': 'urgent care',
-    'hospital':    'hospital',
-    'specialty':   'dermatology clinic',
-    'autism':      'autism center'
-  };
-
-  const query = queries[searchType] || searchType;
-  let allResults = [];
-
-  // Helper: fetch one page, returns { results, pagination }
-  const fetchPage = (request) => new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      console.warn(`Places page timeout for "${query}"`);
-      resolve({ results: [], pagination: null });
-    }, 10000);
-
-    service.textSearch(request, (results, status, pagination) => {
-      clearTimeout(timeout);
-      if (status === 'OK') {
-        resolve({ results: results || [], pagination });
-      } else {
-        console.warn(`Places textSearch "${query}" page status:`, status);
-        resolve({ results: [], pagination: null });
+  const service = new google.maps.places.PlacesService(mapInstance);
+  return new Promise((resolve, reject) => {
+    const resultsById = new Map();
+    let pendingPagination = null;
+    let paginationRetries = 0;
+    const timeout = setTimeout(() => reject(new Error('Nearby facility search timed out.')), 45000);
+    service.textSearch({ location: { lat, lng }, radius: Math.round(radiusMiles * 1609.34),
+      query: searchType === 'urgent_care' ? 'urgent care' : searchType }, (results, status, pagination) => {
+      if (status === 'INVALID_REQUEST' && pendingPagination && paginationRetries < 2) {
+        paginationRetries++;
+        setTimeout(() => pendingPagination.nextPage(), 3000);
+        return;
       }
-    });
-  });
-
-  // Page 1 — initial request
-  const page1 = await fetchPage({
-    location: { lat, lng },
-    radius:   radiusMeters,
-    query:    query
-  });
-  allResults = allResults.concat(page1.results);
-  console.log(`Places "${query}" page 1: ${page1.results.length} results`);
-
-  // Page 2 — if available (Google requires ~2 sec delay between pages)
-  if (page1.pagination && page1.pagination.hasNextPage) {
-    await new Promise(r => setTimeout(r, 2000));
-    const page2 = await new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve({ results: [], pagination: null }), 10000);
-      page1.pagination.nextPage((results, status, pagination) => {
+      if (status !== 'OK' && status !== 'ZERO_RESULTS') {
         clearTimeout(timeout);
-        resolve(status === 'OK' ? { results: results || [], pagination } : { results: [], pagination: null });
-      });
+        reject(new Error('Nearby facility search failed: ' + status));
+        return;
+      }
+      for (const place of results || []) {
+        const point = place.geometry?.location;
+        if (point && getDistanceMiles(lat, lng, point.lat(), point.lng()) <= radiusMiles) {
+          resultsById.set(place.place_id || place.name + point.toString(), place);
+        }
+      }
+      if (pagination?.hasNextPage) {
+        pendingPagination = pagination;
+        paginationRetries = 0;
+        setTimeout(() => pagination.nextPage(), 3000);
+        return;
+      }
+      clearTimeout(timeout);
+      resolve([...resultsById.values()].sort((a, b) =>
+        getDistanceMiles(lat, lng, a.geometry.location.lat(), a.geometry.location.lng()) -
+        getDistanceMiles(lat, lng, b.geometry.location.lat(), b.geometry.location.lng())));
     });
-    allResults = allResults.concat(page2.results);
-    console.log(`Places "${query}" page 2: ${page2.results.length} results`);
-
-    // Page 3 — if available
-    if (page2.pagination && page2.pagination.hasNextPage) {
-      await new Promise(r => setTimeout(r, 2000));
-      const page3 = await new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve({ results: [], pagination: null }), 10000);
-        page2.pagination.nextPage((results, status) => {
-          clearTimeout(timeout);
-          resolve(status === 'OK' ? { results: results || [], pagination: null } : { results: [], pagination: null });
-        });
-      });
-      allResults = allResults.concat(page3.results);
-      console.log(`Places "${query}" page 3: ${page3.results.length} results`);
-    }
-  }
-
-  console.log(`✓ Places "${query}" TOTAL: ${allResults.length} results within ${radiusMiles} miles`);
-  return allResults;
+  });
 }
 /* ----------------------------------------------------
    ADDED: GET COUNTY / STATE GEOGRAPHY
@@ -1504,71 +1579,8 @@ async function generateDemographicReport() {
     
     console.log("Using radii (miles):", radii);
 
-    // Fetch data from CSV instead of Census API
-    const demographicData = await fetchMultiRadiusDataFromCSV(lat, lng, radii);
-    const healthcareDemand = await buildHealthcareDemandSummary(lat, lng, radii, demographicData);
-    const marketPopulation = demographicData[`${maxRadius}mile`]?.population;
-    let healthcareMarketContext = null;
-
-    if (typeof currentHealthcareMarketContext !== 'undefined'
-        && currentHealthcareMarketContext
-        && Math.abs(Number(currentHealthcareMarketContext.latitude) - Number(lat)) < 0.000001
-        && Math.abs(Number(currentHealthcareMarketContext.longitude) - Number(lng)) < 0.000001
-        && Number(currentHealthcareMarketContext.radiusMiles) === Number(maxRadius)) {
-      healthcareMarketContext = currentHealthcareMarketContext;
-    } else if (typeof fetchHealthcareMarketCounts === 'function'
-        && typeof buildHealthcareMarketContext === 'function') {
-      const marketCounts = await fetchHealthcareMarketCounts(lat, lng, maxRadius);
-      healthcareMarketContext = buildHealthcareMarketContext(marketCounts, marketPopulation);
-    }
-
-    // TiC/Snowflake benchmarking is paused. The dormant API implementation is
-    // retained for a future phase, but report generation makes no TiC request.
-
-// Urgent care only — no hospital/derm/autism fetches (saves API cost)
-const urgentCareResults = await fetchNearbyPlaces(lat, lng, maxRadius, 'urgent_care');
-
-const facilityCounts = {
-  urgentCare: urgentCareResults.length,
-  urgentCareDetails: urgentCareResults.slice(0, 10).map(function(p) {
-    return {
-      name:    p.name || 'Unknown',
-      address: p.formatted_address || p.vicinity || 'N/A',
-      lat:     p.geometry ? p.geometry.location.lat() : null,
-      lng:     p.geometry ? p.geometry.location.lng() : null
-    };
-  }),
-  centerLat: lat,
-  centerLng: lng
-};
-
-console.log('Facility counts:', facilityCounts);
-
-    // const facilityCounts = {
-    //   urgentCare: typeof urgentCareMarkers !== "undefined" ? urgentCareMarkers.length : 0,
-    //   hospitals: typeof hospitalMarkers !== "undefined" ? hospitalMarkers.length : 0,
-    //   specialty: typeof dermMarkers !== "undefined" ? dermMarkers.length : 0,
-    //   autism: typeof autismMarkers !== "undefined" ? autismMarkers.length : 0,
-    // };
-
-    const mapImageUrl = await generateMapSnapshot(new google.maps.LatLng(lat, lng));
-
-    const reportPayload = buildReportPayload({
-      address,
-      latitude: lat,
-      longitude: lng,
-      stateCode,
-      radiiMiles: radii,
-      demographicsByRadius: demographicData,
-      healthcareDemand,
-      healthcareMarketContext,
-      urgentCare: {
-        count: facilityCounts.urgentCare,
-        locations: facilityCounts.urgentCareDetails
-      },
-      coverMapImageUrl: mapImageUrl,
-      mapZoom: map.getZoom ? map.getZoom() : 12
-    });
+    const reportPayload = await collectLiveReportPayload({ address, latitude: lat, longitude: lng, stateCode }, radii);
+    reportPayload.maps.coverImageUrl = await generateMapSnapshot(new google.maps.LatLng(lat, lng));
 
     populateReportTemplate(reportPayload);
 
@@ -1641,12 +1653,17 @@ function getBlockGroupsByRadius(lat, lng, radii) {
   if (typeof turf === "undefined") throw new Error("Turf.js not found. Load Turf via CDN before this script.");
 
   const sorted = normalizeRadii(radii);
+  const cacheKey = JSON.stringify([lat, lng, sorted]);
+  if (spatialMembershipCache?.data === blockGroupData && spatialMembershipCache.key === cacheKey) {
+    return spatialMembershipCache.result;
+  }
   const maxR = sorted[sorted.length - 1];
 
   const center = turf.point([lng, lat]); // [lon, lat]
   const circles = {};
   for (const r of sorted) circles[r] = turf.circle(center, r, { units: "miles" });
   const maxCircle = circles[maxR];
+  const maxBounds = turf.bbox(maxCircle);
 
   const byRadius = {};
   sorted.forEach((r) => (byRadius[`${r}mile`] = []));
@@ -1658,6 +1675,10 @@ function getBlockGroupsByRadius(lat, lng, radii) {
       if (!feature?.geometry?.coordinates) continue;
       const geoid = normalizeGeoid(feature?.properties?.GEOID || feature?.properties?.GEOID20);
       if (!geoid) continue;
+
+      // Exclude distant Texas geometries before the expensive repair/intersection work.
+      const bounds = turf.bbox(feature);
+      if (bounds[0] > maxBounds[2] || bounds[2] < maxBounds[0] || bounds[1] > maxBounds[3] || bounds[3] < maxBounds[1]) continue;
 
       // repair geometry
       const cleanGeom = turf.buffer(feature.geometry, 0);
@@ -1679,10 +1700,12 @@ function getBlockGroupsByRadius(lat, lng, radii) {
     }
   }
 
-  return {
-    byRadius,
+  const result = {
+    byRadius: Object.fromEntries(Object.entries(byRadius).map(([key, geoids]) => [key, [...new Set(geoids)]])),
     allGeoids: [...allGeoidsSet],
   };
+  spatialMembershipCache = { key: cacheKey, data: blockGroupData, result };
+  return result;
 }
 
 /**
@@ -1706,16 +1729,15 @@ async function fetchMultiRadiusDataFromCSV(lat, lng, radii) {
   sorted.forEach((r) => console.log(`  ${r}mi BGs: ${byRadius[`${r}mile`].length}`));
 
   if (!allGeoids.length) {
-    console.warn("No BGs found in max radius; using estimated data for all radii");
-    const out = {};
-    for (const r of sorted) out[`${r}mile`] = getEstimatedDataForRadius(r);
-    return out;
+    throw new Error('No source block groups found for this location.');
   }
+
+  await fillMissingCensusDemographics(allGeoids);
 
   // Get demographics from CSV for all found block groups
   const perGeoid = getCSVDataForGeoids(allGeoids);
 
-   const geoIncome = calculateCountyAndStateIncome(allGeoids, perGeoid);
+  const geoIncome = await fetchCensusIncomeBenchmarks(allGeoids[0]);
   
   // NEW: Get geographic names
   const firstGeoid = allGeoids[0];
@@ -1726,9 +1748,8 @@ async function fetchMultiRadiusDataFromCSV(lat, lng, radii) {
   for (const r of sorted) {
     const key = `${r}mile`;
     const geoids = byRadius[key] || [];
-    if (!geoids.length) {
-      out[key] = getEstimatedDataForRadius(r);
-      continue;
+    if (!geoids.length || !geoids.some(geoid => perGeoid.has(geoid))) {
+      throw new Error('No demographic source records found within ' + r + ' miles.');
     }
 
     const aggregated = aggregateFromPerGeoid(geoids, perGeoid);
@@ -1736,8 +1757,10 @@ async function fetchMultiRadiusDataFromCSV(lat, lng, radii) {
        // NEW: Add county/state income to each radius data
     out[key] = { 
       ...aggregated, 
+      sourceCoverage: { matched: geoids.filter(geoid => perGeoid.has(geoid)).length, total: geoids.length,
+        currentOnly: geoids.filter(geoid => perGeoid.get(geoid)?.currentCensusOnly).length },
       //...projections,
-      // countyMedianIncome: geoIncome.countyMedianIncome,
+      countyMedianIncome: geoIncome.countyMedianIncome,
       stateMedianIncome: geoIncome.stateMedianIncome,
       countyName: geoNames.countyName,
       stateName: geoNames.stateName
@@ -1746,6 +1769,76 @@ async function fetchMultiRadiusDataFromCSV(lat, lng, radii) {
   
 
   return out;
+}
+
+async function fetchCensusIncomeBenchmarks(geoid) {
+  const state = geoid.slice(0, 2), county = geoid.slice(2, 5);
+  const read = async geography => {
+    try {
+      const censusKey = window.runtimeConfig?.CENSUS_API_KEY || '';
+      const response = await fetch('https://api.census.gov/data/2022/acs/acs5?get=NAME,B19013_001E&' + geography +
+        (censusKey ? '&key=' + encodeURIComponent(censusKey) : ''));
+      if (!response.ok) return NaN;
+      const rows = await response.json();
+      const income = Number(rows[1]?.[1]);
+      return income > 0 ? income : NaN;
+    } catch { return NaN; }
+  };
+  const [countyMedianIncome, stateMedianIncome] = await Promise.all([
+    read('for=county:' + county + '&in=state:' + state), read('for=state:' + state)
+  ]);
+  return { countyMedianIncome, stateMedianIncome };
+}
+
+async function fillMissingCensusDemographics(geoids) {
+  const missing = geoids.filter(geoid => !demographicDataByGeoid.has(geoid));
+  if (!missing.length) return;
+  const counties = [...new Set(missing.map(geoid => geoid.slice(0, 5)))];
+  const fields = ['B01003_001E', 'B11001_001E', 'B11001_002E', 'B19013_001E', 'B19301_001E',
+    'B25001_001E', 'B25077_001E', 'B25064_001E',
+    ...Array.from({ length: 16 }, (_, i) => `B19001_${String(i + 2).padStart(3, '0')}E`),
+    ...Array.from({ length: 47 }, (_, i) => `B01001_${String(i + 3).padStart(3, '0')}E`)];
+  const missingSet = new Set(missing);
+  const censusKey = window.runtimeConfig?.CENSUS_API_KEY || '';
+  await Promise.all(counties.map(async county => {
+    const records = new Map();
+    try {
+      for (let offset = 0; offset < fields.length; offset += 45) {
+        const params = new URLSearchParams({ get: fields.slice(offset, offset + 45).join(','),
+          for: 'block group:*', in: `state:${county.slice(0, 2)} county:${county.slice(2)} tract:*` });
+        if (censusKey) params.set('key', censusKey);
+        const response = await fetch('https://api.census.gov/data/2022/acs/acs5?' + params);
+        if (!response.ok) throw new Error('Census block-group request failed');
+        const rows = await response.json();
+        const headers = rows[0];
+        for (const row of rows.slice(1)) {
+          const geoid = ['state', 'county', 'tract', 'block group'].map(field => row[headers.indexOf(field)]).join('');
+          if (!missingSet.has(geoid)) continue;
+          const record = records.get(geoid) || {};
+          headers.forEach((field, i) => {
+            if (field.startsWith('B')) {
+              const value = Number(row[i]);
+              record[field + '_curr'] = row[i] !== null && value >= 0 ? value : NaN;
+            }
+          });
+          records.set(geoid, record);
+        }
+      }
+      for (const [geoid, record] of records) {
+        const sum = indices => indices.reduce((total, index) => total + (record[`B01001_${String(index).padStart(3, '0')}E_curr`] || 0), 0);
+        const group = (start, end) => Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        record.age_0_17_curr = sum([...group(3, 6), ...group(27, 30)]);
+        record.age_18_34_curr = sum([...group(7, 12), ...group(31, 36)]);
+        record.age_35_54_curr = sum([...group(13, 16), ...group(37, 40)]);
+        record.age_55_64_curr = sum([...group(17, 19), ...group(41, 43)]);
+        record.age_65plus_curr = sum([...group(20, 25), ...group(44, 49)]);
+        record.currentCensusOnly = true;
+        demographicDataByGeoid.set(geoid, record);
+      }
+    } catch {
+      console.warn('Some missing block groups could not be retrieved from Census for county', county);
+    }
+  }));
 }
 
 /**
@@ -1813,6 +1906,7 @@ function processCSVRecord(record) {
 
   return {
     population: record.B01003_001E_curr || 0,
+    currentCensusOnly: Boolean(record.currentCensusOnly),
     households: record.B11001_001E_curr || 0,
     householdsPrior: record.B11001_001E_prior || 0,
     families: record.B11001_002E_curr || 0,
@@ -2097,16 +2191,16 @@ if (d.per_capita_proj && d.per_capita_proj > 0) {
   // Population-weighted average across all block groups in the radius
   const emp = aggregated._emp;
 
-  // Use national values from CSV if captured; fall back to hardcoded ACS benchmarks
+  // Missing benchmarks remain unavailable rather than substituting national constants.
   const USA = {
-    laborForce:   emp.natlCaptured && emp.natlLaborForce   > 0 ? parseFloat(emp.natlLaborForce.toFixed(1))   : 63.4,
-    unemployment: emp.natlCaptured && emp.natlUnemployment > 0 ? parseFloat(emp.natlUnemployment.toFixed(1)) : 3.7,
-    bachelors:    emp.natlCaptured && emp.natlBachelors    > 0 ? parseFloat(emp.natlBachelors.toFixed(1))    : 33.7,
-    hs:           emp.natlCaptured && emp.natlHS           > 0 ? parseFloat(emp.natlHS.toFixed(1))           : 88.5,
-    mgmt:         emp.natlCaptured && emp.natlMgmt         > 0 ? parseFloat(emp.natlMgmt.toFixed(1))         : 38.2,
+    laborForce:   emp.natlCaptured ? emp.natlLaborForce : NaN,
+    unemployment: emp.natlCaptured ? emp.natlUnemployment : NaN,
+    bachelors:    emp.natlCaptured ? emp.natlBachelors : NaN,
+    hs:           emp.natlCaptured ? emp.natlHS : NaN,
+    mgmt:         emp.natlCaptured ? emp.natlMgmt : NaN,
   };
 
-  console.log("National benchmarks from CSV:", emp.natlCaptured ? "✓ loaded" : "⚠ using hardcoded fallbacks", USA);
+  console.log("National benchmarks from CSV:", emp.natlCaptured ? "loaded" : "unavailable", USA);
 
   const weightedAvg = (bucket, fallback) =>
     bucket.popSum > 0
@@ -2114,27 +2208,27 @@ if (d.per_capita_proj && d.per_capita_proj > 0) {
       : fallback;
 
   aggregated.employment["Labor Force Participation Rate"] = {
-    local: weightedAvg(emp.laborForce,   USA.laborForce),
+    local: weightedAvg(emp.laborForce, NaN),
     usa:   USA.laborForce
   };
 
   aggregated.employment["Unemployment Rate"] = {
-    local: weightedAvg(emp.unemployment, USA.unemployment),
+    local: weightedAvg(emp.unemployment, NaN),
     usa:   USA.unemployment
   };
 
   aggregated.employment["Bachelor's Degree or Higher"] = {
-    local: weightedAvg(emp.bachelors,    USA.bachelors),
+    local: weightedAvg(emp.bachelors, NaN),
     usa:   USA.bachelors
   };
 
   aggregated.employment["High School Graduate or Higher"] = {
-    local: weightedAvg(emp.hs,           USA.hs),
+    local: weightedAvg(emp.hs, NaN),
     usa:   USA.hs
   };
 
   aggregated.employment["Professional/Management Occupations"] = {
-    local: weightedAvg(emp.mgmt,         USA.mgmt),
+    local: weightedAvg(emp.mgmt, NaN),
     usa:   USA.mgmt
   };
 
@@ -2161,18 +2255,23 @@ if (d.per_capita_proj && d.per_capita_proj > 0) {
   // Average the median values
   aggregated.medianIncome = currentIncomeWeight > 0
     ? Math.round(currentIncomeWeightedSum / currentIncomeWeight)
-    : 65000;
+    : NaN;
   aggregated.medianIncomePrior = priorIncomeWeight > 0
     ? Math.round(priorIncomeWeightedSum / priorIncomeWeight)
     : 0;
-  aggregated.perCapitaIncome = perCapitaCount > 0 ? Math.round(aggregated.perCapitaIncome / perCapitaCount) : 38000;
-  aggregated.housing.medianValue = housingValueCount > 0 ? Math.round(aggregated.housing.medianValue / housingValueCount) : 285000;
-  aggregated.housing.medianRent = housingRentCount > 0 ? Math.round(aggregated.housing.medianRent / housingRentCount) : 1450;
+  aggregated.perCapitaIncome = perCapitaCount > 0 ? Math.round(aggregated.perCapitaIncome / perCapitaCount) : NaN;
+  aggregated.housing.medianValue = housingValueCount > 0 ? Math.round(aggregated.housing.medianValue / housingValueCount) : NaN;
+  aggregated.housing.medianRent = housingRentCount > 0 ? Math.round(aggregated.housing.medianRent / housingRentCount) : NaN;
   
   // Average CAGR rates (these should be averaged, not summed)
   aggregated.CAGR_pop = cagrPopCount > 0 ? aggregated.CAGR_pop / cagrPopCount : 0;
   aggregated.CAGR_hh = cagrHhCount > 0 ? aggregated.CAGR_hh / cagrHhCount : 0;
   aggregated.CAGR_fam = cagrFamCount > 0 ? aggregated.CAGR_fam / cagrFamCount : 0;
+  // Use an explicit five-year horizon instead of reusing source change totals.
+  aggregated.pop_proj = Math.round(aggregated.population * Math.pow(1 + aggregated.CAGR_pop, 5));
+  aggregated.change_pop = aggregated.pop_proj - aggregated.population;
+  aggregated.hh_proj = Math.round(aggregated.households * Math.pow(1 + aggregated.CAGR_hh, 5));
+  aggregated.fam_proj = Math.round(aggregated.families * Math.pow(1 + aggregated.CAGR_fam, 5));
   const fallbackIncomeCagr = cagrMedIncCount > 0 ? aggregated.CAGR_med_inc / cagrMedIncCount : 0;
   const historicalIncomeCagr = aggregated.medianIncomePrior > 0 && aggregated.medianIncome > 0
     ? Math.pow(aggregated.medianIncome / aggregated.medianIncomePrior, 1 / 5) - 1
@@ -2191,6 +2290,7 @@ if (d.per_capita_proj && d.per_capita_proj > 0) {
     ? (aggregated.change_med_inc / aggregated.medianIncome) * 100
     : 0;
   aggregated.CAGR_per_capita = cagrPerCapitaCount > 0 ? aggregated.CAGR_per_capita / cagrPerCapitaCount : 0;
+  aggregated.per_capita_proj = Math.round(aggregated.perCapitaIncome * Math.pow(1 + aggregated.CAGR_per_capita, 5));
 
  
 
@@ -2396,36 +2496,36 @@ function populateAllDemographics(doc, data, radii) {
         // Labor Force Participation Rate
         const lfpr = emp["Labor Force Participation Rate"];
         if (lfpr) {
-          setIfExists(doc, "emp-labor-force-local",  lfpr.local.toFixed(1) + "%");
-          setIfExists(doc, "emp-labor-force-usa",    lfpr.usa.toFixed(1) + "% (National)");
+          setIfExists(doc, "emp-labor-force-local",  formatReportPercent(lfpr.local));
+          setIfExists(doc, "emp-labor-force-usa",    formatReportPercent(lfpr.usa) + " (National)");
         }
 
         // Unemployment Rate
         const unemp = emp["Unemployment Rate"];
         if (unemp) {
-          setIfExists(doc, "emp-unemployment-local", unemp.local.toFixed(1) + "%");
-          setIfExists(doc, "emp-unemployment-usa",   unemp.usa.toFixed(1) + "% (National)");
+          setIfExists(doc, "emp-unemployment-local", formatReportPercent(unemp.local));
+          setIfExists(doc, "emp-unemployment-usa",   formatReportPercent(unemp.usa) + " (National)");
         }
 
         // Bachelor's Degree or Higher
         const bach = emp["Bachelor's Degree or Higher"];
         if (bach) {
-          setIfExists(doc, "emp-bachelors-local", bach.local.toFixed(1) + "%");
-          setIfExists(doc, "emp-bachelors-usa",   bach.usa.toFixed(1) + "% (National)");
+          setIfExists(doc, "emp-bachelors-local", formatReportPercent(bach.local));
+          setIfExists(doc, "emp-bachelors-usa",   formatReportPercent(bach.usa) + " (National)");
         }
 
         // High School Graduate or Higher
         const hs = emp["High School Graduate or Higher"];
         if (hs) {
-          setIfExists(doc, "emp-hs-local", hs.local.toFixed(1) + "%");
-          setIfExists(doc, "emp-hs-usa",   hs.usa.toFixed(1) + "% (National)");
+          setIfExists(doc, "emp-hs-local", formatReportPercent(hs.local));
+          setIfExists(doc, "emp-hs-usa",   formatReportPercent(hs.usa) + " (National)");
         }
 
         // Professional / Management Occupations
         const mgmt = emp["Professional/Management Occupations"];
         if (mgmt) {
-          setIfExists(doc, "emp-mgmt-local", mgmt.local.toFixed(1) + "%");
-          setIfExists(doc, "emp-mgmt-usa",   mgmt.usa.toFixed(1) + "% (National)");
+          setIfExists(doc, "emp-mgmt-local", formatReportPercent(mgmt.local));
+          setIfExists(doc, "emp-mgmt-usa",   formatReportPercent(mgmt.usa) + " (National)");
         }
       }
       // ===== END EMPLOYMENT & EDUCATION =====
@@ -2441,11 +2541,11 @@ function populateAllDemographics(doc, data, radii) {
     }
 
     // Projections (all radii)
-    setIfExists(doc, `proj-pop-${suffix}-current`, formatNumber(d.pop2026 || d.population));
-    setIfExists(doc, `proj-pop-${suffix}-future`, formatNumber(d.pop2031 || Math.round(d.population * 1.08)));
+    setIfExists(doc, `proj-pop-${suffix}-current`, formatNumber(d.population));
+    setIfExists(doc, `proj-pop-${suffix}-future`, formatNumber(d.pop_proj));
 
-    const currentPop = d.pop2026 || d.population;
-    const futurePop = d.pop2031 || Math.round(d.population * 1.08);
+    const currentPop = d.population;
+    const futurePop = d.pop_proj;
     const growthRate = currentPop > 0 ? (((futurePop - currentPop) / currentPop) * 100).toFixed(1) : "0.0";
     setIfExists(doc, `proj-growth-${suffix}`, growthRate + "%");
  
@@ -2487,8 +2587,8 @@ function populateAllDemographics(doc, data, radii) {
       const medIncProj = d.med_inc_proj || 0;
       const medIncChange = medIncCurrent > 0 ? ((medIncProj - medIncCurrent) / medIncCurrent * 100) : 0;
       
-      setIfExists(doc, "med-inc-proj-current", "$" + (medIncCurrent / 1000).toFixed(1) + "K");
-      setIfExists(doc, "med-inc-proj-future", "$" + (medIncProj / 1000).toFixed(1) + "K");
+      setIfExists(doc, "med-inc-proj-current", medIncCurrent.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }));
+      setIfExists(doc, "med-inc-proj-future", medIncProj.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }));
       setIfExists(doc, "med-inc-proj-change", (medIncChange >= 0 ? "+" : "") + medIncChange.toFixed(1) + "%");
       setIfExists(doc, "med-inc-cagr", (d.CAGR_med_inc * 100).toFixed(2) + "%");
       
@@ -2639,8 +2739,12 @@ function setIfExists(doc, id, value) {
   if (element) element.textContent = value;
 }
 
+function formatReportPercent(value) {
+  return Number.isFinite(value) ? value.toFixed(1) + '%' : 'Unavailable';
+}
+
 function formatNumber(num) {
-  if (typeof num !== "number" || isNaN(num)) return "0";
+  if (typeof num !== "number" || !Number.isFinite(num)) return "Unavailable";
   return num.toLocaleString("en-US");
 }
 

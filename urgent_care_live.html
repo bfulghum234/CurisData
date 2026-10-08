@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>601 Bailey — Live Urgent Care Report</title>
+  <style>
+    body { margin: 0; background: #eef3f0; color: #17352b; font: 15px "Segoe UI", sans-serif; }
+    header { padding: 16px 24px; background: white; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    button { padding: 8px 14px; cursor: pointer; }
+    iframe { width: 100%; height: calc(100vh - 130px); border: 0; }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>601 Bailey Ave., Fort Worth, TX 76107</h1>
+    <p id="status" role="status">Loading connected report data…</p>
+    <button onclick="location.reload()">Refresh report</button>
+  </header>
+  <iframe id="report-iframe" src="demographic_report_template.html?managed=1" title="Live urgent care report" hidden></iframe>
+  <script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
+  <script>window.__CURIS_SUPPRESS_DATA_ALERTS = true;</script>
+  <script src="report_integration.js"></script>
+  <script>
+    const testLocation = {
+      address: "601 Bailey Ave., Fort Worth, TX 76107",
+      latitude: 32.753079934041,
+      longitude: -97.362923890503,
+      stateCode: "TX"
+    };
+    let started = false;
+    async function loadLiveReport() {
+      if (started) return;
+      started = true;
+      const frame = document.getElementById("report-iframe");
+      const status = document.getElementById("status");
+      try {
+        const configResponse = await fetch("/login", { cache: "no-store" });
+        if (!configResponse.ok) throw new Error("Runtime configuration unavailable (" + configResponse.status + ").");
+        const config = await configResponse.json();
+        if (!config.googleMapsApiKey) throw new Error("Google Maps API key is unavailable.");
+        window.runtimeConfig = { GOOGLE_MAPS_API_KEY: config.googleMapsApiKey, CENSUS_API_KEY: config.censusApiKey || '' };
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error("Google Maps loading timed out.")), 20000);
+          window.initLiveReportMaps = () => { clearTimeout(timeout); resolve(); };
+          const script = document.createElement("script");
+          script.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(config.googleMapsApiKey) + "&libraries=places&callback=initLiveReportMaps";
+          script.onerror = () => { clearTimeout(timeout); reject(new Error("Google Maps could not load.")); };
+          document.head.appendChild(script);
+        });
+        frame.contentWindow.google = window.google;
+        const mapDiv = document.createElement("div");
+        mapDiv.style.cssText = "position:absolute;left:-9999px;width:1px;height:1px";
+        document.body.appendChild(mapDiv);
+        window.map = new google.maps.Map(mapDiv, {
+          center: { lat: testLocation.latitude, lng: testLocation.longitude }, zoom: 12
+        });
+        status.textContent = "Fetching Census files, Curis demand, and nearby healthcare locations…";
+        const payload = await collectLiveReportPayload(testLocation, [1, 3, 5]);
+        renderReportPayload(frame.contentDocument, frame.contentWindow, payload);
+        frame.hidden = false;
+        window.liveReportPayload = payload;
+        const gaps = [];
+        if (Object.values(payload.demographics.byRadius).some(data => data.sourceCoverage.matched < data.sourceCoverage.total)) gaps.push("partial demographic coverage; see report");
+        if (!payload.healthcareDemand) gaps.push("Curis demand source unavailable");
+        if (payload.competition.urgentCare.searchLimitReached) gaps.push("Google facility search reached its result limit");
+        if (payload.marketContext.categories.some(category => !category.available)) gaps.push("some healthcare counts unavailable");
+        status.textContent = "Report loaded from connected sources at " + new Date(payload.generatedAt).toLocaleTimeString() +
+          (gaps.length ? ". Missing data: " + gaps.join("; ") + "." : ".");
+      } catch (error) {
+        status.textContent = "Live report could not load: " + error.message + " No sample data has been substituted.";
+        console.error(error);
+      }
+    }
+    document.getElementById("report-iframe").addEventListener("load", loadLiveReport, { once: true });
+    if (document.getElementById("report-iframe").contentDocument?.readyState === "complete") loadLiveReport();
+  </script>
+</body>
+</html>
