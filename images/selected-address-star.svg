@@ -1,17 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title desc">
   <title id="title">Selected report location</title>
   <desc id="desc">Large Curis green star marking the selected address</desc>
-  <defs>
-    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%">
-      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#002d24" flood-opacity="0.35"/>
-    </filter>
-  </defs>
   <path
     d="M40 4.5 49.5 28l25.2 1.7-19.3 16.2 6.2 24.5L40 57 18.4 70.4l6.2-24.5L5.3 29.7 30.5 28Z"
     fill="#08785f"
     stroke="#ffffff"
     stroke-linejoin="round"
     stroke-width="4"
-    filter="url(#shadow)"
   />
 </svg>

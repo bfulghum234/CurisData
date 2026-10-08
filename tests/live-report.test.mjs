@@ -47,6 +47,15 @@ test('report preserves a captured map instead of replacing it with an interactiv
   assert.equal(doc.getElementById('report-map-image').style.display, 'block');
   assert.equal(doc.getElementById('report-map-embed').style.display, 'none');
   assert.equal(doc.getElementById('map-placeholder-text').style.display, 'none');
+  const image = doc.getElementById('report-map-image');
+  image.naturalWidth = 800;
+  image.naturalHeight = 500;
+  image.parentElement = { style: {} };
+  image.onload();
+  assert.equal(image.parentElement.style.width, 'min(100%, 608px)');
+  assert.equal(image.parentElement.style.height, 'auto');
+  assert.equal(image.style.height, 'auto');
+  assert.equal(image.style.position, 'static');
 });
 
 test('missing geographic coverage fails rather than inventing demographics', async () => {

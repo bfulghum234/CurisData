@@ -1248,7 +1248,17 @@ function renderReportPayload(doc, reportWindow, reportPayload, options = {}) {
 
   const mapImg = doc.getElementById("report-map-image");
   if (mapImg && !preserveFrozenMaps && payload.maps.coverImageUrl) {
+    // Fit the border to the full snapshot without cropping its attribution.
+    const fitMapImage = () => {
+      if (!mapImg.naturalWidth || !mapImg.naturalHeight || !mapImg.parentElement) return;
+      mapImg.parentElement.style.width = `min(100%, ${380 * mapImg.naturalWidth / mapImg.naturalHeight}px)`;
+      mapImg.parentElement.style.height = 'auto';
+      mapImg.style.position = 'static';
+      mapImg.style.height = 'auto';
+    };
+    mapImg.onload = fitMapImage;
     mapImg.src = payload.maps.coverImageUrl;
+    fitMapImage();
     mapImg.style.display = 'block';
     const embed = doc.getElementById('report-map-embed');
     const placeholder = doc.getElementById('map-placeholder-text');
