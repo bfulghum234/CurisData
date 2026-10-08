@@ -1705,7 +1705,7 @@ async function generateThematicSnapshots(payload) {
     try {
       const center = { lat: payload.location.latitude, lng: payload.location.longitude };
       thematicMap = new google.maps.Map(container, { center, zoom: 12, mapTypeId: 'roadmap',
-        renderingType: google.maps.RenderingType.RASTER, disableDefaultUI: true,
+        renderingType: google.maps.RenderingType.RASTER, isFractionalZoomEnabled: true, disableDefaultUI: true,
         styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }] });
       const byGeoid = new Map(features.map(feature => [normalizeGeoid(feature.properties.GEOID || feature.properties.GEOID20), feature]));
       thematicMap.data.addGeoJson({ type: 'FeatureCollection', features: features.map(feature => ({ ...feature,
@@ -1720,7 +1720,7 @@ async function generateThematicSnapshots(payload) {
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => { google.maps.event.removeListener(listener); reject(new Error(`${title} map did not finish loading. Please try again.`)); }, 20000);
         const listener = google.maps.event.addListenerOnce(thematicMap, 'tilesloaded', () => { clearTimeout(timeout); resolve(); });
-        thematicMap.fitBounds(bounds, 45);
+        thematicMap.fitBounds(bounds, 12);
       });
       payload.maps[key] = { imageUrl: await generateMapSnapshot(container), title, legend: classes.legend,
         coverage: `${classes.matched}/${features.length} block groups with source data (2022 ACS). Colors show local quantile classes. Whole block groups intersecting the ${payload.tradeArea.maxRadiusMiles}-mile trade area are shown. Green star: analysis address.${metric === 'population' ? ' Population is a count, not density.' : ''}` };
