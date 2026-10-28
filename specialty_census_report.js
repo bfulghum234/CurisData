@@ -139,7 +139,7 @@ async function renderSourceChoropleths(doc,payload,records,membership) {
   const make=(name,attrs)=>{const node=doc.createElementNS(svgNS,name);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));return node;};
   const bounds=turf.bbox(turf.circle([payload.location.longitude,payload.location.latitude],payload.tradeArea.maxRadiusMiles,{units:'miles'}));
   const viewport=basemapViewport(bounds),point=viewport.point;
-  const backgrounds=Object.fromEntries(await Promise.all(['dark','light'].map(async theme=>{
+  const backgrounds=Object.fromEntries(await Promise.all(['light'].map(async theme=>{
    try {
     const response=await fetch(`/api/report-basemap?lat=${viewport.latitude}&lng=${viewport.longitude}&zoom=${viewport.zoom}&theme=${theme}`);
     if(!response.ok)throw new Error('Basemap unavailable');
@@ -162,12 +162,12 @@ async function renderSourceChoropleths(doc,payload,records,membership) {
   for(const [containerId,placeholderId,legendId,metric] of [...specialtyNames.map((name,i)=>['specialty-map-'+i,null,null,name]),['thematic-pop-map','pop-map-placeholder','pop-legend','B01001_001E'],['report-map-embed','map-placeholder-text',null,null]]) {
     const specialty=specialtyNames.includes(metric);
     const container=doc.getElementById(containerId);if(!container)continue;
-    const background=backgrounds[metric?'light':'dark'];
+    const background=backgrounds.light;
     const values=features.map(feature=>getValue(feature,metric)).filter(value=>Number.isFinite(value)&&value>=0).sort((a,b)=>a-b);
     const thresholds=specialty?sharedThresholds:Array.from({length:5},(_,i)=>values[Math.floor((i+1)*values.length/6)]);
-    const svg=make('svg',{viewBox:'0 0 640 540',width:'100%',height:'100%',role:'img','aria-label':metric?`ACS 2020–2024 ${metric==='B01001_001E'?'population':metric+' annual visits per 1,000 residents'} by block group over a light gray road map`:'Selected site and trade-area boundaries over a dark road map'});
+    const svg=make('svg',{viewBox:'0 0 640 540',width:'100%',height:'100%',role:'img','aria-label':metric?`ACS 2020–2024 ${metric==='B01001_001E'?'population':metric+' annual visits per 1,000 residents'} by block group over a light gray road map`:'Selected site and trade-area boundaries over a light gray road map'});
     svg.style.display='block';
-    svg.appendChild(make('rect',{width:640,height:540,fill:metric?'#eeeeee':'#192a33'}));
+    svg.appendChild(make('rect',{width:640,height:540,fill:'#eeeeee'}));
     if(background)svg.appendChild(make('image',{href:background,width:640,height:540}));
     let matched=0;
     for(const feature of metric ? features : []) {
