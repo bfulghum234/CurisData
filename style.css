@@ -575,6 +575,17 @@ section {
     font-weight: 900;
 }
 
+.use-case-note {
+    max-width: 820px;
+    margin: 36px auto 0;
+    padding: 16px 20px;
+    border-left: 3px solid #4ecba0;
+    background: rgba(255, 255, 255, 0.72);
+    color: #4a7060;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
 /* Methodology */
 .methodology {
     background-color: #ffffff;
