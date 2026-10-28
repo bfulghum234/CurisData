@@ -1,0 +1,322 @@
+{
+  "table": "B01001",
+  "period": "2020–2024",
+  "universe": "Total resident population",
+  "ageGroups": [
+    "0-17",
+    "18-34",
+    "35-54",
+    "55-64",
+    "65+"
+  ],
+  "countyCount": 3144,
+  "bgCount": 239742,
+  "sources": [
+    {
+      "state": "state-01",
+      "sha256": "c45dc445de99bf6be9aa8a269e9d57b70c3beb63d5cab603c2925c7006a7952b",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-02",
+      "sha256": "52240762f3fdeaabc73fe4340264fbcd61f9e61d18897ce1e6ff2c59d9b1f955",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-04",
+      "sha256": "6d19b1dfc1f3444d6fa13fc6f9d16b69d5d5befb3cb2c99bfbfed13bb5f3274f",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-05",
+      "sha256": "3c75984f4fe346e480757799fb44820cf568339e5c8d197a6fc356534f6d5459",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-06",
+      "sha256": "1da855340bf1d5069d8aa418d413d1caa1933dc302b6ed48df1cdc29145ed4c2",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-08",
+      "sha256": "49d14cfed1a36b2e6eb7b16de6adf8afc039b61b8f9b540e8ba32556450bd7d0",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-09",
+      "sha256": "21e9a884cfbf56f8fe3d3cd27453954bba5ec723408f928d7a806c92db2848c2",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-10",
+      "sha256": "502081c46f445c9c02e7a42a378ee1f8a27cd2ae831a03d1304ab911cd8d649f",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-11",
+      "sha256": "a1cabce246a9e80378940f2455233be201d29f1b4ca02eae361def41e71fccd8",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-12",
+      "sha256": "61b2d069cb42e8503cd7f8542ac80560f1b7741dd5407dd26963164d6b5f4b79",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-13",
+      "sha256": "380a3c8f8777ecddf1150b6c3860543f594996eb6c40295424d1cbd7144aec15",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-15",
+      "sha256": "0a9289f445c4bc8a4d4944f9bb90a57fd7e1cca87e3da05bc910af9b6e48ee11",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-16",
+      "sha256": "254aa39fb3e3c2bda5964e95407b85ba3f737f3e554fc82a782471569bc65a87",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-17",
+      "sha256": "333255e3ffafff74e16e727e2185aaabf476802c7568ae1d7d2c98810a1e9f14",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-18",
+      "sha256": "ec0e50a60b7b7ba0728dee644ee0737ab46ac9f3cfeab404b623052c694eed2d",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-19",
+      "sha256": "3a9e91839836efdd35c542b452b820ef1eb7ce08be1e407bdfb7ef47083ccb88",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-20",
+      "sha256": "e09c13965e6dd50daf9a38934369860bdff27588f63c7c5d7fbd8cdea13a279d",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-21",
+      "sha256": "28574e6aee1a2b9a1633c7b08d4ca11b1e33b92857046cc6fa43dbcd2b7fabe8",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-22",
+      "sha256": "c2c5d595b069b5bf1fb2b639a7d9700357d50352420d04e65675efe02bbf4b9b",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-23",
+      "sha256": "962c4a339379245e55686a23744e722274296329f517c1b9ca3d2f4abb3c9960",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-24",
+      "sha256": "2b73a032e2cf47d9b78331e47c208d1f864be36162da0b5000cbc079b7d21b45",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-25",
+      "sha256": "0efec36a0f955e3c0504a4492834c7099375aa350c8a02cd59896705550323c8",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-26",
+      "sha256": "d5e7985d1f943b776905701640e6395fb8b75f8c55cd6c5935c7e8949da55184",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-27",
+      "sha256": "c10a32345672c3eb32fa5acb01a29fedfdf36ec8da7047a93d8778e707aff004",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-28",
+      "sha256": "1d4f55cba597d59d33ee4cd94e907323172408a20486191f298135914faaf8a5",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-29",
+      "sha256": "2c050fe596bd83d36a33f911c10df9257dc01be3568a6e8d08281cfaaa82fa32",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-30",
+      "sha256": "41b3d16098f4c20724162d1536e7b44c7f470bcdb7bc9f3b94bf3f43bc36e6ae",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-31",
+      "sha256": "1da3ac19c3b2ed5f7aeb3b1edd26c516dbd3327ae428bc67ca781731c93a7c25",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-32",
+      "sha256": "c4c267b6341ba9870815485aed95675cb8c165764d7cb9a82d3513fa56ba4ade",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-33",
+      "sha256": "ccbc2b10af7de96a816026ba12e04c50aa4add91dcad1eb68f5741530117fb5d",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-34",
+      "sha256": "df80937531d364da5b9920dcd19717a947f6254b786e942ae1a45adfd326ff8e",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-35",
+      "sha256": "b028ce67a92bce9e8052cea5d5a98694ab7931cab15ce2cd6a4a2f4b847605b2",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-36",
+      "sha256": "5732aaa16344f81b4606383e767760eb849e3c1e258630acc28175213bb3b7f2",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-37",
+      "sha256": "4af5d07d13436529840699e4dd47449101f89ae1ea2e1ec3cf9d385f9ccf28c7",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-38",
+      "sha256": "84a83652ff11f9f8e5231c0a02952a2c32f8f6b569ed21be58f7b1bd3a0877a5",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-39",
+      "sha256": "90c234139cbe4445b9d2a2450e4fbdd807ddc92a40a9244af402e691e82d6275",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-40",
+      "sha256": "a78e633eb32f57b85b9d6e90692a4ba3bff4434479b22d0966da26a2d2e94c6f",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-41",
+      "sha256": "ab03cef7ce33994cf5a72e3d6de35134247cb849099afe7e0a2ebce6f907ffb3",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-42",
+      "sha256": "58d20c63b4463d45eb522721d18678d4744824f2a5953f3c485925f6933ce5bb",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-44",
+      "sha256": "e95d86adf687eb7276b55cb677449d71e31fea5689d7e7431b7272d2661b0e70",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-45",
+      "sha256": "e248709a5a1b18accaeb9f6ed90ae853f04520749b5521dad60e94a91904ea56",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-46",
+      "sha256": "ffb5d54f31ccbd35e61d4623b987579c9f4da5ca75c6116153a6b50574f1c5db",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-47",
+      "sha256": "cad8ca9d23bdbdfe705f11c6e9a8f5d04233e73177195f52de00eeb300c6b6e2",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-48",
+      "sha256": "4d5980230002f8064196855b8cd1b576e81a468df8213b226a047e5e76e48a5b",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-49",
+      "sha256": "21b1cae281f33e19add162ef1dd77ce7fbb6c0c00e6a5d7d5b0a0081a4629857",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-50",
+      "sha256": "f8d477a7649b3d14513e6918600f5dab35b9e42dc64a109393d6a03daf5befda",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-51",
+      "sha256": "14aecb457bdd19d9aa9dde51b3bf3daec20a36f721215a2cfa5629ba1c1e67a7",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-53",
+      "sha256": "38e2b69a9b748dbc71a79897903e3e08161a01dbd65f5827f8777cb6354edce7",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-54",
+      "sha256": "7dbd5319540e44d28cf047f50ef3cc675b9e88c1eafe493573a2560cac14bca1",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-55",
+      "sha256": "9881f60439bbf3a628e08568d9a748acf6069198263662e4e6d14f9d224851e6",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    },
+    {
+      "state": "state-56",
+      "sha256": "7ed29dc8622b5061b65ef5b016c28b0c1312b1059f246afe3334dd6219bdcda4",
+      "url": "https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/data/5YRData/acsdt5y2024-b01001.dat",
+      "retrievedUtc": "2026-10-26T20:02:14.100848+00:00"
+    }
+  ]
+}

@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physician Specialty Demand Assessment</title>
+
+<style>
+    :root {
+  --cd-ink: #17352b;
+  --cd-ink-soft: #4f6f63;
+  --cd-brand: #0b4f3a;
+  --cd-brand-strong: #083d2d;
+  --cd-accent: #4ecba0;
+  --cd-line: #d7e8e0;
+  --cd-paper: #ffffff;
+  --cd-shadow: 0 18px 44px rgba(11, 79, 58, 0.10);
+}
+
+    html, body {
+  width: 816px;        /* 8.5in * 96dpi */
+  margin: 0;
+  padding: 0;
+  overflow: visible !important;
+}
+
+@media screen {
+  html { zoom: var(--report-preview-scale, 1); }
+}
+
+/* ================= BASE ================= */
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--cd-ink);
+    line-height: 1.52;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(180deg, #edf6f1 0%, #f7fbf9 100%);
+}
+
+
+
+/* ================= PAGE - CENTERED WITH 0.5" MARGINS ================= */
+
+.page {
+  width: 7.5in !important;
+  height: auto !important;
+  min-height: 0 !important;        /* FIX: no forced full-page height → eliminates blank pages */
+  box-sizing: border-box !important;
+  margin: 18px auto !important;       /* CENTER HORIZONTALLY */
+  padding: 0.5in !important;
+  display: block !important;
+  background: var(--cd-paper);
+  border: 1px solid rgba(11, 79, 58, 0.08);
+  border-radius: 22px;
+  box-shadow: var(--cd-shadow);
+}
+
+/* ================= COVER ================= */
+.cover-page {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding-top: 0.9in;
+    background:
+      radial-gradient(circle at top right, rgba(78, 203, 160, 0.18), transparent 28%),
+      linear-gradient(180deg, #fcfffd 0%, #f4faf7 100%);
+}
+
+.cover-page::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 18px;
+    background: linear-gradient(90deg, #0b4f3a 0%, #17956f 52%, #58d6bd 100%);
+}
+
+.cover-page::after {
+    content: "";
+    position: absolute;
+    inset: 28px 32px auto auto;
+    width: 260px;
+    height: 160px;
+    background-image:
+      radial-gradient(circle at 18px 18px, rgba(78, 203, 160, 0.22) 0 4px, transparent 5px),
+      linear-gradient(rgba(78, 203, 160, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(78, 203, 160, 0.12) 1px, transparent 1px);
+    background-size: 72px 72px, 36px 36px, 36px 36px;
+    opacity: 0.45;
+    pointer-events: none;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0));
+}
+
+.cover-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 7px 14px;
+    border: 1px solid rgba(78, 203, 160, 0.45);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--cd-brand);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.cover-kicker::before,
+.cover-kicker::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cd-accent);
+    box-shadow: 0 0 0 4px rgba(78, 203, 160, 0.18);
+}
+
+.cover-page h1 {
+    font-size: 46px;
+    margin-bottom: 12px;
+    line-height: 1.08;
+    color: var(--cd-brand-strong);
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    font-size: 29px;
+    color: var(--cd-ink-soft);
+    font-weight: 400;
+}
+
+.location {
+    font-size: 28px;
+    color: var(--cd-brand);
+    margin: 10px 0 18px;
+    font-weight: 700;
+}
+
+.location-label {
+    margin-top: 6px;
+    margin-bottom: 2px;
+    color: var(--cd-ink-soft);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.cover-meta {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    color: var(--cd-ink-soft);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cover-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cover-meta span::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cd-accent);
+}
+
+.logo-area {
+    margin-top: 40px;
+    border-top: 3px solid var(--cd-accent);
+    padding-top: 18px;
+}
+
+.cover-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.cover-logo svg {
+    width: 236px;
+    height: 68px;
+    max-width: 100%;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 8px 18px rgba(11, 79, 58, 0.12));
+}
+
+.brand-links {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+}
+
+.brand-links a,
+.page-footer a {
+    color: var(--cd-brand);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.brand-links a:hover,
+.page-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ================= HEADERS ================= */
+h2 {
+    font-size: 24px;
+    border-bottom: 3px solid var(--cd-accent);
+    margin-bottom: 12px;
+    color: var(--cd-brand-strong);
+}
+
+h3 {
+    font-size: 18px;
+    color: var(--cd-brand);
+    margin: 18px 0 10px;
+}
+
+h4 {
+    font-size: 14px;
+    margin: 10px 0 15px 0;  /* INCREASED BOTTOM MARGIN FOR SPACING */
+}
+
+/* ================= TABLES ================= */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 20px 0;  /* INCREASED MARGIN FOR SPACING */
+    font-size: 13px;
+    border: 1px solid var(--cd-line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fbfefd;
+}
+
+th {
+    background: linear-gradient(180deg, #0b4f3a 0%, #0d654a 100%);
+    color: white;
+    padding: 10px 8px;
+    text-align: center;   /* FIX 4/6/8: centered headers on all tables */
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid #e5efe9;
+}
+
+#meps-specialty-table th, #meps-specialty-table td {
+    padding: 5px 7px;
+    line-height: 1.3;
+}
+
+#meps-specialty-table tbody tr:nth-child(odd) td {
+    background: #ffffff;
+}
+
+#meps-specialty-table tbody tr:nth-child(even) td {
+    background: #eaf5ef;
+}
+
+#meps-specialty-table {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* CENTERED TEXT ALIGNMENT FOR NUMERIC COLUMNS */
+td:not(:first-child) {
+    text-align: center;
+}
+
+/* ================= STATS ================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.stat-card {
+    border-left: 4px solid var(--cd-accent);
+    background: linear-gradient(180deg, #f8fcfa 0%, #f1f8f4 100%);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(11, 79, 58, 0.06);
+}
+
+.stat-card h4 {
+    margin: 0 0 8px 0;
+    min-height: 2.4em;           /* FIX 3: reserve 2 lines so all value rows align */
+    display: flex;
+    align-items: flex-end;
+    font-size: 14px;
+}
+
+.stat-card .value {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--cd-brand);
+    line-height: 1.2;
+}
+
+.stat-card h4.radius-stat-heading {
+    display: block;
+}
+
+.radius-stat-heading .radius-line {
+    display: block;
+    white-space: nowrap;
+}
+
+.stat-card .label {
+    color: var(--cd-ink-soft);
+}
+
+/* ================= CHARTS - IMPROVED SPACING ================= */
+.chart-container {
+    margin: 25px 0;  /* INCREASED VERTICAL SPACING */
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    height: 180px;
+    gap: 12px;
+    margin-top: 35px;  /* SPACE BETWEEN TITLE AND CHART */
+    margin-bottom: 40px;  /* SPACE BETWEEN CHART AND NEXT ELEMENT */
+}
+
+.bar {
+    flex: 1;
+    background: linear-gradient(180deg, #4ecba0 0%, #0b4f3a 100%);
+    position: relative;
+    border-radius: 10px 10px 0 0;
+}
+
+.bar-label {
+    position: absolute;
+    bottom: -22px;
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+}
+
+.bar-value {
+    position: absolute;
+    top: -20px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--cd-brand);
+}
+
+/* ================= INFO BOX ================= */
+.info-box {
+    background: #eef8f3;
+    border-left: 4px solid var(--cd-brand);
+    padding: 14px 16px;
+    margin: 14px 0;
+    border-radius: 0 14px 14px 0;
+}
+
+.info-box.warning {
+    background: #fff5da;
+    border-left-color: #d8a326;
+}
+
+.info-box.success {
+    background: #e4f6ef;
+    border-left-color: #1f8f64;
+}
+
+/* TREND INDICATORS */
+.trend-positive { color: #1f8f64; font-weight: 600; }
+.trend-positive:before { content: "▲ "; }
+.trend-negative { color: #dc3545; font-weight: 600; }
+.trend-negative:before { content: "▼ "; }
+.trend-neutral { color: #6c757d; font-weight: 600; }
+
+/* ================= BUTTON ================= */
+#download-btn {
+    margin: 16px;
+    padding: 12px 24px;
+    background: linear-gradient(180deg, #1a8a68 0%, #0b4f3a 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 999px;
+    box-shadow: 0 10px 22px rgba(11, 79, 58, 0.18);
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+/* ================= LOADING INDICATOR ================= */
+.loading {
+    color: #999;
+    font-style: italic;
+}
+
+.report-date,
+.page-footer {
+    color: var(--cd-ink-soft);
+}
+
+/* ================= PRINT ================= */
+@page {
+    size: letter;
+    margin: 0.5in;
+}
+
+
+@media print {
+  html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background: #ffffff !important;
+  }
+
+  body, html, .main-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .report-print-sheet {
+    position: relative;
+    width: 7.5in;
+    height: calc(10in - 1px);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    break-after: page;
+    page-break-after: always;
+  }
+  .report-print-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+  .report-print-sheet > .page {
+    position: absolute;
+    top: 0;
+    left: var(--report-print-left, 0px);
+    margin: 0 !important;
+    /* Zoom changes the layout height before Chromium paginates tables.
+       A transform only shrinks paint, allowing the final rows to fragment. */
+    zoom: var(--report-print-scale, 1);
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none;
+  }
+  .report-print-sheet table,
+  .report-print-sheet tbody,
+  .report-print-sheet tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #download-btn {
+      display: none !important;
+  }
+}
+
+[hidden] { display: none !important; }
+
+.curis-closing-page { color:#183e32; }
+.curis-eyebrow {font-size:11px;font-weight:800;letter-spacing:2px;color:#397662;margin:10px 0 14px;}
+.curis-closing-page h2 {font-size:25px;line-height:1.25;}
+.curis-lead {font-size:15px;line-height:1.65;margin:16px 0 22px;}
+.curis-guide-grid {display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.curis-guide-card {background:#f0f8f4;border:1px solid #d9ebe2;border-radius:12px;padding:18px;}
+.curis-step {font-size:24px;color:#299776;font-weight:800;}
+.curis-guide-card h3 {font-size:17px;margin:6px 0 8px;}
+.curis-guide-card p {font-size:13px;line-height:1.65;margin:0;}
+.curis-reading-box {border-left:4px solid #16805d;padding:5px 18px;margin-top:25px;background:#f8fbf9;}
+.curis-reading-box h3 {font-size:17px;margin:10px 0;}
+.curis-reading-box p {font-size:12px;line-height:1.6;margin:10px 0;}
+.curis-closing-footer {font-size:11px;color:#527366;border-top:1px solid #cce5d8;margin-top:24px;padding-top:14px;}
+.curis-brand-hero {padding:24px;background:linear-gradient(120deg,#064e3b,#137c5d);color:white;border-radius:14px;margin:20px 0;}
+.curis-brand-hero h3 {color:white;font-size:24px;line-height:1.3;margin:0 0 12px;}
+.curis-brand-hero p {font-size:19px;margin:0;color:#bff2dc;}
+.curis-brand-panels {display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;border-top:1px solid #cce5d8;border-bottom:1px solid #cce5d8;padding:20px 0;margin-bottom:24px;}
+.curis-brand-panels strong {font-size:16px;color:#07553e;}
+.curis-brand-panels p {font-size:12px;line-height:1.6;margin-bottom:0;}
+.curis-contact {text-align:center;border-top:2px solid #3bc69b;margin-top:24px;padding-top:18px;font-size:13px;}
+.curis-contact .cover-logo {margin:0 auto;}
+.curis-contact .cover-logo svg {max-height:70px;max-width:230px;}
+.curis-contact a {color:#07553e;font-weight:700;}
+
+</style>
+
+<!-- Shared report logic and CSV loaders -->
+
+
+
+
+</head>
+
+<body>
+
+<!-- ==================== PAGE 1: COVER PAGE ==================== -->
+<button id="download-btn" onclick="downloadPDF()">📥 Download PDF Report</button>
+<div id="pdf-root">
+
+<div class="page cover-page">
+    <div class="cover-kicker">CurisData Site Intelligence Report</div>
+    <h1>Physician Specialty Demand Assessment</h1>
+    <div class="location-label">Target Location</div>
+    <div class="location" id="report-address">
+        Address
+    </div>
+    
+    <div class="map-container" style="width:100%; height:380px; margin: 20px auto; border: 3px solid #2fb486; border-radius: 8px; overflow:hidden; position:relative;">
+        <!-- Live map injected here by report_integration.js via postMessage or direct DOM -->
+        <div id="report-map-embed" style="width:100%; height:100%;"></div>
+        <img id="report-map-image" src="" alt="Location Map"
+             style="width:100%; height:100%; object-fit:contain; background:#fff; display:none; position:absolute; top:0; left:0;">
+        <div id="map-placeholder-text" style="color:#666; font-size:16px; text-align:center; padding-top: 160px;">
+            Loading map…
+        </div>
+    </div> 
+    
+    <div class="report-date">
+        Report Generated: <span id="report-date">Report Date</span>
+    </div>
+    <div class="cover-meta">
+        <span>Texas Boundary Coverage</span>
+        <span>All Specialties Available</span>
+        <span>Healthcare Real Estate Intelligence</span>
+    </div>
+    
+    <div class="logo-area">
+        <div class="cover-logo">
+            <svg viewBox="0 0 660 180" aria-hidden="true" role="img">
+                <defs>
+                    <linearGradient id="cdCrossDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0b5f46" />
+                        <stop offset="100%" stop-color="#0f6d51" />
+                    </linearGradient>
+                    <linearGradient id="cdCrossTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2a9687" />
+                        <stop offset="100%" stop-color="#57d3bd" />
+                    </linearGradient>
+                    <linearGradient id="cdLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#0f8a72" />
+                        <stop offset="100%" stop-color="#58d6bd" />
+                    </linearGradient>
+                </defs>
+                <rect x="42" y="56" width="58" height="58" rx="10" fill="url(#cdCrossDark)" />
+                <path d="M42 114C70 114 92 104 100 86V114H42Z" fill="#0a533e" opacity="0.45" />
+                <rect x="100" y="0" width="58" height="58" rx="10" fill="url(#cdCrossDark)" />
+                <rect x="100" y="56" width="58" height="58" rx="10" fill="#ffffff" />
+                <rect x="158" y="56" width="58" height="58" rx="10" fill="url(#cdCrossTeal)" />
+                <rect x="100" y="114" width="58" height="58" rx="10" fill="url(#cdCrossTeal)" />
+                <path d="M100 172C128 172 148 160 158 138V172H100Z" fill="#168b7a" opacity="0.5" />
+                <path d="M125 82L188 30L248 82L308 20" fill="none" stroke="url(#cdLine)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="125" cy="82" r="16" fill="#ffffff" stroke="#128c78" stroke-width="8" />
+                <circle cx="188" cy="30" r="16" fill="#ffffff" stroke="#1f9d88" stroke-width="8" />
+                <circle cx="248" cy="82" r="16" fill="#ffffff" stroke="#2aa792" stroke-width="8" />
+                <circle cx="308" cy="20" r="16" fill="#ffffff" stroke="#55d5be" stroke-width="8" />
+                <text x="332" y="138" font-size="62" font-weight="800" fill="#1f2b46" font-family="Arial, Helvetica, sans-serif">Curis</text>
+                <text x="502" y="138" font-size="62" font-weight="800" fill="#41c8b0" font-family="Arial, Helvetica, sans-serif">Data</text>
+            </svg>
+        </div>
+        <div style="font-size: 14px; color: #6c757d; margin-top: 6px;">
+            Location Intelligence for Healthcare Real Estate
+        </div>
+        <div class="brand-links">
+            <a href="https://curiscorp.com" target="_blank" rel="noopener noreferrer">curiscorp.com</a>
+            <a href="https://curiscorp.com/#reports" target="_blank" rel="noopener noreferrer">Available Reports</a>
+            <a href="https://curiscorp.com/data.html" target="_blank" rel="noopener noreferrer">Explore Data</a>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SPECIALTY EXECUTIVE SUMMARY ==================== -->
+<div class="page" id="specialty-executive-page">
+    <h2>Executive Summary</h2>
+    <p id="meps-executive-narrative">Loading the physician specialty demand assessment for the selected location…</p>
+    <h3>Neighborhood Overview</h3>
+    <p id="specialty-neighborhood-status">Loading neighborhood context from Google Maps…</p>
+    <div id="specialty-neighborhood-copy" hidden>
+        <p id="specialty-neighborhood-overview"></p>
+        <p id="specialty-neighborhood-description"></p>
+    </div>
+    <p id="specialty-neighborhood-meta" hidden style="font-size:11px;color:#4f6f63;">Google Maps · <span id="specialty-neighborhood-disclosure"></span> · <a id="specialty-neighborhood-report" href="#" target="_blank" rel="noopener noreferrer" hidden>Report an issue</a></p>
+    <div class="stats-grid">
+        <div class="stat-card"><h4>SPECIALTIES ASSESSED</h4><div class="value" id="meps-exec-count">Unavailable</div><div class="label">Physician specialties</div></div>
+        <div class="stat-card"><h4>LARGEST TRADE AREA</h4><div class="value" id="meps-exec-radius">Unavailable</div><div class="label">Radius around the selected site</div></div>
+        <div class="stat-card"><h4>LEADING SPECIALTY VISITS</h4><div class="value" id="meps-exec-leading-visits">Unavailable</div><div class="label" id="meps-exec-leading-name">Annual resident-generated visits</div></div>
+    </div>
+    <h3>Key Findings</h3>
+    <ol id="meps-executive-findings"><li>Findings will appear when MEPS estimates are available.</li></ol>
+    <div class="info-box"><strong>Reading the Assessment</strong><p>Use the specialty comparison on the following page to compare the scale of resident-generated visits across the trade area. These modeled estimates describe historical use, including care received outside the area. They do not establish unmet need, available physician capacity, or the visit volume a new practice could capture.</p></div>
+    <p id="meps-executive-source" style="font-size:11px;">Source: MEPS national v2.9.1; utilization reference 2024; ACS 2020–2024. Whole block groups intersecting each radius are included. Radii overlap; specialty visits may overlap and should not be combined into a unique total.</p>
+</div>
+<!-- ==================== SPECIALTY DEMAND: FULL TABLE ==================== -->
+<div class="page" id="specialty-demand-page">
+    <h2>Curis Physician Specialty Demand</h2>
+    <p>Estimated annual visits generated by residents, by physician specialty and trade-area radius.</p>
+    <table id="meps-specialty-table" style="font-size:11px;">
+        <thead><tr id="meps-specialty-headings"><th>Physician specialty</th><th>1-Mile Visits</th><th>3-Mile Visits</th><th>5-Mile Visits</th></tr></thead>
+        <tbody id="meps-specialty-rows"><tr><td colspan="4">Loading 25 specialties from MEPS demand estimates…</td></tr></tbody>
+    </table>
+    <p id="meps-demand-status" style="font-size:11px;">MEPS specialty estimates have not yet loaded.</p>
+    <p style="font-size:11px;">Modeled resident-generated historical use, wherever care occurs; these are not observed local visits, unmet clinical need, or projected practice volumes. Whole block groups intersecting each radius are included in full, so boundary populations extend beyond the circle. Radii overlap and must not be added. Specialty visit counts may overlap and should not be summed into a unique-visit total.</p>
+</div>
+<!-- ==================== PAGE 3: DEMOGRAPHIC PROFILE ==================== -->
+<div class="page">
+    <h2>Demographic Profile</h2>
+    
+    
+    <h3>Population & Households by Radius</h3>
+    
+    <table>
+       <thead>
+    <tr>
+        <th>Age Group</th>
+        <th><span id="radius1-value">1</span>-Mile Radius</th>
+        <th><span id="radius2-value">3</span>-Mile Radius</th>
+        <th><span id="radius3-value">5</span>-Mile Radius</th>
+    </tr>
+</thead>
+        <tbody>
+            <tr>
+                <td>Total Population</td>
+                <td id="demo-pop-1mi">Unavailable</td>
+                <td id="demo-pop-3mi">Unavailable</td>
+                <td id="demo-pop-5mi">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Total Households</td>
+                <td id="demo-hh-1mi">Unavailable</td>
+                <td id="demo-hh-3mi">Unavailable</td>
+                <td id="demo-hh-5mi">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Total Families</td>
+                <td id="demo-fam-1mi">Unavailable</td>
+                <td id="demo-fam-3mi">Unavailable</td>
+                <td id="demo-fam-5mi">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Average Household Size</td>
+                <td id="demo-hhsize-1mi">Unavailable</td>
+                <td id="demo-hhsize-3mi">Unavailable</td>
+                <td id="demo-hhsize-5mi">Unavailable</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>Age Distribution Analysis</h3>
+    
+    <!-- AGE BREAKOUT BAR GRAPH - IMPROVED SPACING -->
+    <div class="chart-container">
+        <h4>Population by Age Group (<span id="chart-title-radius">5</span>-Mile Radius)</h4>
+         
+        <div class="bar-chart">
+            <div class="bar" id="bar-age-0-17" style="height: 0;">
+                <div class="bar-value" id="chart-age-0-17">Unavailable</div>
+                <div class="bar-label">Ages 0-17</div>
+            </div>
+            <div class="bar" id="bar-age-18-34" style="height: 0;">
+                <div class="bar-value" id="chart-age-18-34">Unavailable</div>
+                <div class="bar-label">Ages 18-34</div>
+            </div>
+            <div class="bar" id="bar-age-35-54" style="height: 0;">
+                <div class="bar-value" id="chart-age-35-54">Unavailable</div>
+                <div class="bar-label">Ages 35-54</div>
+            </div>
+            <div class="bar" id="bar-age-55-64" style="height: 0;">
+                <div class="bar-value" id="chart-age-55-64">Unavailable</div>
+                <div class="bar-label">Ages 55-64</div>
+            </div>
+            <div class="bar" id="bar-age-65plus" style="height: 0;">
+                <div class="bar-value" id="chart-age-65plus">Unavailable</div>
+                <div class="bar-label">Ages 65+</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AGE BREAKOUT TABLE - MORE SPACING ABOVE -->
+        <table>
+        <thead>
+            <tr>
+                <th>Age Group</th>
+                 <th><span id="radius-label-1mi">1</span>-Mile</th>
+                 <th><span id="radius-label-3mi">3</span>-Mile</th>
+                 <th><span id="radius-label-5mi">5</span>-Mile</th>
+                 <th>Trade Area %</th><th id="county-age-heading">County %</th><th id="county-age-gap-heading">Difference (pp)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ages 0-17</td>
+                <td id="age-0-17-1mi">Unavailable</td>
+                <td id="age-0-17-3mi">Unavailable</td>
+                <td id="age-0-17-5mi">Unavailable</td>
+                <td id="age-0-17-pct-5mi">Unavailable</td><td id="county-age-0-17">Unavailable</td><td id="county-gap-0-17">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Ages 18-34</td>
+                <td id="age-18-34-1mi">Unavailable</td>
+                <td id="age-18-34-3mi">Unavailable</td>
+                <td id="age-18-34-5mi">Unavailable</td>
+                <td id="age-18-34-pct-5mi">Unavailable</td><td id="county-age-18-34">Unavailable</td><td id="county-gap-18-34">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Ages 35-54</td>
+                <td id="age-35-54-1mi">Unavailable</td>
+                <td id="age-35-54-3mi">Unavailable</td>
+                <td id="age-35-54-5mi">Unavailable</td>
+                <td id="age-35-54-pct-5mi">Unavailable</td><td id="county-age-35-54">Unavailable</td><td id="county-gap-35-54">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Ages 55-64</td>
+                <td id="age-55-64-1mi">Unavailable</td>
+                <td id="age-55-64-3mi">Unavailable</td>
+                <td id="age-55-64-5mi">Unavailable</td>
+                <td id="age-55-64-pct-5mi">Unavailable</td><td id="county-age-55-64">Unavailable</td><td id="county-gap-55-64">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Ages 65+</td>
+                <td id="age-65plus-1mi">Unavailable</td>
+                <td id="age-65plus-3mi">Unavailable</td>
+                <td id="age-65plus-5mi">Unavailable</td>
+                <td id="age-65plus-pct-5mi">Unavailable</td><td id="county-age-65plus">Unavailable</td><td id="county-gap-65plus">Unavailable</td>
+            </tr>
+        </tbody>
+    </table>
+
+    
+    <div class="info-box">
+        <strong>Key Insight:</strong>
+        <span id="county-age-insight">Loading the county age comparison…</span>
+    </div>
+
+<p id="report-data-coverage" style="font-size:12px;color:#4f6f63;">Source coverage is checked when the report loads.</p>
+<p id="county-age-source" style="font-size:11px;">Loading matched ACS 2020–2024 age data and county benchmark…</p></div><!-- END PAGE 3 -->
+
+<!-- ==================== PAGE 4: COMPETITIVE LANDSCAPE (UPDATED) ==================== -->
+<div class="page">
+    <h2>Healthcare Market Context</h2>
+    
+    
+    <table aria-label="Healthcare place counts and population-normalized density">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Listings</th>
+                <th>Per 100,000 Residents</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Medical clinics</td><td id="report-market-medical-clinics-count">Unavailable</td><td id="report-market-medical-clinics-density">Unavailable</td></tr>
+            <tr><td>Doctor listings</td><td id="report-market-physicians-count">Unavailable</td><td id="report-market-physicians-density">Unavailable</td></tr>
+            <tr><td>Hospitals</td><td id="report-market-hospitals-count">Unavailable</td><td id="report-market-hospitals-density">Unavailable</td></tr>
+            <tr><td>Pharmacies</td><td id="report-market-pharmacies-count">Unavailable</td><td id="report-market-pharmacies-density">Unavailable</td></tr>
+            <tr><td>Medical labs</td><td id="report-market-medical-labs-count">Unavailable</td><td id="report-market-medical-labs-density">Unavailable</td></tr>
+        </tbody>
+    </table>
+    <p id="report-market-context-note" style="color:#4f6f63; font-size:12px; margin-top:10px;">
+        Google Maps healthcare location counts load when the report is generated.
+    </p>
+    
+    <div class="info-box warning">
+        <strong>⚠️ Market Opportunity:</strong>
+        Facility counts describe Google Maps search results within the selected radius. Counts alone do not establish unmet demand or site viability; search coverage may be incomplete.
+    </div>
+</div>
+
+<!-- ==================== PAGE 5: ECONOMIC INDICATORS ==================== -->
+<div class="page">
+    <h2>Economic Indicators</h2>
+    
+    <h3>Income Distribution</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Income Range</th>
+                <th>Households</th>
+                <th>% of Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Under $25,000</td>
+                <td id="income-under25k">Unavailable</td>
+                <td id="income-under25k-pct">Unavailable</td>
+            </tr>
+            <tr>
+                <td>$25,000 - $49,999</td>
+                <td id="income-25k-50k">Unavailable</td>
+                <td id="income-25k-50k-pct">Unavailable</td>
+            </tr>
+            <tr>
+                <td>$50,000 - $74,999</td>
+                <td id="income-50k-75k">Unavailable</td>
+                <td id="income-50k-75k-pct">Unavailable</td>
+            </tr>
+            <tr>
+                <td>$75,000 - $99,999</td>
+                <td id="income-75k-100k">Unavailable</td>
+                <td id="income-75k-100k-pct">Unavailable</td>
+            </tr>
+            <tr>
+                <td>$100,000 - $149,999</td>
+                <td id="income-100k-150k">Unavailable</td>
+                <td id="income-100k-150k-pct">Unavailable</td>
+            </tr>
+            <tr>
+                <td>$150,000+</td>
+                <td id="income-150k-plus">Unavailable</td>
+                <td id="income-150k-plus-pct">Unavailable</td>
+            </tr>
+        </tbody>
+    </table>
+    
+        <div class="chart-container">
+        <h4>Estimated Median Household Income Comparison</h4>
+        <div class="bar-chart">
+            <div class="bar" id="bar-median-income-1mi" style="height: 0;">
+                <div class="bar-value" id="median-income-1mi">Unavailable</div>
+                <div class="bar-label"><span id="radius1-value-income">1</span>-Mile Radius</div>
+            </div>
+            <div class="bar" id="bar-median-income-3mi" style="height: 0;">
+                <div class="bar-value" id="median-income-3mi">Unavailable</div>
+                <div class="bar-label"><span id="radius2-value-income">3</span>-Mile Radius</div>
+            </div>
+            <div class="bar" id="bar-median-income-5mi" style="height: 0;">
+                <div class="bar-value" id="median-income-5mi">Unavailable</div>
+                <div class="bar-label"><span id="radius3-value-income">5</span>-Mile Radius</div>
+            </div>
+            <div class="bar" id="bar-county-income" style="height: 0;">
+                <div class="bar-value" id="county-median-income">Unavailable</div>
+                <div class="bar-label" id="county-name">County</div>
+            </div>
+            <div class="bar" id="bar-state-income" style="height: 0;">
+                <div class="bar-value" id="state-median-income">Unavailable</div>
+                <div class="bar-label" id="state-name">State</div>
+            </div>
+        </div>
+    </div>
+    
+    <h3>Employment & Education</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Benchmark</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                <td>Labor Force Participation Rate</td>
+                <td id="emp-labor-force-local">Unavailable</td>
+                <td id="emp-labor-force-usa">Unavailable</td>
+                </tr>
+                <tr>
+                <td>Unemployment Rate</td>
+                <td id="emp-unemployment-local">Unavailable</td>
+                <td id="emp-unemployment-usa">Unavailable</td>
+                </tr>
+                <tr>
+                <td>Bachelor's Degree or Higher</td>
+                <td id="emp-bachelors-local">Unavailable</td>
+                <td id="emp-bachelors-usa">Unavailable</td>
+                </tr>
+                <tr>
+                <td>High School Graduate or Higher</td>
+                <td id="emp-hs-local">Unavailable</td>
+                <td id="emp-hs-usa">Unavailable</td>
+                </tr>
+                <tr>
+                <td>Management, Business, Science &amp; Arts Occupations</td>
+                <td id="emp-mgmt-local">Unavailable</td>
+                <td id="emp-mgmt-usa">Unavailable</td>
+                </tr>
+        </tbody>
+    </table>
+    
+    <div class="info-box success">
+        <strong>Economic Profile:</strong>
+        <span id="economic-insight">Loading source-backed economic comparisons…</span>
+    </div>
+    
+    <p id="economic-source-note" style="font-size:11px;">Loading economic source notes…</p><h3>Housing Characteristics</h3>
+    
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>MEDIAN HOME VALUE</h4>
+            <div class="value" id="housing-median-value">Unavailable</div>
+            <div class="label">Owner-occupied homes</div>
+        </div>
+        
+        <div class="stat-card">
+            <h4>MEDIAN RENT</h4>
+            <div class="value" id="housing-median-rent">Unavailable</div>
+            <div class="label">Monthly rent</div>
+        </div>
+        
+        <div class="stat-card">
+            <h4>HOUSING UNITS</h4>
+            <div class="value" id="housing-total-units">Unavailable</div>
+            <div class="label">Total units</div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== PAGE 6: GROWTH PROJECTIONS ==================== -->
+<div class="page" id="growth-projections-page" hidden>
+    <h2>5-Year Growth Projections</h2>
+    <p id="report-forecast-note" style="font-size:12px;color:#4f6f63;">Forecasts use source growth rates where historical records are available.</p>
+    
+    <div class="info-box">
+        <strong>📈 Source Baseline &amp; Modeled Projections</strong>
+        Projections are modeled estimates derived from the source demographic data and historical changes; they are not observed future populations. The scenario extends the matched historical annualized change for five years beyond the 2024 source baseline.
+    </div>
+    
+    <h3>Population Growth Forecast</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Radius</th>
+                <th>2024 ACS Baseline</th>
+                <th>2029 Trend Scenario</th>
+                <th>Change</th>
+                <th>CAGR</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1-Mile</td>
+                <td id="proj-pop-1mi-current">Unavailable</td>
+                <td id="pop-proj-1mi">Unavailable</td>
+                <td id="pop-change-1mi">Unavailable</td>
+                <td id="pop-cagr-1mi">Unavailable</td>
+            </tr>
+            <tr>
+                <td>3-Mile</td>
+                <td id="proj-pop-3mi-current">Unavailable</td>
+                <td id="pop-proj-3mi">Unavailable</td>
+                <td id="pop-change-3mi">Unavailable</td>
+                <td id="pop-cagr-3mi">Unavailable</td>
+            </tr>
+            <tr>
+                <td>5-Mile</td>
+                <td id="proj-pop-5mi-current">Unavailable</td>
+                <td id="pop-proj-5mi">Unavailable</td>
+                <td id="pop-change-5mi">Unavailable</td>
+                <td id="pop-cagr-5mi">Unavailable</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+
+    <h3>Household & Income Projections</h3>
+    
+    <table>
+        <thead>
+            <tr>
+                <th id="forecast-max-label">Metric (Largest Radius)</th>
+                <th>2024 ACS Baseline</th>
+                <th>2029 Trend Scenario</th>
+                <th>% Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Total Households</td>
+                <td id="hh-proj-current">Unavailable</td>
+                <td id="hh-proj-future">Unavailable</td>
+                <td id="hh-proj-change">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Family Households</td>
+                <td id="fam-proj-current">Unavailable</td>
+                <td id="fam-proj-future">Unavailable</td>
+                <td id="fam-proj-change">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Median Household Income</td>
+                <td id="med-inc-proj-current">Unavailable</td>
+                <td id="med-inc-proj-future">Unavailable</td>
+                <td id="med-inc-proj-change">Unavailable</td>
+            </tr>
+            <tr>
+                <td>Per Capita Income</td>
+                <td id="per-capita-current">Unavailable</td>
+                <td id="per-capita-future">Unavailable</td>
+                <td id="per-capita-change">Unavailable</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>Age Group Shifts</h3>
+    
+    <div class="chart-container">
+        <h4>Modeled Age Distribution Changes (2024 to 2029 Trend Scenario)</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Age Group</th>
+                    <th>Current Share</th>
+                    <th>Modeled Projected Share</th>
+                    <th>Trend</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ages 0-17</td>
+                    <td id="age-shift-0-17-curr">Unavailable</td>    
+                    <td id="age-shift-0-17-proj">Unavailable</td>  
+                    <td id="age-shift-0-17-trend" class="trend-neutral">Unavailable</td>
+                </tr>
+                <tr>
+                    <td>Ages 18-34</td>
+                    <td id="age-shift-18-34-curr">Unavailable</td>    
+                    <td id="age-shift-18-34-proj">Unavailable</td>  
+                    <td id="age-shift-18-34-trend" class="trend-neutral">Unavailable</td>
+                </tr>
+                <tr>
+                    <td>Ages 35-54</td>
+                    <td id="age-shift-35-54-curr">Unavailable</td>    
+                    <td id="age-shift-35-54-proj">Unavailable</td>  
+                    <td id="age-shift-35-54-trend" class="trend-neutral">Unavailable</td>
+                </tr>
+                <tr>
+                    <td>Ages 55-64</td>
+                    <td id="age-shift-55-64-curr">Unavailable</td>    
+                    <td id="age-shift-55-64-proj">Unavailable</td>    
+                    <td id="age-shift-55-64-trend" class="trend-neutral">Unavailable</td>
+                </tr>
+                <tr>
+                    <td>Ages 65+</td>
+                    <td id="age-shift-65plus-curr">Unavailable</td> 
+                    <td id="age-shift-65plus-proj">Unavailable</td>
+                    <td id="age-shift-65plus-trend" class="trend-neutral">Unavailable</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="info-box warning">
+        <strong>Growth Readout:</strong>
+        <span id="growth-insight">Loading matched historical trends…</span>
+    </div>
+</div>
+
+<!-- ==================== THEMATIC MAP: POPULATION BY BLOCK GROUP ==================== -->
+<div class="page">
+    <h2>Thematic Map — Population by Block Group</h2>
+    
+    <div class="info-box">
+        <strong>👥 Population Distribution by Block Group</strong>
+        <span id="population-map-insight">Loading source-backed population map…</span>
+    </div>
+
+    <div id="thematic-pop-map-container" style="width:100%; height:480px; border:3px solid #2fb486; border-radius:8px; overflow:hidden; position:relative; margin:15px 0;">
+        <div id="thematic-pop-map" style="width:100%; height:100%;"></div>
+        <div id="pop-map-placeholder" style="color:#666; font-size:14px; text-align:center; padding-top:220px; position:absolute; top:0; left:0; width:100%;">
+            Loading population map…
+        </div>
+    </div>
+
+    <div id="pop-legend" style="display:flex; gap:8px; align-items:center; justify-content:center; font-size:12px; margin-top:8px;">
+        <span>Lower Population</span>
+        <div style="display:flex; gap:0;">
+            <div style="width:40px; height:16px; background:#fee5d9;"></div>
+            <div style="width:40px; height:16px; background:#fcbba1;"></div>
+            <div style="width:40px; height:16px; background:#fc9272;"></div>
+            <div style="width:40px; height:16px; background:#fb6a4a;"></div>
+            <div style="width:40px; height:16px; background:#ef3b2c;"></div>
+            <div style="width:40px; height:16px; background:#cb181d;"></div>
+            <div style="width:40px; height:16px; background:#67000d;"></div>
+        </div>
+        <span>Higher Population</span>
+    </div>
+
+    <div class="page-footer" style="margin-top:40px;">
+        <div>Report Generated: <span id="footer-date">Loading…</span></div>
+        <div style="margin-top: 5px;">CurisData | Location Intelligence for Healthcare Real Estate | <a href="https://curiscorp.com" target="_blank" rel="noopener noreferrer">curiscorp.com</a></div>
+        <div style="margin-top: 5px; font-size: 11px;">
+            Data Sources: U.S. Census Bureau (ACS 5-Year Estimates), Google Maps Platform, Proprietary Analysis
+        </div>
+    </div>
+</div>
+<div class="page" id="specialty-map-page"><h2>Specialty Demand Across the Trade Area</h2><p style="font-size:13px">Modeled annual visits per 1,000 residents, by block group. All maps share the same geography and color scale. Darker green indicates more visits per resident.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><section><h3 style="font-size:16px;margin:8px 0 3px">Family practice</h3><p id="specialty-map-total-0" style="font-size:11px;margin:0 0 5px">Loading estimates…</p><div style="border:1px solid #2fb486;border-radius:6px;overflow:hidden;aspect-ratio:640/540"><div id="specialty-map-0" style="height:100%;width:100%"></div></div><p id="specialty-map-coverage-0" style="font-size:10px;margin:4px 0"></p></section><section><h3 style="font-size:16px;margin:8px 0 3px">Dermatology</h3><p id="specialty-map-total-1" style="font-size:11px;margin:0 0 5px">Loading estimates…</p><div style="border:1px solid #2fb486;border-radius:6px;overflow:hidden;aspect-ratio:640/540"><div id="specialty-map-1" style="height:100%;width:100%"></div></div><p id="specialty-map-coverage-1" style="font-size:10px;margin:4px 0"></p></section><section><h3 style="font-size:16px;margin:8px 0 3px">Pediatrics</h3><p id="specialty-map-total-2" style="font-size:11px;margin:0 0 5px">Loading estimates…</p><div style="border:1px solid #2fb486;border-radius:6px;overflow:hidden;aspect-ratio:640/540"><div id="specialty-map-2" style="height:100%;width:100%"></div></div><p id="specialty-map-coverage-2" style="font-size:10px;margin:4px 0"></p></section><section><h3 style="font-size:16px;margin:8px 0 3px">Oncology</h3><p id="specialty-map-total-3" style="font-size:11px;margin:0 0 5px">Loading estimates…</p><div style="border:1px solid #2fb486;border-radius:6px;overflow:hidden;aspect-ratio:640/540"><div id="specialty-map-3" style="height:100%;width:100%"></div></div><p id="specialty-map-coverage-3" style="font-size:10px;margin:4px 0"></p></section></div><div id="specialty-map-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"></div><p style="font-size:10px;margin-top:10px">Source: MEPS national v2.9.1, utilization reference 2024; ACS 2020–2024 population from the MEPS project. Whole intersecting block groups are shown. Modeled resident-generated historical use wherever care occurs; not unmet need or visits a new practice could capture. Rates use all residents, including for pediatrics. Gray: unavailable. Off-white: no residents.</p></div>
+<div class="page curis-closing-page" id="curis-user-guide">
+  <div class="curis-eyebrow">YOUR GUIDE TO THE ASSESSMENT</div>
+  <h2>Put This Assessment to Work</h2>
+  <p class="curis-lead">Turn a population view of specialty demand into a focused conversation about your next market, location, or service.</p>
+  <div class="curis-guide-grid">
+    <section class="curis-guide-card"><span class="curis-step">01</span><h3>Compare locations</h3><p>Use estimated annual specialty visits to compare the scale of resident-generated use around candidate sites. Keep geography, source periods, and included services consistent.</p></section>
+    <section class="curis-guide-card"><span class="curis-step">02</span><h3>Explore the specialty mix</h3><p>Review which specialties generate the most visits, then consider how that mix aligns with your service strategy, referral relationships, and delivery model.</p></section>
+    <section class="curis-guide-card"><span class="curis-step">03</span><h3>Read the maps together</h3><p>Population shows where residents live. Total visits describe the scale of expected use. Visits per 1,000 residents reveal differences in utilization relative to population size.</p></section>
+    <section class="curis-guide-card"><span class="curis-step">04</span><h3>Add local intelligence</h3><p>Bring in provider capacity, patient travel, access, referrals, and operating economics. Use these together to evaluate the portion of demand an organization could serve.</p></section>
+  </div>
+  <div class="curis-reading-box"><h3>Reading the Numbers</h3>
+    <p><strong>Visits include repeat care.</strong> Annual visits count encounters, rather than unique patients or people with a condition. A resident can generate visits in several specialties.</p>
+    <p><strong>Radii overlap.</strong> The smaller areas sit within the larger ones. Compare them rather than adding their totals. Whole intersecting block groups extend beyond each circle.</p>
+    <p><strong>Demand starts with residents.</strong> Estimates include care received outside the trade area. Assess achievable volume with explicit assumptions about patient flows, capacity, and capture.</p>
+  </div>
+  <div class="curis-closing-footer">CurisData · A population foundation for healthcare planning</div>
+</div>
+<div class="page curis-closing-page" id="curis-brand-page">
+  <div class="curis-eyebrow">THE CURIS PERSPECTIVE</div>
+  <h2>A Population Perspective on Healthcare Opportunity</h2>
+  <div class="curis-brand-hero"><h3>Every market has a different healthcare demand profile.</h3><p>Curis helps you understand yours.</p></div>
+  <p class="curis-lead">Curis applies modeled specialty-use relationships to local population profiles to estimate the specialty visits residents generate. Explore differences across neighborhoods, compare potential locations, and bring a consistent population perspective to healthcare real estate and service planning.</p>
+  <div class="curis-brand-panels">
+    <section><strong>25 specialties</strong><p>A consistent framework for comparing expected specialty utilization across markets and service areas.</p></section>
+    <section><strong>Local geographic detail</strong><p>Explore patterns across block groups and defined trade areas, informed by the population living there.</p></section>
+    <section><strong>A foundation for planning</strong><p>Connect population demand with your market knowledge, provider information, and organizational priorities.</p></section>
+  </div>
+  <h3 style="margin-bottom:8px">How we develop local estimates</h3>
+  <p style="font-size:13px">We analyze healthcare survey data weighted to statistically represent the U.S. civilian, noninstitutionalized population. Individual-level records allow us to examine how specialty use varies with age, recorded sex, race and ethnicity, region, and income. We apply the modeled relationships to the population profile of a defined geography.</p>
+  <p style="font-size:11px;color:#527366">Use the results alongside local evidence. Modeled historical utilization does not directly measure unmet clinical need or predict practice revenue, market share, or site viability.</p>
+  <div class="curis-contact"><div class="cover-logo">
+            <svg viewBox="0 0 660 180" aria-hidden="true" role="img">
+                <defs>
+                    <linearGradient id="cdCrossDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#0b5f46" />
+                        <stop offset="100%" stop-color="#0f6d51" />
+                    </linearGradient>
+                    <linearGradient id="cdCrossTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2a9687" />
+                        <stop offset="100%" stop-color="#57d3bd" />
+                    </linearGradient>
+                    <linearGradient id="cdLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#0f8a72" />
+                        <stop offset="100%" stop-color="#58d6bd" />
+                    </linearGradient>
+                </defs>
+                <rect x="42" y="56" width="58" height="58" rx="10" fill="url(#cdCrossDark)" />
+                <path d="M42 114C70 114 92 104 100 86V114H42Z" fill="#0a533e" opacity="0.45" />
+                <rect x="100" y="0" width="58" height="58" rx="10" fill="url(#cdCrossDark)" />
+                <rect x="100" y="56" width="58" height="58" rx="10" fill="#ffffff" />
+                <rect x="158" y="56" width="58" height="58" rx="10" fill="url(#cdCrossTeal)" />
+                <rect x="100" y="114" width="58" height="58" rx="10" fill="url(#cdCrossTeal)" />
+                <path d="M100 172C128 172 148 160 158 138V172H100Z" fill="#168b7a" opacity="0.5" />
+                <path d="M125 82L188 30L248 82L308 20" fill="none" stroke="url(#cdLine)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="125" cy="82" r="16" fill="#ffffff" stroke="#128c78" stroke-width="8" />
+                <circle cx="188" cy="30" r="16" fill="#ffffff" stroke="#1f9d88" stroke-width="8" />
+                <circle cx="248" cy="82" r="16" fill="#ffffff" stroke="#2aa792" stroke-width="8" />
+                <circle cx="308" cy="20" r="16" fill="#ffffff" stroke="#55d5be" stroke-width="8" />
+                <text x="332" y="138" font-size="62" font-weight="800" fill="#1f2b46" font-family="Arial, Helvetica, sans-serif">Curis</text>
+                <text x="502" y="138" font-size="62" font-weight="800" fill="#41c8b0" font-family="Arial, Helvetica, sans-serif">Data</text>
+            </svg>
+        </div><p>Location Intelligence for Healthcare Real Estate</p><strong>Start a conversation about your next market or location.</strong><p><a href="https://curiscorp.com" target="_blank" rel="noopener noreferrer">curiscorp.com</a> &nbsp; · &nbsp; <a href="https://curiscorp.com/data.html" target="_blank" rel="noopener noreferrer">Explore CurisData</a></p></div>
+</div>
+
+</div>
+
+
+<script>
+if (window.self === window.top) window.location.replace("specialty_demand_preview.html" );
+function prepareReportPrintLayout() {
+  if (document.querySelector('.report-print-sheet')) return;
+  // Keep the preview's 720px content layout. Fit its complete height (including
+  // the cover footer) onto one 7.5 x 10 inch printable Letter sheet.
+  document.querySelectorAll('#pdf-root > .page:not([hidden])').forEach(page => {
+    const width = page.getBoundingClientRect().width;
+    const height = Math.max(page.getBoundingClientRect().height, page.scrollHeight);
+    const scale = Math.min(1, 959 / height);
+    const sheet = document.createElement('div');
+    sheet.className = 'report-print-sheet';
+    sheet.style.setProperty('--report-print-scale', String(scale));
+    sheet.style.setProperty('--report-print-left', `${(720 / scale - width) / 2}px`);
+    page.before(sheet);
+    sheet.appendChild(page);
+  });
+}
+
+function restoreReportPreviewLayout() {
+  document.querySelectorAll('.report-print-sheet').forEach(sheet => {
+    sheet.replaceWith(...sheet.childNodes);
+  });
+}
+
+window.addEventListener('beforeprint', prepareReportPrintLayout);
+window.addEventListener('afterprint', restoreReportPreviewLayout);
+
+async function downloadPDF() {
+  if (document.fonts?.ready) await document.fonts.ready;
+  await Promise.all(Array.from(document.querySelectorAll('#pdf-root img')).map(image =>
+    image.decode ? image.decode().catch(() => {}) : Promise.resolve()));
+  window.focus();
+  window.print();
+}
+
+
+
+</script>
+</body>
+</html>
