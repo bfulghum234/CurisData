@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CurisData | Specialty Demand Assessment Sample</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #edf6f1; color: #17352b; font: 15px "Segoe UI", sans-serif; }
+.sample-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px clamp(20px, 4vw, 56px); background: #ffffff; border-bottom: 1px solid #d7e8e0; }
+.eyebrow { margin: 0 0 4px; color: #168a69; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+h1 { margin: 0; color: #0b4f3a; font-size: clamp(20px, 3vw, 28px); }
+.sample-note { max-width: 470px; margin: 0; color: #52776a; line-height: 1.5; text-align: right; }
+#status { padding: 10px clamp(20px, 4vw, 56px); margin: 0; color: #52776a; background: #f7fbf9; border-bottom: 1px solid #d7e8e0; }
+iframe { display: block; width: 100%; height: calc(100vh - 156px); border: 0; }
+@media (max-width: 700px) { .sample-header { align-items: flex-start; flex-direction: column; } .sample-note { text-align: left; } iframe { height: calc(100vh - 206px); } }
+</style>
+</head>
+<body data-report-address="4455 Camp Bowie Blvd., Fort Worth, TX 76107" data-report-radii="1,3,5">
+<header class="sample-header">
+  <div>
+    <p class="eyebrow">CurisData Sample Report</p>
+    <h1>Specialty Demand Assessment</h1>
+  </div>
+  <p class="sample-note">This fixed Fort Worth example shows the structure and depth of a CurisData demand report. Use the report's download button to save a PDF.</p>
+</header>
+<p id="status" role="status">Loading sample report sources...</p>
+<input id="address-input" type="hidden" value="4455 Camp Bowie Blvd., Fort Worth, TX 76107">
+<input id="radii-input" type="hidden" value="1,3,5">
+<iframe id="report-iframe" src="specialty_demand_report_template.html?managed=1" title="Specialty demand assessment sample report"></iframe>
+<script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
+<script>window.__CURIS_SUPPRESS_DATA_ALERTS=true;</script>
+<script src="report_integration.js"></script>
+<script src="specialty_census_report.js"></script>
+<script src="specialty_demand_integration.js"></script>
+<script src="specialty_report_loader.js"></script>
+</body>
+</html>

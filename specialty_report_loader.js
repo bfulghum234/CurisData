@@ -15,13 +15,16 @@ async function loadSourceSpecialtyReport() {
   };
   try {
     const params=new URLSearchParams(location.search);
-    const address=params.get('address')||document.getElementById('address-input').value;
-    const radii=normalizeRadii((params.get('radii')||'1,3,5').split(','));
+    const addressInput=document.getElementById('address-input');
+    const fixedAddress=document.body.dataset.reportAddress;
+    const fixedRadii=document.body.dataset.reportRadii;
+    const address=fixedAddress||params.get('address')||addressInput?.value;
+    const radii=normalizeRadii((fixedRadii||params.get('radii')||'1,3,5').split(','));
     if(radii.length!==3||radii.some(radius=>radius>20))throw new Error('Choose three distinct radii between 1 and 20 miles.');
     status.textContent='Resolving the selected address…';
     const locationResponse=await fetch('/api/report-location',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address})});
     const site=await locationResponse.json();if(!locationResponse.ok)throw new Error(site.error||'Address lookup unavailable.');
-    window.specialtyReportPlaceId=site.placeId;document.getElementById('address-input').value=site.address;
+    window.specialtyReportPlaceId=site.placeId;if(addressInput)addressInput.value=site.address;
     status.textContent='Loading trade-area boundaries and Census sources…';
     await loadBlockGroupData();
     const membership=getBlockGroupsByRadius(site.latitude,site.longitude,radii);
