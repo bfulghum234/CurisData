@@ -534,7 +534,7 @@ td:not(:first-child) {
     <div class="location" id="report-address">
         Address
     </div>
-    
+
     <div class="map-container" style="width:100%; height:380px; margin: 20px auto; border: 3px solid #2fb486; border-radius: 8px; overflow:hidden; position:relative;">
         <!-- Live map injected here by report_integration.js via postMessage or direct DOM -->
         <div id="report-map-embed" style="width:100%; height:100%;"></div>
@@ -543,8 +543,8 @@ td:not(:first-child) {
         <div id="map-placeholder-text" style="color:#666; font-size:16px; text-align:center; padding-top: 160px;">
             Loading map…
         </div>
-    </div> 
-    
+    </div>
+
     <div class="report-date">
         Report Generated: <span id="report-date">Report Date</span>
     </div>
@@ -553,7 +553,7 @@ td:not(:first-child) {
         <span>All Specialties Available</span>
         <span>Healthcare Real Estate Intelligence</span>
     </div>
-    
+
     <div class="logo-area">
         <div class="cover-logo">
             <svg viewBox="0 0 660 180" aria-hidden="true" role="img">
@@ -633,10 +633,10 @@ td:not(:first-child) {
 <!-- ==================== PAGE 3: DEMOGRAPHIC PROFILE ==================== -->
 <div class="page">
     <h2>Demographic Profile</h2>
-    
-    
+
+
     <h3>Population & Households by Radius</h3>
-    
+
     <table>
        <thead>
     <tr>
@@ -673,13 +673,13 @@ td:not(:first-child) {
             </tr>
         </tbody>
     </table>
-    
+
     <h3>Age Distribution Analysis</h3>
-    
+
     <!-- AGE BREAKOUT BAR GRAPH - IMPROVED SPACING -->
     <div class="chart-container">
         <h4>Population by Age Group (<span id="chart-title-radius">5</span>-Mile Radius)</h4>
-         
+
         <div class="bar-chart">
             <div class="bar" id="bar-age-0-17" style="height: 0;">
                 <div class="bar-value" id="chart-age-0-17">Unavailable</div>
@@ -703,7 +703,7 @@ td:not(:first-child) {
             </div>
         </div>
     </div>
-    
+
     <!-- AGE BREAKOUT TABLE - MORE SPACING ABOVE -->
         <table>
         <thead>
@@ -754,7 +754,7 @@ td:not(:first-child) {
         </tbody>
     </table>
 
-    
+
     <div class="info-box">
         <strong>Key Insight:</strong>
         <span id="county-age-insight">Loading the county age comparison…</span>
@@ -766,8 +766,8 @@ td:not(:first-child) {
 <!-- ==================== PAGE 4: COMPETITIVE LANDSCAPE (UPDATED) ==================== -->
 <div class="page">
     <h2>Healthcare Market Context</h2>
-    
-    
+
+
     <table aria-label="Healthcare place counts and population-normalized density">
         <thead>
             <tr>
@@ -787,7 +787,7 @@ td:not(:first-child) {
     <p id="report-market-context-note" style="color:#4f6f63; font-size:12px; margin-top:10px;">
         Google Maps healthcare location counts load when the report is generated.
     </p>
-    
+
     <div class="info-box warning">
         <strong>⚠️ Market Opportunity:</strong>
         Facility counts describe Google Maps search results within the selected radius. Counts alone do not establish unmet demand or site viability; search coverage may be incomplete.
@@ -797,9 +797,9 @@ td:not(:first-child) {
 <!-- ==================== PAGE 5: ECONOMIC INDICATORS ==================== -->
 <div class="page">
     <h2>Economic Indicators</h2>
-    
+
     <h3>Income Distribution</h3>
-    
+
     <table>
         <thead>
             <tr>
@@ -841,7 +841,7 @@ td:not(:first-child) {
             </tr>
         </tbody>
     </table>
-    
+
         <div class="chart-container">
         <h4>Estimated Median Household Income Comparison</h4>
         <div class="bar-chart">
@@ -867,9 +867,9 @@ td:not(:first-child) {
             </div>
         </div>
     </div>
-    
+
     <h3>Employment & Education</h3>
-    
+
     <table>
         <thead>
             <tr>
@@ -906,28 +906,28 @@ td:not(:first-child) {
                 </tr>
         </tbody>
     </table>
-    
+
     <div class="info-box success">
         <strong>Economic Profile:</strong>
         <span id="economic-insight">Loading source-backed economic comparisons…</span>
     </div>
-    
+
     <p id="economic-source-note" style="font-size:11px;">Loading economic source notes…</p><h3>Housing Characteristics</h3>
-    
-    
+
+
     <div class="stats-grid">
         <div class="stat-card">
             <h4>MEDIAN HOME VALUE</h4>
             <div class="value" id="housing-median-value">Unavailable</div>
             <div class="label">Owner-occupied homes</div>
         </div>
-        
+
         <div class="stat-card">
             <h4>MEDIAN RENT</h4>
             <div class="value" id="housing-median-rent">Unavailable</div>
             <div class="label">Monthly rent</div>
         </div>
-        
+
         <div class="stat-card">
             <h4>HOUSING UNITS</h4>
             <div class="value" id="housing-total-units">Unavailable</div>
@@ -940,14 +940,14 @@ td:not(:first-child) {
 <div class="page" id="growth-projections-page" hidden>
     <h2>5-Year Growth Projections</h2>
     <p id="report-forecast-note" style="font-size:12px;color:#4f6f63;">Forecasts use source growth rates where historical records are available.</p>
-    
+
     <div class="info-box">
         <strong>📈 Source Baseline &amp; Modeled Projections</strong>
         Projections are modeled estimates derived from the source demographic data and historical changes; they are not observed future populations. The scenario extends the matched historical annualized change for five years beyond the 2024 source baseline.
     </div>
-    
+
     <h3>Population Growth Forecast</h3>
-    
+
     <table>
         <thead>
             <tr>
@@ -986,7 +986,7 @@ td:not(:first-child) {
 
 
     <h3>Household & Income Projections</h3>
-    
+
     <table>
         <thead>
             <tr>
@@ -1023,9 +1023,9 @@ td:not(:first-child) {
             </tr>
         </tbody>
     </table>
-    
+
     <h3>Age Group Shifts</h3>
-    
+
     <div class="chart-container">
         <h4>Modeled Age Distribution Changes (2024 to 2029 Trend Scenario)</h4>
         <table>
@@ -1040,38 +1040,38 @@ td:not(:first-child) {
             <tbody>
                 <tr>
                     <td>Ages 0-17</td>
-                    <td id="age-shift-0-17-curr">Unavailable</td>    
-                    <td id="age-shift-0-17-proj">Unavailable</td>  
+                    <td id="age-shift-0-17-curr">Unavailable</td>
+                    <td id="age-shift-0-17-proj">Unavailable</td>
                     <td id="age-shift-0-17-trend" class="trend-neutral">Unavailable</td>
                 </tr>
                 <tr>
                     <td>Ages 18-34</td>
-                    <td id="age-shift-18-34-curr">Unavailable</td>    
-                    <td id="age-shift-18-34-proj">Unavailable</td>  
+                    <td id="age-shift-18-34-curr">Unavailable</td>
+                    <td id="age-shift-18-34-proj">Unavailable</td>
                     <td id="age-shift-18-34-trend" class="trend-neutral">Unavailable</td>
                 </tr>
                 <tr>
                     <td>Ages 35-54</td>
-                    <td id="age-shift-35-54-curr">Unavailable</td>    
-                    <td id="age-shift-35-54-proj">Unavailable</td>  
+                    <td id="age-shift-35-54-curr">Unavailable</td>
+                    <td id="age-shift-35-54-proj">Unavailable</td>
                     <td id="age-shift-35-54-trend" class="trend-neutral">Unavailable</td>
                 </tr>
                 <tr>
                     <td>Ages 55-64</td>
-                    <td id="age-shift-55-64-curr">Unavailable</td>    
-                    <td id="age-shift-55-64-proj">Unavailable</td>    
+                    <td id="age-shift-55-64-curr">Unavailable</td>
+                    <td id="age-shift-55-64-proj">Unavailable</td>
                     <td id="age-shift-55-64-trend" class="trend-neutral">Unavailable</td>
                 </tr>
                 <tr>
                     <td>Ages 65+</td>
-                    <td id="age-shift-65plus-curr">Unavailable</td> 
+                    <td id="age-shift-65plus-curr">Unavailable</td>
                     <td id="age-shift-65plus-proj">Unavailable</td>
                     <td id="age-shift-65plus-trend" class="trend-neutral">Unavailable</td>
                 </tr>
             </tbody>
         </table>
     </div>
-    
+
     <div class="info-box warning">
         <strong>Growth Readout:</strong>
         <span id="growth-insight">Loading matched historical trends…</span>
@@ -1081,7 +1081,7 @@ td:not(:first-child) {
 <!-- ==================== THEMATIC MAP: POPULATION BY BLOCK GROUP ==================== -->
 <div class="page">
     <h2>Thematic Map — Population by Block Group</h2>
-    
+
     <div class="info-box">
         <strong>👥 Population Distribution by Block Group</strong>
         <span id="population-map-insight">Loading source-backed population map…</span>
