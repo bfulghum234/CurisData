@@ -47,6 +47,10 @@ function addSavedCoverMap(doc) {
 }
 
 function populateSavedSample(doc) {
+  // The report template is designed for a fixed-width preview; expand its canvas
+  // inside the public iframe so its centered pages use the available viewport.
+  doc.documentElement.style.width = '100%';
+  doc.body.style.width = '100%';
   setText(doc, 'report-address', savedSample.address);
   setText(doc, 'report-date', savedSample.date);
   setText(doc, 'footer-date', savedSample.date);
@@ -55,6 +59,7 @@ function populateSavedSample(doc) {
   setText(doc, 'meps-exec-radius', '5-mile');
   setText(doc, 'meps-exec-leading-visits', '108,484');
   setText(doc, 'meps-exec-leading-name', 'General practice');
+  setText(doc, 'specialty-neighborhood-status', 'This saved sample focuses on the population-based specialty demand measures below.');
   setText(doc, 'meps-demand-status', 'Saved sample data: MEPS national v2.9.1 utilization reference 2024; ACS 2020-2024. Values are fixed for this Fort Worth example and are not recalculated when opened.');
 
   const findings = doc.getElementById('meps-executive-findings');
