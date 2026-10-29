@@ -607,12 +607,20 @@ document.addEventListener("DOMContentLoaded", function () {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
       const loginError = document.getElementById("loginError");
+      const mappingWindow = window.open("about:blank", "_blank");
       loginError.style.display = "none";
+
+      if (mappingWindow) {
+        mappingWindow.opener = null;
+        mappingWindow.document.title = "Opening CurisData+";
+        mappingWindow.document.body.innerHTML = '<p style="font-family:Arial,sans-serif;padding:24px;color:#0b4f3a">Opening CurisData+ mapping and reports…</p>';
+      }
 
       try {
         const response = await postLogin(username, password);
 
         if (!response.ok) {
+          mappingWindow?.close();
           loginError.style.display = "block";
           return;
         }
@@ -620,15 +628,27 @@ document.addEventListener("DOMContentLoaded", function () {
         const result = await response.json();
 
         if (result.success) {
-          sessionStorage.setItem("runtimeConfig", JSON.stringify({
+          const runtimeConfig = JSON.stringify({
             googleMapsApiKey: result.googleMapsApiKey || "",
             censusApiKey: result.censusApiKey || ""
-          }));
-          window.location.assign(getDemoReportUrl());
+          });
+          sessionStorage.setItem("runtimeConfig", runtimeConfig);
+
+          if (!mappingWindow || mappingWindow.closed) {
+            loginError.textContent = "Please allow pop-ups for this site, then try Login again.";
+            loginError.style.display = "block";
+            return;
+          }
+
+          mappingWindow.sessionStorage.setItem("runtimeConfig", runtimeConfig);
+          mappingWindow.location.replace(getDemoReportUrl());
+          closeModal();
         } else {
+          mappingWindow?.close();
           loginError.style.display = "block";
         }
       } catch (error) {
+        mappingWindow?.close();
         console.error("Login request failed:", error);
         loginError.textContent = "Login service unavailable. Please try again.";
         loginError.style.display = "block";
