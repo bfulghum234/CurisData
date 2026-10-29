@@ -391,13 +391,118 @@ section {
     border: 3px solid #d0ece2;
 }
 
-.report-cover-image {
+.report-cover-page {
     width: 69%;
     position: relative;
     z-index: 3;
     border-radius: 9px;
     box-shadow: 0 16px 30px rgba(8, 61, 45, 0.22);
-    display: block;
+    display: flex;
+    flex-direction: column;
+    min-height: 408px;
+    padding: 22px 20px 18px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 86% 12%, rgba(78, 203, 160, 0.22), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #f3fbf7 100%);
+    border-top: 10px solid #0b4f3a;
+    color: #0b4f3a;
+}
+
+.report-cover-kicker,
+.report-cover-label,
+.report-cover-date,
+.report-cover-meta,
+.report-cover-footer small {
+    margin: 0;
+}
+
+.report-cover-kicker {
+    align-self: center;
+    padding: 5px 9px;
+    border: 1px solid #8bdcc1;
+    border-radius: 999px;
+    color: #0b4f3a;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.report-cover-page h3 {
+    max-width: 260px;
+    margin: 23px auto 12px;
+    color: #074a36;
+    font-size: clamp(19px, 2.15vw, 31px);
+    line-height: 1.02;
+    text-align: center;
+}
+
+.report-cover-label {
+    color: #54796b;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.report-cover-address {
+    margin: 5px auto 14px;
+    color: #0b4f3a;
+    font-size: clamp(10px, 1.2vw, 15px);
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: center;
+}
+
+.report-cover-map {
+    width: 100%;
+    min-height: 116px;
+    flex: 1;
+    border: 2px solid #2fb486;
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.report-cover-date {
+    margin-top: 11px;
+    color: #587b6e;
+    font-size: 9px;
+    text-align: center;
+}
+
+.report-cover-meta {
+    margin-top: 7px;
+    color: #277f65;
+    font-size: 7px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.report-cover-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-top: 13px;
+    padding-top: 11px;
+    border-top: 2px solid #58d6bd;
+}
+
+.report-cover-footer strong {
+    color: #182947;
+    font-size: clamp(15px, 1.7vw, 23px);
+}
+
+.report-cover-footer strong span {
+    color: #41c8b0;
+}
+
+.report-cover-footer small {
+    color: #6f817b;
+    font-size: 7px;
 }
 
 .report-supplement {
@@ -1175,8 +1280,15 @@ footer {
         padding: 22px 18px 42px 12px;
     }
 
-    .report-cover-image {
+    .report-cover-page {
         width: 76%;
+        min-height: 350px;
+        padding: 17px 15px 13px;
+    }
+
+    .report-cover-page h3 {
+        margin-top: 17px;
+        font-size: 20px;
     }
 
     .report-supplement {
