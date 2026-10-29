@@ -68,6 +68,14 @@ function addSavedCoverMap(doc) {
   const target = doc.getElementById('report-map-embed');
   const placeholder = doc.getElementById('map-placeholder-text');
   if (!target) return;
+  const frame = target.closest('.map-container');
+  if (frame) {
+    // Match the saved basemap's dimensions so the full map fills its frame
+    // without stretching the distance rings into ovals.
+    frame.style.width = '68%';
+    frame.style.height = 'auto';
+    frame.style.aspectRatio = '32 / 27';
+  }
   target.innerHTML = `
     <svg viewBox="0 0 640 540" width="100%" height="100%" role="img" aria-label="Fort Worth trade area map with 1, 3, and 5-mile rings">
       <image href="images/demo/bailey-light-basemap.png" width="640" height="540" preserveAspectRatio="xMidYMid slice"></image>
