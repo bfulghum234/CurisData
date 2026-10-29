@@ -28,6 +28,24 @@
     }));
   }
 
+  function savePdfFromTopLevel(pdf, filename) {
+    const blob = pdf.output('blob');
+    const ownerWindow = window.parent && window.parent !== window ? window.parent : window;
+    const ownerDocument = ownerWindow.document;
+    const url = ownerWindow.URL.createObjectURL(blob);
+    const link = ownerDocument.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.hidden = true;
+    link.dataset.reportPdfDownload = 'true';
+    ownerDocument.body.appendChild(link);
+    link.click();
+    ownerWindow.setTimeout(() => {
+      link.remove();
+      ownerWindow.URL.revokeObjectURL(url);
+    }, 60000);
+  }
+
   async function downloadPDF() {
     const button = document.getElementById('download-btn');
     if (button?.disabled) return;
@@ -80,7 +98,7 @@
         pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, drawWidth, drawHeight, undefined, 'FAST');
       }
 
-      pdf.save(reportFilename());
+      savePdfFromTopLevel(pdf, reportFilename());
     } catch (error) {
       console.error('Unable to generate report PDF:', error);
       window.alert('The PDF could not be generated. Refresh the report and try again.');

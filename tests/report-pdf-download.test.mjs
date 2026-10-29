@@ -17,7 +17,9 @@ test('PDF download renders each visible report page onto its own letter page', (
   assert.match(script, /window\.html2canvas\(pages\[index\]/);
   assert.match(script, /new jsPDF\(\{ unit: 'in', format: 'letter'/);
   assert.match(script, /if \(index\) pdf\.addPage\('letter', 'portrait'\)/);
-  assert.match(script, /pdf\.save\(reportFilename\(\)\)/);
+  assert.match(script, /pdf\.output\('blob'\)/);
+  assert.match(script, /ownerDocument\.body\.appendChild\(link\)/);
+  assert.match(script, /savePdfFromTopLevel\(pdf, reportFilename\(\)\)/);
 });
 
 test('PDF download provides progress, restores the button and reports failures', () => {
