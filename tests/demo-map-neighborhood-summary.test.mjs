@@ -30,24 +30,25 @@ test("temporarily hides the Layers and AI Assistant controls", () => {
   assert.match(html, /<details hidden[^>]*>\s*<summary>AI Assistant<\/summary>/);
 });
 
-test("guides report creation through four numbered steps", () => {
-  for (const step of ["location-step", "specialty-step", "trade-area-step", "report-step"]) {
+test("guides report creation through report-specific numbered steps", () => {
+  for (const step of ["report-type-step", "location-step", "report-options-step", "trade-area-step", "report-step"]) {
     assert.match(html, new RegExp(`id="${step}"`));
   }
+  assert.match(html, /id="report-type-select"/);
   assert.match(html, /Set Location &amp; Continue/);
   assert.match(html, /Use This Trade Area &amp; Continue/);
   assert.match(html, /id="run-report-button"[^>]*disabled>Run Report<\/button>/);
-  assert.match(html, /function handleSpecialtySelection\(specialty\)/);
+  assert.match(html, /function handleReportTypeChange\(\)/);
   assert.match(html, /function confirmTradeArea\(\)/);
 });
 
-test("allows only one report specialty at a time", () => {
-  const specialtyInputs = [...html.matchAll(/class="specialty-checkbox"[^>]+/g)].map(match => match[0]);
-  assert.equal(specialtyInputs.length, 4);
-  for (const input of specialtyInputs) {
-    assert.match(input, /type="radio"/);
-    assert.match(input, /name="reportSpecialty"/);
-  }
+test("offers report choice and up to four thematic maps from 25 specialties", () => {
+  assert.match(html, /value="specialty-demand">Specialty Demand Assessment/);
+  assert.match(html, /value="urgent-care">Urgent Care Site Assessment/);
+  assert.match(html, /const THEMATIC_SPECIALTY_LIMIT = 4/);
+  assert.match(html, /const SPECIALTY_DEMAND_OPTIONS = Object\.freeze\(\[/);
+  assert.match(html, /'Allergy\/immunology'[^]*'Urology'/);
+  assert.match(html, /payload\.thematicMapSpecialties = \[\.\.\.selectedThematicSpecialties\]/);
   assert.match(html, /clearUrgentCares\(\);[\s\S]*clearHospitals\(\);[\s\S]*clearDermatologists\(\);[\s\S]*clearAutism\(\);/);
 });
 
@@ -66,11 +67,11 @@ test("uses a prominent branded star for the selected report address", () => {
   assert.doesNotMatch(html, /maps\.google\.com\/mapfiles\/ms\/icons\/red-dot\.png/);
 });
 
-test("switches specialties without cleanup errors or misleading status text", () => {
+test("switches reports without cleanup errors or misleading status text", () => {
   assert.match(html, /function clearAutism\(\) \{\s*autismMarkers\.forEach/);
   assert.doesNotMatch(html, /autismMarkers\.push\.forEach/);
   assert.doesNotMatch(html, /setStatus\(["'](?:Hospitals|Dermatologists|autism) cleared/);
-  assert.match(html, /function handleSpecialtySelection\(specialty\) \{\s*selectedSpecialtyType = specialty;/);
+  assert.match(html, /selectedSpecialtyType = selectedReportType === 'urgent-care' \? 'urgentCare' : null/);
   assert.match(html, /Unable to load urgent care locations/);
 });
 

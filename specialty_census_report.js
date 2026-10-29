@@ -148,7 +148,15 @@ async function renderSourceChoropleths(doc,payload,records,membership) {
     return [theme,image];
    }catch{return [theme,null];}
   })));
-  const specialtyNames=['Family practice','Dermatology','Pediatrics','Oncology'];
+  const defaultSpecialtyNames=['Family practice','Dermatology','Pediatrics','Oncology'];
+  const specialtyNames=(Array.isArray(payload.thematicMapSpecialties)&&payload.thematicMapSpecialties.length
+    ?payload.thematicMapSpecialties:defaultSpecialtyNames).slice(0,4);
+  for(let index=0;index<4;index++){
+    const title=doc.getElementById('specialty-map-title-'+index);
+    const section=title?.closest('section');
+    if(section)section.hidden=index>=specialtyNames.length;
+    if(title&&specialtyNames[index])title.textContent=specialtyNames[index];
+  }
   let meps={},populations={},manifest={specialties:[]};
   try{
     const load=async url=>{const response=await fetch(url);if(!response.ok)throw new Error('Specialty source unavailable');return response.json();};

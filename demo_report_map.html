@@ -947,6 +947,122 @@ header.product-header {
     cursor: pointer;
 }
 
+.report-type-select,
+.specialty-search {
+    width: 100%;
+    padding: 11px 12px;
+    color: var(--ink);
+    background: #fbfefc;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font: inherit;
+    outline: none;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.report-type-select:focus,
+.specialty-search:focus {
+    background: #ffffff;
+    border-color: var(--curis-400);
+    box-shadow: 0 0 0 3px rgba(78, 203, 160, 0.18);
+}
+
+.report-description {
+    margin: 10px 0 0;
+    padding: 10px 11px;
+    color: var(--muted);
+    background: var(--curis-50);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.specialty-picker-help {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.specialty-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0;
+}
+
+.specialty-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 8px !important;
+    color: var(--curis-900) !important;
+    background: var(--curis-100) !important;
+    border: 1px solid var(--curis-200) !important;
+    border-radius: 999px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+}
+
+.specialty-chip span {
+    font-size: 13px;
+    line-height: 1;
+}
+
+.specialty-choice-list {
+    max-height: 210px;
+    overflow-y: auto;
+    padding: 4px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+.specialty-choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.specialty-choice:hover {
+    background: var(--curis-50);
+}
+
+.specialty-choice input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--curis-700);
+}
+
+.specialty-choice.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.specialty-selection-status {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+    text-align: right;
+}
+
 .workflow-run-card {
     margin-top: 14px;
     padding: 16px;
@@ -1284,13 +1400,28 @@ input[type='range']::-moz-range-thumb {
    
     <div class="workflow-intro">
         <strong>Build Your Report</strong>
-        <span>Complete these four steps to generate a location report.</span>
+        <span>Choose a report and follow the steps tailored to that analysis.</span>
     </div>
 
-    <!-- STEP 1: SEARCH LOCATION -->
-    <div class="search-card workflow-step" id="location-step">
+    <!-- STEP 1: CHOOSE REPORT -->
+    <div class="search-card workflow-step" id="report-type-step">
         <h3 class="workflow-heading">
             <span class="workflow-step-number">1</span>
+            <span class="workflow-heading-text">Choose a report<small>Select the analysis you want to generate</small></span>
+        </h3>
+        <label for="report-type-select" class="sr-only">Report type</label>
+        <select id="report-type-select" class="report-type-select" onchange="handleReportTypeChange()">
+            <option value="">Select a report…</option>
+            <option value="specialty-demand">Specialty Demand Assessment</option>
+            <option value="urgent-care">Urgent Care Site Assessment</option>
+        </select>
+        <p id="report-description" class="report-description">Choose a report to see the required inputs and workflow.</p>
+    </div>
+
+    <!-- STEP 2: SEARCH LOCATION -->
+    <div class="search-card workflow-step" id="location-step">
+        <h3 class="workflow-heading">
+            <span class="workflow-step-number">2</span>
             <span class="workflow-heading-text">Choose a location<small>Search for the site you want to analyze</small></span>
         </h3>
         <input id="addressInput" type="text" value="601 Bailey Ave., Fort Worth, TX 76107"
@@ -1301,26 +1432,17 @@ input[type='range']::-moz-range-thumb {
     </div>
 <!-- Eplaceholder="Enter address..."  move to value above-->
     <!-- HEALTHCARE TOOLS -->
-<!-- STEP 2: SPECIALTY -->
-    <details id="specialty-step" class="workflow-step" open>
-    <summary><span class="workflow-summary-title"><span class="workflow-step-number">2</span><span class="workflow-summary-copy">Choose a specialty<small>Select one specialty for this report</small></span><span class="workflow-status" id="specialty-step-status">Required</span></span></summary>
-    <div>
-        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="urgentCare" data-label="Urgent Care" id="urgentCareCheckbox" onchange="handleSpecialtySelection('urgentCare')"
-               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Urgent Care</span></label>
-    </div> 
-    <div> 
-        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="hospital" data-label="ASC" id="HospitalCheckbox" onchange="handleSpecialtySelection('hospital')"
-               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">ASC</span></label>
-    </div>
-    <div> 
-        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="dermatology" data-label="Dermatology" id="DermCheckbox" onchange="handleSpecialtySelection('dermatology')"
-               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Dermatology</span></label>
-    </div>
-    <div> 
-        <label class="specialty-option"><input class="specialty-checkbox" type="radio" name="reportSpecialty" value="autism" data-label="Autism" id="AutismCheckbox" onchange="handleSpecialtySelection('autism')"
-               style="width: 16px; height: 16px; cursor: pointer;"><span style="font-size: 14px;">Autism</span></label>
-    </div>
- </details>
+    <!-- REPORT-SPECIFIC OPTIONS -->
+    <details id="report-options-step" class="workflow-step" hidden open>
+        <summary><span class="workflow-summary-title"><span class="workflow-step-number">3</span><span class="workflow-summary-copy">Choose thematic maps<small>Select up to four specialties to map</small></span><span class="workflow-status" id="report-options-status">4 selected</span></span></summary>
+        <div class="section-content">
+            <p class="specialty-picker-help">The complete demand table will still include all 25 specialties. These selections control the four thematic maps in the report.</p>
+            <input id="specialty-search" class="specialty-search" type="search" placeholder="Search 25 specialties…" oninput="renderThematicSpecialtyChoices()">
+            <div id="specialty-chip-list" class="specialty-chip-list" aria-label="Selected thematic map specialties"></div>
+            <div id="specialty-choice-list" class="specialty-choice-list"></div>
+            <p id="specialty-selection-status" class="specialty-selection-status">4 of 4 selected</p>
+        </div>
+    </details>
     
 <!-- COLLAPSIBLE PHYSICIAN SECTION -->
     <details style="margin-top: 20px; display: none;">
@@ -1347,9 +1469,9 @@ input[type='range']::-moz-range-thumb {
     </div>
  </details>
 
-    <!-- STEP 3: TRADE AREA -->
+    <!-- TRADE AREA -->
     <details id="trade-area-step" class="workflow-step">
-        <summary><span class="workflow-summary-title"><span class="workflow-step-number">3</span><span class="workflow-summary-copy">Set the trade area<small>Adjust the three analysis radii</small></span><span class="workflow-status" id="trade-area-step-status">1, 3, 5 mi</span></span></summary>
+        <summary><span class="workflow-summary-title"><span class="workflow-step-number" id="trade-area-step-number">3</span><span class="workflow-summary-copy">Set the trade area<small>Adjust the three analysis radii</small></span><span class="workflow-status" id="trade-area-step-status">1, 3, 5 mi</span></span></summary>
         <div class="section-content">
             <!-- Radius 1 Slider -->
             <div class="slider-container">
@@ -1393,14 +1515,14 @@ input[type='range']::-moz-range-thumb {
         </div>
     </details>
 
-    <!-- STEP 4: RUN REPORT -->
+    <!-- RUN REPORT -->
     <div class="workflow-run-card workflow-step" id="report-step">
         <h3 class="workflow-heading">
-            <span class="workflow-step-number">4</span>
+            <span class="workflow-step-number" id="run-report-step-number">4</span>
             <span class="workflow-heading-text">Generate report<small>Review your choices and create the analysis</small></span>
         </h3>
         <button id="run-report-button" class="btn-run-report" onclick="runReport()" disabled>Run Report</button>
-        <p class="workflow-run-help" id="workflow-run-help">Select at least one specialty to continue.</p>
+        <p class="workflow-run-help" id="workflow-run-help">Choose a report to continue.</p>
     </div>
 
 
@@ -1716,6 +1838,7 @@ function loadGoogleMapsScript() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+    initializeReportWorkflow();
     try {
         await loadRuntimeConfig();
         await loadGoogleMapsScript();
@@ -1731,6 +1854,19 @@ window.addEventListener('DOMContentLoaded', async () => {
 let map;
 let urgentCareMarkers = [];
 let selectedSpecialtyType = null;
+let selectedReportType = '';
+const THEMATIC_SPECIALTY_LIMIT = 4;
+const SPECIALTY_DEMAND_OPTIONS = Object.freeze([
+    'Allergy/immunology', 'Cardiology', 'Dermatology', 'ENT', 'Endocrinology/metabolism',
+    'Family practice', 'Gastroenterology', 'General practice', 'General surgery',
+    'Gynecology/obstetrics', 'Hematology', 'Internal medicine', 'Nephrology', 'Neurology',
+    'Oncology', 'Ophthalmology', 'Orthopedics', 'Pediatrics', 'Physical medicine/rehabilitation',
+    'Plastic surgery', 'Psychiatry', 'Pulmonary', 'Radiology', 'Rheumatology', 'Urology'
+]);
+const DEFAULT_THEMATIC_SPECIALTIES = Object.freeze([
+    'Family practice', 'Dermatology', 'Pediatrics', 'Oncology'
+]);
+let selectedThematicSpecialties = [...DEFAULT_THEMATIC_SPECIALTIES];
 let radiusCircles = [];
 let activeInfoWindow = null;
 let addressMarker = null; 
@@ -2461,58 +2597,149 @@ function switchTab(evt, tab) {
     }
 }
 
-function updateWorkflowState() {
-    const hasLocation = Number.isFinite(Number(selectedLocationContext?.lat)) &&
-        Number.isFinite(Number(selectedLocationContext?.lng));
-    const selectedSpecialty = document.querySelector('.specialty-checkbox:checked');
-    const hasSpecialty = Boolean(selectedSpecialty);
-    const radii = typeof getRadiiFromSidebar === 'function' ? getRadiiFromSidebar() : [1, 3, 5];
-
-    document.getElementById('location-step')?.classList.toggle('is-complete', hasLocation);
-    document.getElementById('specialty-step')?.classList.toggle('is-complete', hasSpecialty);
-    document.getElementById('trade-area-step')?.classList.toggle('is-complete', tradeAreaConfirmed);
-
-    const specialtyStatus = document.getElementById('specialty-step-status');
-    if (specialtyStatus) {
-        specialtyStatus.textContent = hasSpecialty
-            ? selectedSpecialty.dataset.label || 'Selected'
-            : 'Required';
-    }
-
-    const tradeAreaStatus = document.getElementById('trade-area-step-status');
-    if (tradeAreaStatus) {
-        tradeAreaStatus.textContent = `${radii.join(', ')} mi`;
-    }
-
-    const runButton = document.getElementById('run-report-button');
-    const runHelp = document.getElementById('workflow-run-help');
-    const ready = hasLocation && hasSpecialty && tradeAreaConfirmed;
-    if (runButton) runButton.disabled = !ready;
-    if (runHelp) {
-        if (!hasLocation) runHelp.textContent = 'Set a location to continue.';
-        else if (!hasSpecialty) runHelp.textContent = 'Select at least one specialty to continue.';
-        else if (!tradeAreaConfirmed) runHelp.textContent = 'Review and confirm the trade area to continue.';
-        else runHelp.textContent = 'Your location, specialty, and trade area are ready.';
-    }
-    document.getElementById('report-step')?.classList.toggle('is-complete', ready);
+function initializeReportWorkflow() {
+    renderThematicSpecialtyChoices();
+    updateWorkflowState();
 }
 
-function handleSpecialtySelection(specialty) {
-    selectedSpecialtyType = specialty;
+function handleReportTypeChange() {
+    selectedReportType = document.getElementById('report-type-select')?.value || '';
+    const isSpecialtyDemand = selectedReportType === 'specialty-demand';
+    const optionsStep = document.getElementById('report-options-step');
+    const description = document.getElementById('report-description');
+    const tradeNumber = document.getElementById('trade-area-step-number');
+    const runNumber = document.getElementById('run-report-step-number');
+    const runButton = document.getElementById('run-report-button');
+
+    if (optionsStep) {
+        optionsStep.hidden = !isSpecialtyDemand;
+        optionsStep.open = isSpecialtyDemand;
+    }
+    if (tradeNumber) tradeNumber.textContent = isSpecialtyDemand ? '4' : '3';
+    if (runNumber) runNumber.textContent = isSpecialtyDemand ? '5' : '4';
+
+    if (description) {
+        description.textContent = isSpecialtyDemand
+            ? 'Estimates resident-generated annual visits across 25 physician specialties. Choose up to four specialties for the thematic map page.'
+            : selectedReportType === 'urgent-care'
+                ? 'Combines demographics, demand indicators and nearby urgent care locations for a selected trade area.'
+                : 'Choose a report to see the required inputs and workflow.';
+    }
+    if (runButton) {
+        runButton.textContent = isSpecialtyDemand
+            ? 'Run Specialty Demand Report'
+            : selectedReportType === 'urgent-care'
+                ? 'Run Urgent Care Report'
+                : 'Run Report';
+    }
+
     clearUrgentCares();
     clearHospitals();
     clearDermatologists();
     clearAutism();
+    selectedSpecialtyType = selectedReportType === 'urgent-care' ? 'urgentCare' : null;
+    if (selectedSpecialtyType === 'urgentCare' && map) loadUrgentCares();
 
-    if (specialty === 'urgentCare') loadUrgentCares();
-    else if (specialty === 'hospital') loadHospitals();
-    else if (specialty === 'dermatology') loadDermatologists();
-    else if (specialty === 'autism') loadAutism();
-
-    const hasSpecialty = document.querySelector('.specialty-checkbox:checked');
-    const tradeAreaStep = document.getElementById('trade-area-step');
-    if (hasSpecialty && tradeAreaStep) tradeAreaStep.open = true;
+    const locationStep = document.getElementById('location-step');
+    if (selectedReportType && locationStep) locationStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     updateWorkflowState();
+}
+
+function renderThematicSpecialtyChoices() {
+    const list = document.getElementById('specialty-choice-list');
+    const chips = document.getElementById('specialty-chip-list');
+    if (!list || !chips) return;
+    const query = (document.getElementById('specialty-search')?.value || '').trim().toLowerCase();
+    const atLimit = selectedThematicSpecialties.length >= THEMATIC_SPECIALTY_LIMIT;
+
+    list.replaceChildren();
+    SPECIALTY_DEMAND_OPTIONS
+        .filter(name => !query || name.toLowerCase().includes(query))
+        .forEach(name => {
+            const checked = selectedThematicSpecialties.includes(name);
+            const label = document.createElement('label');
+            label.className = `specialty-choice${!checked && atLimit ? ' is-disabled' : ''}`;
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = checked;
+            input.disabled = !checked && atLimit;
+            input.addEventListener('change', () => toggleThematicSpecialty(name, input.checked));
+            const copy = document.createElement('span');
+            copy.textContent = name;
+            label.append(input, copy);
+            list.appendChild(label);
+        });
+
+    chips.replaceChildren();
+    selectedThematicSpecialties.forEach(name => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'specialty-chip';
+        chip.setAttribute('aria-label', `Remove ${name}`);
+        chip.append(document.createTextNode(name));
+        const close = document.createElement('span');
+        close.textContent = '×';
+        close.setAttribute('aria-hidden', 'true');
+        chip.appendChild(close);
+        chip.addEventListener('click', () => toggleThematicSpecialty(name, false));
+        chips.appendChild(chip);
+    });
+
+    const countText = `${selectedThematicSpecialties.length} of ${THEMATIC_SPECIALTY_LIMIT} selected`;
+    const selectionStatus = document.getElementById('specialty-selection-status');
+    const stepStatus = document.getElementById('report-options-status');
+    if (selectionStatus) selectionStatus.textContent = countText;
+    if (stepStatus) stepStatus.textContent = selectedThematicSpecialties.length
+        ? `${selectedThematicSpecialties.length} selected`
+        : 'Required';
+}
+
+function toggleThematicSpecialty(name, selected) {
+    if (!SPECIALTY_DEMAND_OPTIONS.includes(name)) return;
+    if (selected) {
+        if (!selectedThematicSpecialties.includes(name) && selectedThematicSpecialties.length < THEMATIC_SPECIALTY_LIMIT) {
+            selectedThematicSpecialties.push(name);
+        }
+    } else {
+        selectedThematicSpecialties = selectedThematicSpecialties.filter(item => item !== name);
+    }
+    renderThematicSpecialtyChoices();
+    updateWorkflowState();
+}
+
+function updateWorkflowState() {
+    const hasReport = Boolean(selectedReportType);
+    const hasLocation = Number.isFinite(Number(selectedLocationContext?.lat)) &&
+        Number.isFinite(Number(selectedLocationContext?.lng));
+    const requiresThematicMaps = selectedReportType === 'specialty-demand';
+    const hasReportOptions = !requiresThematicMaps || (
+        selectedThematicSpecialties.length > 0 &&
+        selectedThematicSpecialties.length <= THEMATIC_SPECIALTY_LIMIT
+    );
+    const radii = typeof getRadiiFromSidebar === 'function' ? getRadiiFromSidebar() : [1, 3, 5];
+
+    document.getElementById('report-type-step')?.classList.toggle('is-complete', hasReport);
+    document.getElementById('location-step')?.classList.toggle('is-complete', hasLocation);
+    document.getElementById('report-options-step')?.classList.toggle('is-complete', requiresThematicMaps && hasReportOptions);
+    document.getElementById('trade-area-step')?.classList.toggle('is-complete', tradeAreaConfirmed);
+
+    const tradeAreaStatus = document.getElementById('trade-area-step-status');
+    if (tradeAreaStatus) tradeAreaStatus.textContent = `${radii.join(', ')} mi`;
+
+    const runButton = document.getElementById('run-report-button');
+    const runHelp = document.getElementById('workflow-run-help');
+    const ready = hasReport && hasLocation && hasReportOptions && tradeAreaConfirmed;
+    if (runButton) runButton.disabled = !ready;
+    if (runHelp) {
+        if (!hasReport) runHelp.textContent = 'Choose a report to continue.';
+        else if (!hasLocation) runHelp.textContent = 'Set a location to continue.';
+        else if (!hasReportOptions) runHelp.textContent = 'Select at least one specialty map to continue.';
+        else if (!tradeAreaConfirmed) runHelp.textContent = 'Review and confirm the trade area to continue.';
+        else runHelp.textContent = requiresThematicMaps
+            ? `Ready with ${selectedThematicSpecialties.length} thematic maps and all 25 specialties in the demand table.`
+            : 'Your location and trade area are ready.';
+    }
+    document.getElementById('report-step')?.classList.toggle('is-complete', ready);
 }
 
 function confirmTradeArea() {
@@ -2651,28 +2878,128 @@ let currentReportData = {};
 // */
 
 
+function reportButtonLabel() {
+    if (selectedReportType === 'specialty-demand') return 'Run Specialty Demand Report';
+    if (selectedReportType === 'urgent-care') return 'Run Urgent Care Report';
+    return 'Run Report';
+}
+
+function loadReportFrame(iframe, src) {
+    return new Promise((resolve, reject) => {
+        const timeout = window.setTimeout(() => reject(new Error('The report template took too long to load.')), 20000);
+        iframe.onload = () => {
+            window.clearTimeout(timeout);
+            resolve();
+        };
+        iframe.src = src;
+    });
+}
+
+async function generateSpecialtyDemandReportFromMap(iframe) {
+    const doc = iframe.contentDocument;
+    const radii = normalizeRadii(getRadiiFromSidebar());
+    if (radii.length !== 3 || radii.some(radius => radius > 20)) {
+        throw new Error('Choose three distinct trade-area radii between 1 and 20 miles.');
+    }
+    if (!selectedThematicSpecialties.length || selectedThematicSpecialties.length > THEMATIC_SPECIALTY_LIMIT) {
+        throw new Error('Choose between one and four specialties for the thematic map page.');
+    }
+
+    const latitude = Number(selectedLocationContext?.lat);
+    const longitude = Number(selectedLocationContext?.lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        throw new Error('Select a valid report location.');
+    }
+
+    window.specialtySourceLoading = true;
+    window.specialtyReportPlaceId = selectedLocationContext?.placeId || null;
+    await loadBlockGroupData();
+    const membership = getBlockGroupsByRadius(latitude, longitude, radii);
+    if (!membership.allGeoids.length) {
+        throw new Error('Boundary coverage is unavailable for this location; the current boundary source supports Texas.');
+    }
+
+    const counties = [...new Set(membership.allGeoids.map(id => id.slice(0, 5)))];
+    const source = await Promise.all(counties.map(async countyFips => {
+        const response = await fetch('/api/specialty-demographics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ countyFips }),
+            signal: AbortSignal.timeout(120000)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Census sources could not be loaded.');
+        }
+        return result;
+    }));
+
+    const current = Object.assign({}, ...source.map(item => item.current));
+    const demographicsByRadius = Object.fromEntries(radii.map(radius => {
+        const ids = membership.byRadius[`${radius}mile`] || [];
+        const area = aggregateAcs(current, ids);
+        return [`${radius}mile`, {
+            ...area,
+            sourceCoverage: { matched: ids.filter(id => current[id]).length, total: ids.length },
+            employment: {}, housing: {}, income: {}
+        }];
+    }));
+
+    const payload = buildReportPayload({
+        address: selectedLocationContext?.address || document.getElementById('addressInput')?.value,
+        latitude,
+        longitude,
+        stateCode: selectedLocationContext?.stateCode,
+        radiiMiles: radii,
+        demographicsByRadius,
+        healthcareMarketContext: currentHealthcareMarketContext
+    });
+    payload.reportType = 'physician-specialty-demand-assessment';
+    payload.location.placeId = selectedLocationContext?.placeId || null;
+    payload.thematicMapSpecialties = [...selectedThematicSpecialties];
+
+    renderReportPayload(doc, iframe.contentWindow, payload);
+    const census = await renderCensusSections(doc, payload, source, membership);
+    await window.specialtyDemandReady;
+    for (const id of ['report-date', 'footer-date']) {
+        const element = doc.getElementById(id);
+        if (element) element.textContent = new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+    }
+    window.liveReportPayload = payload;
+    window.specialtyCensusResult = census;
+    window.specialtySourceLoading = false;
+}
+
 async function runReport() {
     const button = document.querySelector('.btn-run-report');
-    const iframe = document.getElementById("report-iframe");
-    const currentSrc = iframe.getAttribute("src") || "demographic_report_template.html";
-    button.textContent = 'Generating Report...';
+    const iframe = document.getElementById('report-iframe');
+    const modalTitle = document.getElementById('report-modal-title');
+    button.textContent = 'Generating Report…';
     button.disabled = true;
-  
+
     try {
-        iframe.src = currentSrc;
-        await new Promise((resolve) => {
-            iframe.onload = () => resolve();
-        });
-        await generateDemographicReport();
-        button.textContent = 'Run Report';
-        button.disabled = false;
-          // Show the modal
-        document.getElementById("report-modal").style.display = "block";
+        if (selectedReportType === 'specialty-demand') {
+            if (modalTitle) modalTitle.textContent = 'Physician Specialty Demand Assessment';
+            await loadReportFrame(iframe, 'specialty_demand_report_template.html?managed=1');
+            await generateSpecialtyDemandReportFromMap(iframe);
+        } else if (selectedReportType === 'urgent-care') {
+            if (modalTitle) modalTitle.textContent = 'Urgent Care Site Assessment';
+            await loadReportFrame(iframe, 'demographic_report_template.html');
+            await generateDemographicReport();
+        } else {
+            throw new Error('Choose a report before generating the analysis.');
+        }
+        document.getElementById('report-modal').style.display = 'block';
     } catch (error) {
+        window.specialtySourceLoading = false;
         console.error('Report generation failed:', error);
-        button.textContent = 'Run Report';
+        alert(error.message || 'Failed to generate report. Please try again.');
+    } finally {
+        button.textContent = reportButtonLabel();
         button.disabled = false;
-        alert('Failed to generate report. Please try again.');
+        updateWorkflowState();
     }
 }
 
@@ -3173,7 +3500,7 @@ function populateDemographicSnapshot(data) {
 <div id="report-modal">
     <div style="position: relative; background-color: #fefefe; margin: 2% auto; padding: 0; width: 95%; max-width: 1400px; height: 90vh; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 8px; display: flex; flex-direction: column;">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(100deg,#073b2c,#146c50); color: white; border-radius: 8px 8px 0 0;">
-            <h2 style="margin: 0; font-size: 20px; border: none; padding: 0; color: white;">Demographic Analysis Report</h2>
+            <h2 id="report-modal-title" style="margin: 0; font-size: 20px; border: none; padding: 0; color: white;">Location Analysis Report</h2>
             <button class="close-report" onclick="closeReport()">Close</button>
         </div>
         <!-- <iframe id="demographicReport" src="demographic_report_template.html" style="width: 100%; height: 100%; border: none; flex: 1;"></iframe> -->
@@ -3183,6 +3510,8 @@ function populateDemographicSnapshot(data) {
 
 <!-- 3. Report integration -->
 <script src="report_integration.js"></script>
+<script src="specialty_census_report.js"></script>
+<script src="specialty_demand_integration.js"></script>
 
 
 

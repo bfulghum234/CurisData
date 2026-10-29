@@ -263,6 +263,7 @@ async function renderGoogleNeighborhood(doc, payload) {
 const renderBaseSpecialtyReport = renderReportPayload;
 window.renderReportPayload = function(doc, reportWindow, payload, options) {
   const result = renderBaseSpecialtyReport(doc, reportWindow, payload, options);
+  if (payload?.reportType !== 'physician-specialty-demand-assessment') return result;
   const download = doc.getElementById('download-btn');
   if (download) download.disabled = true;
   window.specialtyDemandReady = Promise.all([
