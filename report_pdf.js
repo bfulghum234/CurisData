@@ -16,6 +16,20 @@
       : `curis-urgent-care-site-assessment-${date}.pdf`;
   }
 
+  function resolvePdfTools() {
+    let parentWindow;
+    try {
+      parentWindow = window.parent && window.parent !== window ? window.parent : undefined;
+    } catch (error) {
+      parentWindow = undefined;
+    }
+
+    return {
+      html2canvas: window.html2canvas || parentWindow?.html2canvas,
+      jsPDF: window.jspdf?.jsPDF || parentWindow?.jspdf?.jsPDF
+    };
+  }
+
   async function waitForReportAssets() {
     if (document.fonts?.ready) await document.fonts.ready;
     await Promise.all(Array.from(document.querySelectorAll('#pdf-root img')).map(image => {
@@ -55,8 +69,8 @@
       return;
     }
 
-    const jsPDF = window.jspdf?.jsPDF;
-    if (typeof window.html2canvas !== 'function' || typeof jsPDF !== 'function') {
+    const { html2canvas, jsPDF } = resolvePdfTools();
+    if (typeof html2canvas !== 'function' || typeof jsPDF !== 'function') {
       window.alert('The PDF tools did not load. Refresh the page and try again.');
       return;
     }
@@ -77,7 +91,7 @@
         if (button) button.textContent = `Preparing page ${index + 1} of ${pages.length}…`;
         await new Promise(resolve => window.setTimeout(resolve, 0));
 
-        const canvas = await window.html2canvas(pages[index], {
+        const canvas = await html2canvas(pages[index], {
           scale: 1.25,
           useCORS: true,
           allowTaint: false,
