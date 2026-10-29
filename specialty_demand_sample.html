@@ -17,23 +17,16 @@ iframe { display: block; width: 100%; height: calc(100vh - 156px); border: 0; }
 @media (max-width: 700px) { .sample-header { align-items: flex-start; flex-direction: column; } .sample-note { text-align: left; } iframe { height: calc(100vh - 206px); } }
 </style>
 </head>
-<body data-report-address="601 Bailey Ave., Fort Worth, TX 76107" data-report-radii="1,3,5">
+<body>
 <header class="sample-header">
   <div>
     <p class="eyebrow">CurisData Sample Report</p>
     <h1>Specialty Demand Assessment</h1>
   </div>
-  <p class="sample-note">This fixed Fort Worth example shows the structure and depth of a CurisData demand report. Use the report's download button to save a PDF.</p>
+  <p class="sample-note">This saved Fort Worth example shows the structure and depth of a CurisData demand report. Use the report's download button to save a PDF.</p>
 </header>
-<p id="status" role="status">Loading sample report sources...</p>
-<input id="address-input" type="hidden" value="601 Bailey Ave., Fort Worth, TX 76107">
-<input id="radii-input" type="hidden" value="1,3,5">
-<iframe id="report-iframe" src="specialty_demand_report_template.html?managed=1" title="Specialty demand assessment sample report"></iframe>
-<script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
-<script>window.__CURIS_SUPPRESS_DATA_ALERTS=true;</script>
-<script src="report_integration.js"></script>
-<script src="specialty_census_report.js"></script>
-<script src="specialty_demand_integration.js"></script>
-<script src="specialty_report_loader.js"></script>
+<p id="status" role="status">Viewing a saved sample report. No live report sources are being requested.</p>
+<iframe id="report-iframe" src="specialty_demand_report_template.html?saved-sample=1" title="Specialty demand assessment sample report"></iframe>
+<script src="specialty_demand_sample_static.js"></script>
 </body>
 </html>
