@@ -1,38 +1,39 @@
 (function initializeReportPdfDownload() {
   const DEFAULT_BUTTON_LABEL = '📥 Download PDF Report';
 
-  function visibleReportPages() {
-    const root = document.getElementById('pdf-root');
+  function visibleReportPages(sourceDocument) {
+    const root = sourceDocument.getElementById('pdf-root');
     if (!root) return [];
+    const sourceWindow = sourceDocument.defaultView || window;
     return Array.from(root.querySelectorAll(':scope > .page')).filter(page =>
-      !page.hidden && window.getComputedStyle(page).display !== 'none'
+      !page.hidden && sourceWindow.getComputedStyle(page).display !== 'none'
     );
   }
 
-  function reportFilename() {
+  function reportFilename(sourceDocument) {
     const date = new Date().toISOString().slice(0, 10);
-    return document.getElementById('meps-specialty-table')
+    return sourceDocument.getElementById('meps-specialty-table')
       ? `curis-specialty-demand-report-${date}.pdf`
       : `curis-urgent-care-site-assessment-${date}.pdf`;
   }
 
-  function resolvePdfTools() {
+  function resolvePdfTools(ownerWindow) {
     let parentWindow;
     try {
-      parentWindow = window.parent && window.parent !== window ? window.parent : undefined;
+      parentWindow = ownerWindow.parent && ownerWindow.parent !== ownerWindow ? ownerWindow.parent : undefined;
     } catch (error) {
       parentWindow = undefined;
     }
 
     return {
-      html2canvas: window.html2canvas || parentWindow?.html2canvas,
-      jsPDF: window.jspdf?.jsPDF || parentWindow?.jspdf?.jsPDF
+      html2canvas: ownerWindow.html2canvas || parentWindow?.html2canvas,
+      jsPDF: ownerWindow.jspdf?.jsPDF || parentWindow?.jspdf?.jsPDF
     };
   }
 
-  async function waitForReportAssets() {
-    if (document.fonts?.ready) await document.fonts.ready;
-    await Promise.all(Array.from(document.querySelectorAll('#pdf-root img')).map(image => {
+  async function waitForReportAssets(sourceDocument) {
+    if (sourceDocument.fonts?.ready) await sourceDocument.fonts.ready;
+    await Promise.all(Array.from(sourceDocument.querySelectorAll('#pdf-root img')).map(image => {
       if (image.complete && image.naturalWidth) return Promise.resolve();
       if (typeof image.decode === 'function') return image.decode().catch(() => {});
       return new Promise(resolve => {
@@ -42,9 +43,8 @@
     }));
   }
 
-  function savePdfFromTopLevel(pdf, filename) {
+  function savePdfFromTopLevel(pdf, filename, ownerWindow) {
     const blob = pdf.output('blob');
-    const ownerWindow = window.parent && window.parent !== window ? window.parent : window;
     const ownerDocument = ownerWindow.document;
     const url = ownerWindow.URL.createObjectURL(blob);
     const link = ownerDocument.createElement('a');
@@ -60,18 +60,18 @@
     }, 60000);
   }
 
-  async function downloadPDF() {
-    const button = document.getElementById('download-btn');
+  async function downloadPDF(sourceDocument = document, ownerWindow = window) {
+    const button = sourceDocument.getElementById('download-btn');
     if (button?.disabled) return;
-    const pages = visibleReportPages();
+    const pages = visibleReportPages(sourceDocument);
     if (!pages.length) {
-      window.alert('The report does not contain any pages to download.');
+      ownerWindow.alert('The report does not contain any pages to download.');
       return;
     }
 
-    const { html2canvas, jsPDF } = resolvePdfTools();
+    const { html2canvas, jsPDF } = resolvePdfTools(ownerWindow);
     if (typeof html2canvas !== 'function' || typeof jsPDF !== 'function') {
-      window.alert('The PDF tools did not load. Refresh the page and try again.');
+      ownerWindow.alert('The PDF tools did not load. Refresh the page and try again.');
       return;
     }
 
@@ -81,7 +81,7 @@
     }
 
     try {
-      await waitForReportAssets();
+      await waitForReportAssets(sourceDocument);
       const pdf = new jsPDF({ unit: 'in', format: 'letter', orientation: 'portrait', compress: true });
       const availableWidth = 7.5;
       const availableHeight = 10;
@@ -89,7 +89,7 @@
       for (let index = 0; index < pages.length; index += 1) {
         if (index) pdf.addPage('letter', 'portrait');
         if (button) button.textContent = `Preparing page ${index + 1} of ${pages.length}…`;
-        await new Promise(resolve => window.setTimeout(resolve, 0));
+        await new Promise(resolve => ownerWindow.setTimeout(resolve, 0));
 
         const canvas = await html2canvas(pages[index], {
           scale: 1.25,
@@ -113,10 +113,10 @@
         pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, drawWidth, drawHeight, undefined, 'FAST');
       }
 
-      savePdfFromTopLevel(pdf, reportFilename());
+      savePdfFromTopLevel(pdf, reportFilename(sourceDocument), ownerWindow);
     } catch (error) {
       console.error('Unable to generate report PDF:', error);
-      window.alert('The PDF could not be generated. Refresh the report and try again.');
+      ownerWindow.alert('The PDF could not be generated. Refresh the report and try again.');
     } finally {
       if (button) {
         button.disabled = false;
@@ -125,5 +125,22 @@
     }
   }
 
-  window.downloadPDF = downloadPDF;
+  function installReportPdfDownload(sourceDocument, ownerWindow = window) {
+    const button = sourceDocument?.getElementById('download-btn');
+    if (!button) return false;
+
+    if (button.__curisPdfHandler) {
+      button.removeEventListener('click', button.__curisPdfHandler);
+    }
+    button.removeAttribute('onclick');
+    button.disabled = false;
+    button.textContent = DEFAULT_BUTTON_LABEL;
+    button.__curisPdfHandler = () => downloadPDF(sourceDocument, ownerWindow);
+    button.addEventListener('click', button.__curisPdfHandler);
+    return true;
+  }
+
+  window.downloadPDF = () => downloadPDF(document, window);
+  window.installReportPdfDownload = installReportPdfDownload;
+  if (document.getElementById('pdf-root')) installReportPdfDownload(document, window);
 })();

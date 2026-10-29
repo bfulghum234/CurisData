@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="report_pdf.js"></script>
 
 <style>
 
@@ -2990,6 +2991,10 @@ async function runReport() {
             await generateDemographicReport();
         } else {
             throw new Error('Choose a report before generating the analysis.');
+        }
+        if (typeof window.installReportPdfDownload !== 'function'
+            || !window.installReportPdfDownload(iframe.contentDocument, window)) {
+            throw new Error('The PDF download control could not be initialized.');
         }
         document.getElementById('report-modal').style.display = 'block';
     } catch (error) {

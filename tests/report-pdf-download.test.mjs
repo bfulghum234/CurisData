@@ -4,6 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const script = await fs.readFile(new URL('../report_pdf.js', import.meta.url), 'utf8');
+const mapHtml = await fs.readFile(new URL('../demo_report_map.html', import.meta.url), 'utf8');
 const urgentCareTemplate = await fs.readFile(new URL('../demographic_report_template.html', import.meta.url), 'utf8');
 const specialtyTemplate = await fs.readFile(new URL('../specialty_demand_report_template.html', import.meta.url), 'utf8');
 
@@ -24,18 +25,26 @@ test('PDF download renders each visible report page onto its own letter page', (
   assert.match(script, /if \(index\) pdf\.addPage\('letter', 'portrait'\)/);
   assert.match(script, /pdf\.output\('blob'\)/);
   assert.match(script, /ownerDocument\.body\.appendChild\(link\)/);
-  assert.match(script, /savePdfFromTopLevel\(pdf, reportFilename\(\)\)/);
+  assert.match(script, /savePdfFromTopLevel\(pdf, reportFilename\(sourceDocument\), ownerWindow\)/);
 });
 
 test('embedded reports can use PDF tools from the top-level map page', () => {
-  assert.match(script, /window\.html2canvas \|\| parentWindow\?\.html2canvas/);
-  assert.match(script, /window\.jspdf\?\.jsPDF \|\| parentWindow\?\.jspdf\?\.jsPDF/);
+  assert.match(script, /ownerWindow\.html2canvas \|\| parentWindow\?\.html2canvas/);
+  assert.match(script, /ownerWindow\.jspdf\?\.jsPDF \|\| parentWindow\?\.jspdf\?\.jsPDF/);
+  assert.match(mapHtml, /<script src="report_pdf\.js"><\/script>/);
+  assert.match(mapHtml, /installReportPdfDownload\(iframe\.contentDocument, window\)/);
 });
 
 test('embedded report download uses parent PDF tools and starts a browser download', async () => {
   const page = { hidden: false };
   const root = { querySelectorAll: () => [page] };
-  const button = { disabled: false, textContent: 'Download' };
+  const button = {
+    disabled: true,
+    textContent: 'Download',
+    removeAttribute() {},
+    addEventListener(type, handler) { this.handler = handler; },
+    removeEventListener() {}
+  };
   let linkClicked = false;
   const link = { hidden: false, dataset: {}, click() { linkClicked = true; }, remove() {} };
   class PdfStub {
@@ -50,19 +59,23 @@ test('embedded report download uses parent PDF tools and starts a browser downlo
     URL: { createObjectURL: () => 'blob:report', revokeObjectURL() {} },
     setTimeout: callback => callback()
   };
-  const document = {
+  const sourceDocument = {
     fonts: { ready: Promise.resolve() },
     getElementById: id => id === 'pdf-root' ? root : id === 'download-btn' ? button : null,
-    querySelectorAll: () => []
+    querySelectorAll: () => [],
+    defaultView: { getComputedStyle: () => ({ display: 'block' }) }
   };
   const window = {
     parent: parentWindow,
+    document: { getElementById: () => null },
     getComputedStyle: () => ({ display: 'block' }),
     setTimeout: callback => callback(),
     alert(message) { throw new Error(message); }
   };
-  vm.runInNewContext(script, { window, document, Blob, console });
-  await window.downloadPDF();
+  vm.runInNewContext(script, { window, document: window.document, Blob, console });
+  assert.equal(window.installReportPdfDownload(sourceDocument, parentWindow), true);
+  assert.equal(button.disabled, false);
+  await button.handler();
   assert.equal(linkClicked, true);
   assert.equal(button.disabled, false);
   assert.equal(button.textContent, '📥 Download PDF Report');
