@@ -30,10 +30,7 @@ async function loadSourceSpecialtyReport() {
     const membership=getBlockGroupsByRadius(site.latitude,site.longitude,radii);
     if(!membership.allGeoids.length)throw new Error('No U.S. block groups intersect this report area.');
     const counties=[...new Set(membership.allGeoids.map(id=>id.slice(0,5)))];
-    const source=await Promise.all(counties.map(async countyFips=>{
-      const response=await fetch('/api/specialty-demographics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({countyFips}),signal:AbortSignal.timeout(120000)});
-      const result=await response.json();if(!response.ok||!result.success)throw new Error('Census sources could not be loaded.');return result;
-    }));
+    const source=await Promise.all(counties.map(loadNationalCensusCounty));
     const current=Object.assign({},...source.map(item=>item.current));
     const demographicsByRadius=Object.fromEntries(radii.map(radius=>{
       const ids=membership.byRadius[`${radius}mile`],area=aggregateAcs(current,ids);

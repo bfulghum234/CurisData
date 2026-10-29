@@ -1591,6 +1591,7 @@ input[type='range']::-moz-range-thumb {
         </div>
 
 <div id="demographics-tab" class="tab-content active">
+<p class="snapshot-note" id="snapshot-source-note" style="padding:8px 12px">ACS 2020–2024 · Whole intersecting block groups. Income and home-value medians are estimated from distribution bins.</p>
     <div class="three-column-layout">
         <!-- Left: Population Data -->
         <div class="demo-column light-gray">
@@ -2921,19 +2922,7 @@ async function generateSpecialtyDemandReportFromMap(iframe) {
     }
 
     const counties = [...new Set(membership.allGeoids.map(id => id.slice(0, 5)))];
-    const source = await Promise.all(counties.map(async countyFips => {
-        const response = await fetch('/api/specialty-demographics', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ countyFips }),
-            signal: AbortSignal.timeout(120000)
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'Census sources could not be loaded.');
-        }
-        return result;
-    }));
+    const source = await Promise.all(counties.map(loadNationalCensusCounty));
 
     const current = Object.assign({}, ...source.map(item => item.current));
     const demographicsByRadius = Object.fromEntries(radii.map(radius => {
@@ -3260,15 +3249,7 @@ async function loadDemographics(lat, lng) {
         return response.json();
     });
 
-    const radiusDataPromise = (async () => {
-        if (typeof ensureDemographicDataReady === 'function') {
-            await ensureDemographicDataReady();
-        }
-        if (typeof fetchMultiRadiusDataFromCSV !== 'function') {
-            throw new Error('Radius demographic loader is unavailable');
-        }
-        return fetchMultiRadiusDataFromCSV(lat, lng, radii);
-    })();
+    const radiusDataPromise = loadNationalSnapshot(lat, lng, radii);
 
     const marketCountsPromise = fetchHealthcareMarketCounts(lat, lng, maxRadius);
 
@@ -3395,12 +3376,12 @@ function showSnapshotError(message) {
 }
 
 function populateDemographicSnapshot(data) {
-    const formatNumber = value => Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
-    const formatCurrency = value => Number(value || 0).toLocaleString('en-US', {
+    const formatNumber = value => Number.isFinite(value) ? value.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '—';
+    const formatCurrency = value => Number.isFinite(value) ? value.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         maximumFractionDigits: 0
-    });
+    }) : '—';
     const percentChange = (current, projected) => current > 0 && projected > 0
         ? ((projected - current) / current) * 100
         : null;
@@ -3429,6 +3410,7 @@ function populateDemographicSnapshot(data) {
         ['$100,000 - $149,999', '100-149'],
         ['$150,000+', '150plus']
     ];
+    const incomeComplete = incomeRanges.every(([label]) => Number.isFinite(data.income?.[label]));
     const incomeHouseholds = incomeRanges.reduce((sum, [label]) => sum + Number(data.income?.[label] || 0), 0);
     const incomeChartData = incomeRanges.map(([label, key]) => {
         const count = Number(data.income?.[label] || 0);
@@ -3443,29 +3425,29 @@ function populateDemographicSnapshot(data) {
     incomeChartData.forEach(({ key, count, share }) => {
         const value = document.getElementById(`income-${key}-value`);
         const bar = document.getElementById(`income-${key}-bar`);
-        if (value) value.textContent = `${share.toFixed(1)}%`;
+        if (value) value.textContent = incomeComplete && incomeHouseholds > 0 ? `${share.toFixed(1)}%` : '—';
         if (bar) {
-            const relativeWidth = share > 0 ? (share / largestIncomeShare) * 100 : 0;
+            const relativeWidth = incomeComplete && share > 0 ? (share / largestIncomeShare) * 100 : 0;
             bar.style.width = `${relativeWidth}%`;
             bar.title = `${formatNumber(count)} households (${share.toFixed(1)}%)`;
         }
     });
 
     const ageGroups = [
-        ['snapshot-age-18-34', 'snapshot-age-18-34-bar', Number(data.age_18_34 || 0)],
-        ['snapshot-age-35-54', 'snapshot-age-35-54-bar', Number(data.age_35_54 || 0)],
-        ['snapshot-age-55-64', 'snapshot-age-55-64-bar', Number(data.age_55_64 || 0)],
-        ['snapshot-age-65plus', 'snapshot-age-65plus-bar', Number(data.age_65plus || 0)]
+        ['snapshot-age-18-34', 'snapshot-age-18-34-bar', data.age_18_34],
+        ['snapshot-age-35-54', 'snapshot-age-35-54-bar', data.age_35_54],
+        ['snapshot-age-55-64', 'snapshot-age-55-64-bar', data.age_55_64],
+        ['snapshot-age-65plus', 'snapshot-age-65plus-bar', data.age_65plus]
     ];
     const population = Number(data.population || 0);
     const largestAgeGroup = Math.max(...ageGroups.map(group => group[2]), 1);
 
     ageGroups.forEach(([labelId, barId, value]) => {
         const share = population > 0 ? (value / population) * 100 : 0;
-        setText(labelId, `${share.toFixed(1)}%`);
+        setText(labelId, Number.isFinite(value) && population > 0 ? `${share.toFixed(1)}%` : '—');
         const bar = document.getElementById(barId);
         if (bar) {
-            bar.style.height = `${Math.max(4, (value / largestAgeGroup) * 100)}%`;
+            bar.style.height = `${Number.isFinite(value) && largestAgeGroup > 0 ? Math.max(4, (value / largestAgeGroup) * 100) : 0}%`;
             bar.title = `${formatNumber(value)} people (${share.toFixed(1)}%)`;
         }
     });

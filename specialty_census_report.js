@@ -217,3 +217,41 @@ async function renderSourceChoropleths(doc,payload,records,membership) {
   const sharedLegend=doc.getElementById('specialty-map-legend');if(sharedLegend){sharedLegend.replaceChildren();for(let i=0;i<6;i++){const item=doc.createElement('span');item.style.cssText='border-left:14px solid '+colors[i]+';padding-left:4px;font-size:10px';item.textContent=pooled.length?(i?'> '+sharedThresholds[i-1]:'0')+(i<5?'–'+sharedThresholds[i]:''):'Unavailable';sharedLegend.appendChild(item);}const units=doc.createElement('span');units.style.fontSize='10px';units.textContent='Annual visits per 1,000 residents · shared scale';sharedLegend.appendChild(units);}
   const coverImage=doc.getElementById('report-map-image');if(coverImage){coverImage.removeAttribute('src');coverImage.style.display='none';}
 }
+
+// One cached county source shared by the snapshot and specialty report.
+const nationalCountyCache=new Map();
+function loadNationalCensusCounty(countyFips) {
+  const cached=nationalCountyCache.get(countyFips);
+  if(cached&&Date.now()-cached.at<900000)return cached.promise;
+  const promise=(async()=>{
+    const response=await fetch('/api/specialty-demographics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({countyFips}),signal:AbortSignal.timeout(120000)});
+    const data=await response.json();if(!response.ok||!data.success)throw new Error('Census sources could not be loaded.');return data;
+  })();
+  const entry={at:Date.now(),promise};nationalCountyCache.set(countyFips,entry);
+  promise.catch(()=>{if(nationalCountyCache.get(countyFips)===entry)nationalCountyCache.delete(countyFips);});
+  return promise;
+}
+function buildNationalSnapshot(current,prior,ids,ageRecords) {
+  const area=aggregateAcs(current,ids),old=aggregateAcs(prior,ids);
+  const ageRows=ids.map(id=>ageRecords[id]);
+  const validAges=ids.length>0&&ageRows.every(row=>Number.isFinite(row?.population)&&row.population>=0&&row.ages?.length===5&&row.ages.every(n=>Number.isFinite(n)&&n>=0));
+  // Same matching ACS population/age release as the report; source gaps stay unavailable.
+  const population=validAges?ageRows.reduce((sum,row)=>sum+row.population,0):area.population;
+  const ages=validAges?Array.from({length:5},(_,i)=>ageRows.reduce((sum,row)=>sum+row.ages[i],0)):area.ages;
+  const bins=(a,b)=>{const values=area.incomeBins.slice(a,b);return values.every(Number.isFinite)?values.reduce((sum,n)=>sum+n,0):NaN;};
+  const income=Object.fromEntries([['Under $25,000',0,4],['$25,000 - $49,999',4,9],['$50,000 - $74,999',9,11],['$75,000 - $99,999',11,12],['$100,000 - $149,999',12,14],['$150,000+',14,16]].map(([label,a,b])=>[label,bins(a,b)]));
+  return {...area,population,age_0_17:ages[0],age_18_34:ages[1],age_35_54:ages[2],age_55_64:ages[3],age_65plus:ages[4],income,housing:{medianValue:area.homeValue},
+    pop_proj:projectAcs(population,old.population).future,hh_proj:projectAcs(area.households,old.households).future,med_inc_proj:projectAcs(area.medianIncome,old.medianIncome).future,CAGR_med_inc:projectAcs(area.medianIncome,old.medianIncome).cagr};
+}
+async function loadNationalSnapshot(latitude,longitude,radii) {
+  await loadNationalReportBoundaries(latitude,longitude,Math.max(...radii));
+  const membership=getBlockGroupsByRadius(latitude,longitude,radii);
+  if(!membership.allGeoids.length)throw new Error('No U.S. block groups intersect this report area.');
+  const counties=[...new Set(membership.allGeoids.map(id=>id.slice(0,5)))];
+  const [source,ageFiles]=await Promise.all([
+    Promise.all(counties.map(loadNationalCensusCounty)),
+    Promise.all(counties.map(async county=>{try{const response=await fetch('reports/acs2024-age/'+county+'.json');return response.ok?(await response.json()).blockGroups:{};}catch{return {};}}))
+  ]);
+  const current=Object.assign({},...source.map(item=>item.current)),prior=Object.assign({},...source.map(item=>item.prior)),ages=Object.assign({},...ageFiles);
+  return Object.fromEntries(radii.map(radius=>[radius+'mile',buildNationalSnapshot(current,prior,membership.byRadius[radius+'mile']||[],ages)]));
+}

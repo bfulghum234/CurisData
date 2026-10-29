@@ -42,3 +42,17 @@ test('connected specialty pages contain no frozen or sample fallback paths',()=>
   assert.match(template,/2029 Trend Scenario/);
   assert.match(template,/id="economic-insight"/);
 });
+test('national snapshot uses processed ACS ages and preserves source gaps',()=>{
+ const record={B01001_001E:100,B11001_001E:40,B11001_002E:20};
+ const age={a:{population:100,ages:[20,25,30,15,10]}};
+ const result=context.buildNationalSnapshot({a:record},{},['a'],age);
+ assert.equal(result.population,100);assert.equal(result.households,40);assert.equal(result.families,20);assert.equal(result.age_18_34,25);assert.equal(result.age_65plus,10);
+ assert.ok(Number.isNaN(result.income['Under $25,000']));assert.ok(Number.isNaN(result.pop_proj));
+ const missing=context.buildNationalSnapshot({}, {}, ['missing'], {});assert.ok(Number.isNaN(missing.population));assert.ok(Number.isNaN(missing.age_18_34));
+});
+test('map snapshot and report share national county requests and inline scripts parse',()=>{
+ const html=fs.readFileSync('demo_report_map.html','utf8');
+ const loader=html.slice(html.indexOf('async function loadDemographics'),html.indexOf('function setSnapshotLoadingState'));
+ assert.match(loader,/loadNationalSnapshot\(lat, lng, radii\)/);assert.doesNotMatch(loader,/fetchMultiRadiusDataFromCSV|ensureDemographicDataReady/);
+ for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
+});
