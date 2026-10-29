@@ -145,3 +145,18 @@ Transparency-in-Coverage/Snowflake reporting is intentionally disabled in both
 the browser workflow and `functions/report.js`. Its implementation remains in
 place for a future product phase, but current report runs do not issue TiC API
 or Snowflake requests.
+
+## National specialty report boundaries
+
+The specialty report fetches `/api/report-boundaries?bbox=west,south,east,north`
+for the largest selected radius. The endpoint queries Census TIGERweb ACS 2024
+block-group geometry, retrieves every matching object ID in checked batches,
+and rejects incomplete responses. Browser Turf intersections determine the
+whole block groups in each radius, including across county/state borders.
+Successful geometry is edge-cached for one day. This replaces the Texas R2
+geometry dependency for the specialty report; other existing reports retain
+their original loaders. Census outages remain explicit failures.
+
+Live boundary checks passed for Kansas City (Kansas and Missouri), Honolulu,
+and Anchorage. National demand/age source gaps remain labeled unavailable;
+U.S. territories are not included in the current MEPS release.

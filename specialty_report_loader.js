@@ -26,9 +26,13 @@ async function loadSourceSpecialtyReport() {
     const site=await locationResponse.json();if(!locationResponse.ok)throw new Error(site.error||'Address lookup unavailable.');
     window.specialtyReportPlaceId=site.placeId;if(addressInput)addressInput.value=site.address;
     status.textContent='Loading trade-area boundaries and Census sources…';
-    await loadBlockGroupData();
+    const boundaryBounds=turf.bbox(turf.circle([site.longitude,site.latitude],radii.at(-1),{units:'miles'}));
+    const boundaryResponse=await fetch('/api/report-boundaries?bbox='+boundaryBounds.join(','),{signal:AbortSignal.timeout(180000)});
+    const boundaries=await boundaryResponse.json();
+    if(!boundaryResponse.ok||boundaries.type!=='FeatureCollection'||!Array.isArray(boundaries.features))throw new Error(boundaries.error||'Boundary coverage is unavailable.');
+    blockGroupData=boundaries;
     const membership=getBlockGroupsByRadius(site.latitude,site.longitude,radii);
-    if(!membership.allGeoids.length)throw new Error('Boundary coverage is unavailable for this location; the current boundary source supports Texas.');
+    if(!membership.allGeoids.length)throw new Error('No U.S. block groups intersect this report area.');
     const counties=[...new Set(membership.allGeoids.map(id=>id.slice(0,5)))];
     const source=await Promise.all(counties.map(async countyFips=>{
       const response=await fetch('/api/specialty-demographics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({countyFips}),signal:AbortSignal.timeout(120000)});

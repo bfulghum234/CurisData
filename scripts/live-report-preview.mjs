@@ -6,12 +6,17 @@ import { onRequestPost as neighborhoodSummary } from '../functions/api/neighborh
 import { onRequestPost as specialtyDemographics } from '../functions/api/specialty-demographics.js';
 import { onRequestPost as reportLocation } from '../functions/api/report-location.js';
 import { onRequestGet as reportBasemap } from '../functions/api/report-basemap.js';
+import { onRequestGet as reportBoundaries } from '../functions/api/report-boundaries.js';
 const root = process.cwd();
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.css': 'text/css', '.svg': 'image/svg+xml' };
 // Local preview uses deployed source endpoints; no keys or source files are saved.
 http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://127.0.0.1');
+    if (url.pathname === '/api/report-boundaries') {
+      const result=await reportBoundaries({request:new Request(url)});
+      response.writeHead(result.status,Object.fromEntries(result.headers));response.end(await result.text());return;
+    }
     if (url.pathname === '/api/report-basemap') {
       const config = await (await fetch('https://www.curiscorp.com/login')).json();
       const result = await reportBasemap({ request: new Request(url), env: { GOOGLE_MAPS_API_KEY: config.googleMapsApiKey } });
