@@ -15,6 +15,7 @@ test('both generated report templates load the real PDF downloader', () => {
 test('PDF download renders each visible report page onto its own letter page', () => {
   assert.match(script, /querySelectorAll\(':scope > \.page'\)/);
   assert.match(script, /window\.html2canvas\(pages\[index\]/);
+  assert.match(script, /scale: 1\.25/);
   assert.match(script, /new jsPDF\(\{ unit: 'in', format: 'letter'/);
   assert.match(script, /if \(index\) pdf\.addPage\('letter', 'portrait'\)/);
   assert.match(script, /pdf\.output\('blob'\)/);

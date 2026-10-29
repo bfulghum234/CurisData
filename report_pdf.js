@@ -75,9 +75,10 @@
       for (let index = 0; index < pages.length; index += 1) {
         if (index) pdf.addPage('letter', 'portrait');
         if (button) button.textContent = `Preparing page ${index + 1} of ${pages.length}…`;
+        await new Promise(resolve => window.setTimeout(resolve, 0));
 
         const canvas = await window.html2canvas(pages[index], {
-          scale: 1.75,
+          scale: 1.25,
           useCORS: true,
           allowTaint: false,
           backgroundColor: '#ffffff',
@@ -95,7 +96,7 @@
         }
         const x = (8.5 - drawWidth) / 2;
         const y = (11 - drawHeight) / 2;
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, drawWidth, drawHeight, undefined, 'FAST');
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, drawWidth, drawHeight, undefined, 'FAST');
       }
 
       savePdfFromTopLevel(pdf, reportFilename());
