@@ -2914,10 +2914,10 @@ async function generateSpecialtyDemandReportFromMap(iframe) {
 
     window.specialtySourceLoading = true;
     window.specialtyReportPlaceId = selectedLocationContext?.placeId || null;
-    await loadBlockGroupData();
+    await loadNationalReportBoundaries(latitude, longitude, radii.at(-1));
     const membership = getBlockGroupsByRadius(latitude, longitude, radii);
     if (!membership.allGeoids.length) {
-        throw new Error('Boundary coverage is unavailable for this location; the current boundary source supports Texas.');
+        throw new Error('No U.S. block groups intersect this report area.');
     }
 
     const counties = [...new Set(membership.allGeoids.map(id => id.slice(0, 5)))];

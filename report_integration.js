@@ -324,6 +324,16 @@ async function generateReport(data) {
 /* ----------------------------------------------------
    0) INIT: Load Block Group GeoJSON and CSV on page load
 ----------------------------------------------------- */
+// Shared by standalone and main-map specialty report entry points.
+async function loadNationalReportBoundaries(latitude, longitude, radiusMiles) {
+  const bounds=turf.bbox(turf.circle([longitude,latitude],radiusMiles,{units:'miles'}));
+  const response=await fetch('/api/report-boundaries?bbox='+bounds.join(','),{signal:AbortSignal.timeout(180000)});
+  const data=await response.json();
+  if(!response.ok||data.type!=='FeatureCollection'||!Array.isArray(data.features))throw new Error(data.error||'Boundary coverage is unavailable.');
+  blockGroupData=data;
+  return data;
+}
+
 async function loadBlockGroupData() {
   try {
     console.log("Loading block group GeoJSON data...");

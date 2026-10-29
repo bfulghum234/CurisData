@@ -2,3 +2,17 @@ import {onRequestGet} from '../functions/api/report-boundaries.js';
 import test from 'node:test';import assert from 'node:assert/strict';
 test('invalid boundary bounds never reach Census',async()=>{const result=await onRequestGet({request:new Request('https://example.com/api/report-boundaries?bbox=bad')});assert.equal(result.status,400);});
 test('boundary geometry batches retain cross-state GEOIDs and reject truncation',async()=>{const original=globalThis.fetch;try{let calls=0;globalThis.fetch=async url=>{calls++;const params=new URL(url).searchParams;if(params.get('returnIdsOnly'))return Response.json({objectIds:[1,2]});return Response.json({type:'FeatureCollection',features:['290950001001','200910001001'].map(GEOID=>({type:'Feature',properties:{GEOID},geometry:{type:'Polygon',coordinates:[]}}))});};const request=new Request('https://example.com/api/report-boundaries?bbox=-94.7,39,-94.5,39.2');const result=await onRequestGet({request});assert.equal(result.status,200);assert.equal((await result.json()).features.length,2);assert.equal(calls,2);globalThis.fetch=async url=>Response.json(new URL(url).searchParams.get('returnIdsOnly')?{objectIds:[1,2]}:{features:[]});assert.equal((await onRequestGet({request})).status,502);}finally{globalThis.fetch=original;}});
+import fs from 'node:fs';
+import vm from 'node:vm';
+test('both specialty entry points use the national loader and replace stale Texas geometry',async()=>{
+ const shared=fs.readFileSync('report_integration.js','utf8');
+ const body=shared.slice(shared.indexOf('async function loadNationalReportBoundaries'),shared.indexOf('async function loadBlockGroupData()'));
+ const collection={type:'FeatureCollection',features:[{properties:{GEOID:'080310001001'}}]};let requested;
+ const context={AbortSignal,blockGroupData:{features:[{properties:{GEOID:'484390001001'}}]},turf:{circle:()=>({}),bbox:()=>[-105,39.6,-104.8,39.8]},fetch:async url=>{requested=url;return Response.json(collection);}};
+ vm.createContext(context);vm.runInContext(body,context);
+ await context.loadNationalReportBoundaries(39.7,-104.9,5);
+ assert.ok(requested.startsWith('/api/report-boundaries?bbox='));assert.equal(context.blockGroupData.features[0].properties.GEOID,'080310001001');
+ const map=fs.readFileSync('demo_report_map.html','utf8');const workflow=map.slice(map.indexOf('async function generateSpecialtyDemandReportFromMap'),map.indexOf('async function runReport()'));
+ assert.match(workflow,/await loadNationalReportBoundaries\(latitude, longitude, radii.at\(-1\)\)/);assert.doesNotMatch(workflow,/await loadBlockGroupData/);
+ assert.match(fs.readFileSync('specialty_report_loader.js','utf8'),/await loadNationalReportBoundaries/);
+});
