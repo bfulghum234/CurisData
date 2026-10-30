@@ -864,6 +864,111 @@ header.product-header {
     line-height: 1.4;
 }
 
+.live-specialty-card {
+    margin-bottom: 16px;
+    padding: 15px;
+    background: linear-gradient(145deg, var(--curis-900), var(--curis-700));
+    border: 1px solid rgba(78, 203, 160, 0.35);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.live-specialty-card strong,
+.live-specialty-card span,
+.live-specialty-card label {
+    display: block;
+}
+
+.live-specialty-card strong {
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.live-specialty-card span {
+    margin: 4px 0 12px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.live-specialty-card label {
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+#live-specialty-select {
+    width: 100%;
+    padding: 10px 11px;
+    color: var(--curis-900);
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 9px;
+    font: inherit;
+}
+
+.live-specialty-status {
+    min-height: 17px;
+    margin: 8px 0 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.live-specialty-legend {
+    position: absolute;
+    z-index: 5;
+    left: 18px;
+    bottom: 28px;
+    width: min(245px, calc(100% - 36px));
+    padding: 13px 14px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(7, 59, 44, 0.18);
+    backdrop-filter: blur(8px);
+}
+
+.live-specialty-legend strong,
+.live-specialty-legend small {
+    display: block;
+}
+
+.live-specialty-legend strong {
+    color: var(--curis-900);
+    font-size: 13px;
+}
+
+.live-specialty-legend small {
+    margin: 2px 0 9px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.live-specialty-legend-list {
+    display: grid;
+    gap: 4px;
+}
+
+.live-specialty-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+}
+
+.live-specialty-legend-swatch {
+    width: 18px;
+    height: 10px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(7, 59, 44, 0.16);
+    border-radius: 3px;
+}
+
 .workflow-heading,
 .workflow-summary-title {
     display: flex;
@@ -1398,6 +1503,16 @@ input[type='range']::-moz-range-thumb {
 
     <!-- LEFT TOOLBAR -->
     <div class="controls">
+
+    <section class="live-specialty-card" aria-labelledby="live-specialty-heading">
+        <strong id="live-specialty-heading">Explore Specialty Demand</strong>
+        <span>Shade nearby block groups by modeled annual resident-generated visits.</span>
+        <label for="live-specialty-select">Specialty</label>
+        <select id="live-specialty-select" onchange="updateLiveSpecialtyLayer()">
+            <option value="">No thematic layer</option>
+        </select>
+        <p id="live-specialty-status" class="live-specialty-status" aria-live="polite">Choose a specialty to view demand on the map.</p>
+    </section>
    
     <div class="workflow-intro">
         <strong>Build Your Report</strong>
@@ -1575,6 +1690,11 @@ input[type='range']::-moz-range-thumb {
 <!-- MAP + PANEL -->
 <div class="map-container">
     <div id="map"></div>
+    <aside id="live-specialty-legend" class="live-specialty-legend" aria-live="polite" hidden>
+        <strong id="live-specialty-legend-title"></strong>
+        <small id="live-specialty-legend-subtitle"></small>
+        <div id="live-specialty-legend-list" class="live-specialty-legend-list"></div>
+    </aside>
 
     <!-- DEMOGRAPHICS PANEL -->
     <div id="demographics-panel">
@@ -1842,7 +1962,15 @@ const DEFAULT_THEMATIC_SPECIALTIES = Object.freeze([
 let selectedThematicSpecialties = [...DEFAULT_THEMATIC_SPECIALTIES];
 let radiusCircles = [];
 let activeInfoWindow = null;
-let addressMarker = null; 
+let addressMarker = null;
+const LIVE_SPECIALTY_COLORS = Object.freeze([
+    '#edf8f3', '#d2eee3', '#a7dfcb', '#72c9ab', '#35a982', '#087357'
+]);
+let liveSpecialtyFeatures = [];
+let liveSpecialtyRequestSequence = 0;
+let liveSpecialtyRefreshTimer = null;
+let liveSpecialtyManifestPromise = null;
+const liveSpecialtyCountyCache = new Map();
 const DEFAULT_LOCATION = {
     name: '601 Bailey Ave.',
     address: '601 Bailey Ave., Fort Worth, TX 76107',
@@ -1880,6 +2008,20 @@ function initMap() {
         minZoom: 10,
         renderingType: google.maps.RenderingType.RASTER,
         streetViewControl: false
+    });
+
+    initializeLiveSpecialtyExplorer();
+    map.data.addListener('click', (event) => {
+        const specialty = event.feature.getProperty('liveSpecialty');
+        const visits = Number(event.feature.getProperty('annualVisits'));
+        if (!specialty || !Number.isFinite(visits)) return;
+
+        if (activeInfoWindow) activeInfoWindow.close();
+        activeInfoWindow = new google.maps.InfoWindow({
+            position: event.latLng,
+            content: `<div style="min-width:210px"><strong>${specialty}</strong><br>${Math.round(visits).toLocaleString()} modeled annual visits<br><small>Block group ${event.feature.getProperty('GEOID') || ''}</small></div>`
+        });
+        activeInfoWindow.open({ map });
     });
 
 
@@ -1961,6 +2103,7 @@ function initMap() {
         });
         
         drawRadiusCircles(place.geometry.location);
+        queueLiveSpecialtyLayerRefresh();
         openDemoPanel(
             selectedLocationContext.name,
             selectedLocationContext.lat,
@@ -2036,6 +2179,7 @@ function updateRadiusValue(radiusNum, value) {
     const center = map.getCenter();
     if (center) {
         drawRadiusCircles(center);
+        queueLiveSpecialtyLayerRefresh();
     }
 
     clearTimeout(window.__snapshotRadiusTimer);
@@ -2066,10 +2210,11 @@ function drawRadiusCircles(location) {
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
                 fillColor: radiusColors[radiusNum].color,
-                fillOpacity: 0.2,
+                fillOpacity: document.getElementById('live-specialty-select')?.value ? 0.045 : 0.2,
                 map: map,
                 center: location,
-                radius: radiusValue * 1609.34 // Convert miles to meters
+                radius: radiusValue * 1609.34, // Convert miles to meters
+                zIndex: 2
             });
             radiusCircles.push(circle);
         }
@@ -2079,6 +2224,227 @@ function drawRadiusCircles(location) {
 function clearRadiusCircles() {
     radiusCircles.forEach(circle => circle.setMap(null));
     radiusCircles = [];
+}
+
+function initializeLiveSpecialtyExplorer() {
+    const select = document.getElementById('live-specialty-select');
+    if (!select || select.options.length > 1) return;
+
+    SPECIALTY_DEMAND_OPTIONS.forEach((specialty) => {
+        const option = document.createElement('option');
+        option.value = specialty;
+        option.textContent = specialty;
+        select.appendChild(option);
+    });
+}
+
+function queueLiveSpecialtyLayerRefresh() {
+    if (!document.getElementById('live-specialty-select')?.value) return;
+    clearTimeout(liveSpecialtyRefreshTimer);
+    liveSpecialtyRefreshTimer = setTimeout(() => updateLiveSpecialtyLayer({ fitMap: false }), 300);
+}
+
+function clearLiveSpecialtyLayer({ resetStatus = true } = {}) {
+    liveSpecialtyRequestSequence += 1;
+    liveSpecialtyFeatures.forEach((feature) => map?.data?.remove(feature));
+    liveSpecialtyFeatures = [];
+    map?.data?.setStyle(null);
+
+    const legend = document.getElementById('live-specialty-legend');
+    if (legend) legend.hidden = true;
+    if (resetStatus) {
+        const status = document.getElementById('live-specialty-status');
+        if (status) status.textContent = 'Choose a specialty to view demand on the map.';
+    }
+
+    const center = map?.getCenter?.();
+    if (center) drawRadiusCircles(center);
+}
+
+function liveSpecialtyThresholds(values) {
+    const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+    if (!sorted.length) return [];
+    return [1, 2, 3, 4, 5].map((step) => {
+        const index = Math.min(sorted.length - 1, Math.ceil((step * sorted.length) / 6) - 1);
+        return sorted[index];
+    });
+}
+
+function liveSpecialtyClassIndex(value, thresholds) {
+    const index = thresholds.findIndex((threshold) => value <= threshold);
+    return index === -1 ? LIVE_SPECIALTY_COLORS.length - 1 : index;
+}
+
+function formatLiveSpecialtyValue(value) {
+    return Math.round(Number(value) || 0).toLocaleString();
+}
+
+function renderLiveSpecialtyLegend(specialty, thresholds, values) {
+    const legend = document.getElementById('live-specialty-legend');
+    const title = document.getElementById('live-specialty-legend-title');
+    const subtitle = document.getElementById('live-specialty-legend-subtitle');
+    const list = document.getElementById('live-specialty-legend-list');
+    if (!legend || !title || !subtitle || !list) return;
+
+    title.textContent = specialty;
+    subtitle.textContent = `Modeled annual visits · ${values.length.toLocaleString()} block groups`;
+    list.replaceChildren();
+
+    LIVE_SPECIALTY_COLORS.forEach((color, index) => {
+        const lower = index === 0 ? 0 : thresholds[index - 1];
+        const upper = thresholds[index];
+        const item = document.createElement('div');
+        item.className = 'live-specialty-legend-item';
+
+        const swatch = document.createElement('span');
+        swatch.className = 'live-specialty-legend-swatch';
+        swatch.style.backgroundColor = color;
+
+        const label = document.createElement('span');
+        label.textContent = index === LIVE_SPECIALTY_COLORS.length - 1
+            ? `${formatLiveSpecialtyValue(lower)}+ visits`
+            : `${formatLiveSpecialtyValue(lower)}–${formatLiveSpecialtyValue(upper)} visits`;
+        item.append(swatch, label);
+        list.appendChild(item);
+    });
+
+    legend.hidden = false;
+}
+
+function loadLiveSpecialtyManifest() {
+    if (!liveSpecialtyManifestPromise) {
+        liveSpecialtyManifestPromise = fetch('reports/meps-v2.9.1/manifest.json')
+            .then((response) => {
+                if (!response.ok) throw new Error(`Demand manifest unavailable (HTTP ${response.status})`);
+                return response.json();
+            })
+            .catch((error) => {
+                liveSpecialtyManifestPromise = null;
+                throw error;
+            });
+    }
+    return liveSpecialtyManifestPromise;
+}
+
+function loadLiveSpecialtyCounty(countyFips) {
+    if (!liveSpecialtyCountyCache.has(countyFips)) {
+        const request = fetch(`reports/meps-v2.9.1/${countyFips}.json`)
+            .then((response) => {
+                if (!response.ok) throw new Error(`Demand data unavailable for county ${countyFips}`);
+                return response.json();
+            })
+            .catch((error) => {
+                liveSpecialtyCountyCache.delete(countyFips);
+                throw error;
+            });
+        liveSpecialtyCountyCache.set(countyFips, request);
+    }
+    return liveSpecialtyCountyCache.get(countyFips);
+}
+
+async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
+    const select = document.getElementById('live-specialty-select');
+    const status = document.getElementById('live-specialty-status');
+    const specialty = select?.value || '';
+    const requestId = liveSpecialtyRequestSequence + 1;
+    clearLiveSpecialtyLayer({ resetStatus: false });
+    liveSpecialtyRequestSequence = requestId;
+
+    if (!specialty) {
+        if (status) status.textContent = 'Choose a specialty to view demand on the map.';
+        return;
+    }
+    if (!selectedLocationContext?.lat || !selectedLocationContext?.lng) {
+        if (status) status.textContent = 'Choose a location before loading specialty demand.';
+        return;
+    }
+
+    if (status) status.textContent = `Loading ${specialty} demand…`;
+    if (select) select.disabled = true;
+
+    try {
+        const radii = [1, 2, 3]
+            .map((number) => Number(document.getElementById(`radius${number}`)?.value))
+            .filter((value) => Number.isFinite(value) && value > 0)
+            .sort((a, b) => a - b);
+        const maxRadius = radii.at(-1) || 5;
+        const [boundaryData, manifest] = await Promise.all([
+            loadNationalReportBoundaries(selectedLocationContext.lat, selectedLocationContext.lng, maxRadius),
+            loadLiveSpecialtyManifest()
+        ]);
+        if (requestId !== liveSpecialtyRequestSequence) return;
+
+        const specialtyIndex = manifest.specialties?.indexOf(specialty);
+        if (!Number.isInteger(specialtyIndex) || specialtyIndex < 0) {
+            throw new Error(`${specialty} is not available in the demand model.`);
+        }
+
+        const membership = getBlockGroupsByRadius(
+            selectedLocationContext.lat,
+            selectedLocationContext.lng,
+            [maxRadius]
+        );
+        const selectedGeoids = new Set(membership.allGeoids || []);
+        const counties = [...new Set([...selectedGeoids].map((geoid) => geoid.slice(0, 5)))];
+        const countyFiles = await Promise.all(counties.map(loadLiveSpecialtyCounty));
+        if (requestId !== liveSpecialtyRequestSequence) return;
+
+        const visitsByGeoid = Object.assign({}, ...countyFiles);
+        const mappedFeatures = boundaryData.features
+            .map((feature) => {
+                const geoid = String(feature?.properties?.GEOID || feature?.properties?.GEOID20 || '').padStart(12, '0');
+                if (!selectedGeoids.has(geoid)) return null;
+                const visits = Number(visitsByGeoid[geoid]?.visits?.[specialtyIndex]);
+                if (!Number.isFinite(visits)) return null;
+                return {
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: {
+                        ...(feature.properties || {}),
+                        GEOID: geoid,
+                        liveSpecialty: specialty,
+                        annualVisits: visits
+                    }
+                };
+            })
+            .filter(Boolean);
+        const values = mappedFeatures.map((feature) => feature.properties.annualVisits);
+        if (!mappedFeatures.length) throw new Error('No demand records were available for this trade area.');
+
+        const thresholds = liveSpecialtyThresholds(values);
+        liveSpecialtyFeatures = map.data.addGeoJson({ type: 'FeatureCollection', features: mappedFeatures });
+        map.data.setStyle((feature) => {
+            const visits = Number(feature.getProperty('annualVisits'));
+            if (!Number.isFinite(visits)) return { visible: false };
+            return {
+                fillColor: LIVE_SPECIALTY_COLORS[liveSpecialtyClassIndex(visits, thresholds)],
+                fillOpacity: 0.7,
+                strokeColor: '#ffffff',
+                strokeOpacity: 0.82,
+                strokeWeight: 1,
+                zIndex: 1
+            };
+        });
+        renderLiveSpecialtyLegend(specialty, thresholds, values);
+        if (status) status.textContent = `${specialty} demand shown across ${mappedFeatures.length.toLocaleString()} nearby block groups.`;
+
+        drawRadiusCircles(map.getCenter());
+        if (fitMap && typeof turf !== 'undefined') {
+            const bounds = turf.bbox(turf.circle(
+                [selectedLocationContext.lng, selectedLocationContext.lat],
+                maxRadius,
+                { units: 'miles' }
+            ));
+            map.fitBounds({ west: bounds[0], south: bounds[1], east: bounds[2], north: bounds[3] }, 38);
+        }
+    } catch (error) {
+        console.error('Unable to load live specialty demand:', error);
+        if (requestId === liveSpecialtyRequestSequence && status) {
+            status.textContent = `Unable to load the thematic layer: ${error.message}`;
+        }
+    } finally {
+        if (requestId === liveSpecialtyRequestSequence && select) select.disabled = false;
+    }
 }
 
 
