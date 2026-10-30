@@ -33,12 +33,19 @@ test('refreshes the thematic layer when location or trade-area radii change', ()
   assert.match(html, /setTimeout\(\(\) => updateLiveSpecialtyLayer\(\{ fitMap: false \}\), 300\)/);
 });
 
-test('offers a dot-density style where one dot represents one modeled visit', () => {
+test('offers an automatically scaled dot-density style', () => {
   assert.match(html, /id="live-specialty-mode" onchange="updateLiveSpecialtyLayer\(\)"/);
-  assert.match(html, /value="dots">Dot density · 1 dot = 1 visit/);
-  assert.match(html, /Math\.max\(0, Math\.round\(feature\.properties\.annualVisits\)\)/);
-  assert.match(html, /buildLiveSpecialtyDots\(mappedFeatures, specialty, requestId, status\)/);
-  assert.match(html, /1 dot = 1 modeled annual visit/);
+  assert.match(html, /value="dots">Dot density · auto-scaled/);
+  assert.match(html, /function liveSpecialtyDotRatio\(totalVisits\)/);
+  for (const rule of [
+    'totalVisits <= 15000) return 1',
+    'totalVisits <= 50000) return 5',
+    'totalVisits <= 150000) return 10',
+    'totalVisits <= 500000) return 50'
+  ]) assert.ok(html.includes(rule));
+  assert.match(html, /Math\.round\(feature\.properties\.annualVisits \/ dotRatio\)/);
+  assert.match(html, /buildLiveSpecialtyDots\(mappedFeatures, specialty, requestId, status, dotRatio\)/);
+  assert.match(html, /1 dot = \$\{dotRatio\.toLocaleString\(\)\}/);
 });
 
 test('draws deterministic dot-density points on a removable canvas overlay', () => {

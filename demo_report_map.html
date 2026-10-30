@@ -1541,7 +1541,7 @@ input[type='range']::-moz-range-thumb {
             <label for="live-specialty-mode">Map style</label>
             <select id="live-specialty-mode" onchange="updateLiveSpecialtyLayer()">
                 <option value="choropleth">Shaded block groups</option>
-                <option value="dots">Dot density · 1 dot = 1 visit</option>
+                <option value="dots">Dot density · auto-scaled</option>
             </select>
         </div>
         <p id="live-specialty-status" class="live-specialty-status" aria-live="polite">Choose a specialty to view demand on the map.</p>
@@ -2318,7 +2318,7 @@ function formatLiveSpecialtyValue(value) {
     return Math.round(Number(value) || 0).toLocaleString();
 }
 
-function renderLiveSpecialtyLegend(specialty, thresholds, values, mode = 'choropleth', dotCount = 0) {
+function renderLiveSpecialtyLegend(specialty, thresholds, values, mode = 'choropleth', dotCount = 0, dotRatio = 1) {
     const legend = document.getElementById('live-specialty-legend');
     const title = document.getElementById('live-specialty-legend-title');
     const subtitle = document.getElementById('live-specialty-legend-subtitle');
@@ -2337,7 +2337,7 @@ function renderLiveSpecialtyLegend(specialty, thresholds, values, mode = 'chorop
         const dot = document.createElement('span');
         dot.className = 'live-specialty-legend-dot';
         const label = document.createElement('span');
-        label.textContent = '1 dot = 1 modeled annual visit';
+        label.textContent = `1 dot = ${dotRatio.toLocaleString()} modeled annual ${dotRatio === 1 ? 'visit' : 'visits'}`;
         item.append(dot, label);
         list.appendChild(item);
         legend.hidden = false;
@@ -2385,15 +2385,23 @@ function liveSpecialtyRandom(seed) {
     };
 }
 
-async function buildLiveSpecialtyDots(features, specialty, requestId, status) {
+function liveSpecialtyDotRatio(totalVisits) {
+    if (totalVisits <= 15000) return 1;
+    if (totalVisits <= 50000) return 5;
+    if (totalVisits <= 150000) return 10;
+    if (totalVisits <= 500000) return 50;
+    return 100;
+}
+
+async function buildLiveSpecialtyDots(features, specialty, requestId, status, dotRatio) {
     const points = [];
     const expectedDots = features.reduce(
-        (sum, feature) => sum + Math.max(0, Math.round(feature.properties.annualVisits)),
+        (sum, feature) => sum + Math.max(0, Math.round(feature.properties.annualVisits / dotRatio)),
         0
     );
 
     for (const feature of features) {
-        const dotCount = Math.max(0, Math.round(feature.properties.annualVisits));
+        const dotCount = Math.max(0, Math.round(feature.properties.annualVisits / dotRatio));
         if (!dotCount) continue;
         const bounds = turf.bbox(feature);
         const random = liveSpecialtyRandom(liveSpecialtySeed(`${specialty}:${feature.properties.GEOID}`));
@@ -2419,7 +2427,7 @@ async function buildLiveSpecialtyDots(features, specialty, requestId, status) {
             points.push(coordinate || fallback);
 
             if (points.length % 4000 === 0) {
-                if (status) status.textContent = `Placing ${points.length.toLocaleString()} of ${expectedDots.toLocaleString()} visits…`;
+                if (status) status.textContent = `Placing ${points.length.toLocaleString()} of ${expectedDots.toLocaleString()} dots…`;
                 await new Promise((resolve) => requestAnimationFrame(resolve));
                 if (requestId !== liveSpecialtyRequestSequence) return null;
             }
@@ -2616,11 +2624,13 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
         });
 
         if (mode === 'dots') {
-            const points = await buildLiveSpecialtyDots(mappedFeatures, specialty, requestId, status);
+            const totalVisits = values.reduce((sum, value) => sum + Math.max(0, value), 0);
+            const dotRatio = liveSpecialtyDotRatio(totalVisits);
+            const points = await buildLiveSpecialtyDots(mappedFeatures, specialty, requestId, status, dotRatio);
             if (!points || requestId !== liveSpecialtyRequestSequence) return;
             liveSpecialtyDotOverlay = createLiveSpecialtyDotOverlay(points);
-            renderLiveSpecialtyLegend(specialty, thresholds, values, mode, points.length);
-            if (status) status.textContent = `${points.length.toLocaleString()} dots shown · 1 dot = 1 modeled annual visit.`;
+            renderLiveSpecialtyLegend(specialty, thresholds, values, mode, points.length, dotRatio);
+            if (status) status.textContent = `${points.length.toLocaleString()} dots shown · 1 dot = ${dotRatio.toLocaleString()} modeled annual ${dotRatio === 1 ? 'visit' : 'visits'}.`;
         } else {
             renderLiveSpecialtyLegend(specialty, thresholds, values);
             if (status) status.textContent = `${specialty} demand shown across ${mappedFeatures.length.toLocaleString()} nearby block groups.`;
