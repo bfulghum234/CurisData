@@ -56,3 +56,12 @@ test('map snapshot and report share national county requests and inline scripts 
  assert.match(loader,/loadNationalSnapshot\(lat, lng, radii\)/);assert.doesNotMatch(loader,/fetchMultiRadiusDataFromCSV|ensureDemographicDataReady/);
  for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
 });
+test('top five specialty ranks aggregate visits before sorting and reject incomplete coverage',()=>{
+ const names=Array.from({length:25},(_,i)=>'Specialty '+i);
+ const visits=Array.from({length:25},(_,i)=>i+1),warnings=Array(25).fill('False');warnings[24]='True';
+ const records={a:{visits,warnings},b:{visits:visits.map(n=>n*2)}};
+ const rows=context.rankSnapshotSpecialties(['a','b','a'],records,names);
+ assert.equal(rows.length,5);assert.equal(rows[0].name,'Specialty 24');assert.equal(rows[0].visits,75);assert.equal(rows[0].warning,true);assert.equal(rows[4].visits,63);
+ assert.equal(context.rankSnapshotSpecialties(['a','missing'],records,names),null);
+ assert.equal(context.rankSnapshotSpecialties([],records,names),null);
+});

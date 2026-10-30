@@ -1645,42 +1645,13 @@ input[type='range']::-moz-range-thumb {
             <p class="snapshot-note">Share of the selected radius population</p>
         </div>
 
-        <!-- Right: Future Trends -->
         <div class="demo-column light-blue">
-            <h4>Future Outlook</h4>
-            <div class="outlook-table-wrap">
-                <table class="outlook-table" aria-label="Current and five-year demographic outlook">
-                    <thead>
-                        <tr>
-                            <th scope="col">Metric</th>
-                            <th scope="col">Current<br>(CY)</th>
-                            <th scope="col">5-Year<br>(FY)</th>
-                            <th scope="col">Growth</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th scope="row">Population</th>
-                            <td id="outlook-pop-cy">—</td>
-                            <td id="outlook-pop-fy">—</td>
-                            <td><span class="outlook-growth" id="outlook-pop-growth">—</span></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Households</th>
-                            <td id="outlook-hh-cy">—</td>
-                            <td id="outlook-hh-fy">—</td>
-                            <td><span class="outlook-growth" id="outlook-hh-growth">—</span></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Median HH Income</th>
-                            <td id="outlook-income-cy">—</td>
-                            <td id="outlook-income-fy">—</td>
-                            <td><span class="outlook-growth" id="outlook-income-growth">—</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p class="snapshot-note">FY values are five-year projections for the selected radius.</p>
+            <h4>Top 5 Specialty Visit Volumes</h4>
+            <table class="market-context-table" aria-label="Top five specialties by estimated annual visits">
+                <thead><tr><th scope="col">Specialty</th><th scope="col">Annual visits</th></tr></thead>
+                <tbody id="snapshot-specialty-rows"><tr><td colspan="2">Select a location to view demand.</td></tr></tbody>
+            </table>
+            <p class="snapshot-note" id="snapshot-specialty-status">MEPS modeled annual resident-generated visits in the selected radius, wherever care occurs. Includes repeat visits; not unique patients or visits available to a new practice.</p>
         </div>
 
         <div class="demo-column white">
@@ -3322,6 +3293,7 @@ async function loadDemographics(lat, lng) {
 }
 
 function setSnapshotLoadingState() {
+    renderSnapshotSpecialties(null, 'Loading specialty demand…');
     ['pop-total', 'hh-total', 'fam-total', 'snapshot-median-income', 'snapshot-home-value',
      'snapshot-age-18-34', 'snapshot-age-35-54',
      'snapshot-age-55-64', 'snapshot-age-65plus', 'outlook-pop-cy', 'outlook-pop-fy',
@@ -3350,6 +3322,7 @@ function setSnapshotLoadingState() {
 }
 
 function showSnapshotError(message) {
+    renderSnapshotSpecialties(null, 'Specialty demand unavailable.');
     ['pop-total', 'hh-total', 'fam-total', 'snapshot-median-income', 'snapshot-home-value',
      'snapshot-age-18-34', 'snapshot-age-35-54',
      'snapshot-age-55-64', 'snapshot-age-65plus', 'pop-growth', 'hh-growth',
@@ -3375,7 +3348,16 @@ function showSnapshotError(message) {
     });
 }
 
+function renderSnapshotSpecialties(rows, message) {
+    const body=document.getElementById('snapshot-specialty-rows');if(!body)return;
+    body.replaceChildren();
+    if(!rows){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=2;cell.textContent=message||'Specialty demand unavailable: incomplete source coverage.';row.appendChild(cell);body.appendChild(row);}
+    else for(const item of rows){const row=document.createElement('tr'),name=document.createElement('th'),count=document.createElement('td');name.scope='row';name.textContent=item.name+(item.warning?' *':'');count.textContent=Math.round(item.visits).toLocaleString('en-US');row.append(name,count);body.appendChild(row);}
+    const note=document.getElementById('snapshot-specialty-status');if(note)note.textContent='MEPS national v2.9.1 · Utilization reference 2024 · Modeled annual resident-generated visits in the selected radius, wherever care occurs. Includes repeat visits; not unique patients or visits available to a new practice.'+(rows?.some(item=>item.warning)?' * Limited recent-year survey sample support.':'');
+}
+
 function populateDemographicSnapshot(data) {
+    renderSnapshotSpecialties(data.topSpecialties);
     const formatNumber = value => Number.isFinite(value) ? value.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '—';
     const formatCurrency = value => Number.isFinite(value) ? value.toLocaleString('en-US', {
         style: 'currency',
@@ -3452,32 +3434,7 @@ function populateDemographicSnapshot(data) {
         }
     });
 
-    const popChange = percentChange(Number(data.population || 0), Number(data.pop_proj || 0));
-    const hhChange = percentChange(Number(data.households || 0), Number(data.hh_proj || 0));
-    const incomeChange = percentChange(Number(data.medianIncome || 0), Number(data.med_inc_proj || 0));
-    const incomeAnnualChange = Number(data.CAGR_med_inc || 0) * 100;
 
-    setText('pop-growth', formatChange(popChange));
-    setText('hh-growth', formatChange(hhChange));
-    setText('income-growth', data.CAGR_med_inc ? formatChange(incomeAnnualChange) : 'Not available');
-
-    setText('outlook-pop-cy', formatNumber(data.population));
-    setText('outlook-pop-fy', data.pop_proj > 0 ? formatNumber(data.pop_proj) : '—');
-    setOutlookGrowth('outlook-pop-growth', data.pop_proj > 0 ? popChange : null);
-    setText('outlook-hh-cy', formatNumber(data.households));
-    setText('outlook-hh-fy', data.hh_proj > 0 ? formatNumber(data.hh_proj) : '—');
-    setOutlookGrowth('outlook-hh-growth', data.hh_proj > 0 ? hhChange : null);
-    setText('outlook-income-cy', formatCurrency(data.medianIncome));
-    setText('outlook-income-fy', data.med_inc_proj > 0 ? formatCurrency(data.med_inc_proj) : '—');
-    setOutlookGrowth('outlook-income-growth', data.med_inc_proj > 0 ? incomeChange : null);
-
-    function setOutlookGrowth(id, value) {
-        const element = document.getElementById(id);
-        if (!element) return;
-        element.removeAttribute('title');
-        element.textContent = Number.isFinite(value) ? formatChange(value) : '—';
-        element.classList.toggle('negative', Number.isFinite(value) && value < 0);
-    }
 }
 
 </script>

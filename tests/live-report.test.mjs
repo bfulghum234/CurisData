@@ -204,45 +204,8 @@ test('missing CSV records are filled from real Census responses and marked as la
   assert.equal(records.get('484390001001').age_0_17, 8);
 });
 
-test('report and mapping snapshot display the same forecasts despite incomplete historical coverage', () => {
-  const createDocument = () => {
-    const elements = new Map();
-    return { getElementById(id) {
-      if (!elements.has(id)) elements.set(id, { textContent: '', style: {}, removeAttribute() {}, classList: { toggle() {} } });
-      return elements.get(id);
-    } };
-  };
-  for (const radii of [[1, 3, 5], [2, 4, 8]]) {
-    const reportDoc = createDocument(), mapDoc = createDocument();
-    const context = runtime({ document: mapDoc });
-    vm.runInContext(snapshotSource, context);
-    const demographics = Object.fromEntries(radii.map((radius, index) => {
-      const data = context.aggregateFromPerGeoid(['historical', 'current-only'], new Map([
-        ['historical', { population: 1000 * radius, households: 400 * radius, families: 200 * radius,
-          medianIncome: 65000 + radius * 1000, medianIncomePrior: 55000, CAGR_pop: index === 0 ? -0.01 : 0.02,
-          CAGR_hh: 0.015, CAGR_fam: 0.01 }],
-        ['current-only', { population: 100 * radius, households: 40 * radius, families: 20 * radius,
-          medianIncome: 75000, currentCensusOnly: true }]
-      ]));
-      data.sourceCoverage = { matched: 2, total: 3, currentOnly: 1 };
-      return [`${radius}mile`, data];
-    }));
-    const payload = context.buildReportPayload({ address: '601 Bailey Ave., Fort Worth, TX 76107',
-      radiiMiles: radii, demographicsByRadius: demographics });
-    context.renderReportPayload(reportDoc, { populateFacilityTable() {} }, payload);
-    radii.forEach((radius, index) => {
-      context.populateDemographicSnapshot(demographics[`${radius}mile`]);
-      const suffix = ['1mi', '3mi', '5mi'][index];
-      assert.equal(reportDoc.getElementById(`pop-proj-${suffix}`).textContent, mapDoc.getElementById('outlook-pop-fy').textContent);
-      if (index === 2) {
-        for (const [reportId, mapId] of [
-          ['hh-proj-current', 'outlook-hh-cy'], ['hh-proj-future', 'outlook-hh-fy'],
-          ['hh-proj-change', 'outlook-hh-growth'], ['med-inc-proj-current', 'outlook-income-cy'],
-          ['med-inc-proj-future', 'outlook-income-fy'], ['med-inc-proj-change', 'outlook-income-growth']
-        ]) assert.equal(reportDoc.getElementById(reportId).textContent, mapDoc.getElementById(mapId).textContent, reportId);
-        assert.equal(parseFloat(reportDoc.getElementById('exec-growth').textContent), parseFloat(mapDoc.getElementById('outlook-pop-growth').textContent));
-        assert.notEqual(reportDoc.getElementById('age-shift-0-17-proj').textContent, 'Unavailable');
-      }
-    });
-  }
+test('snapshot replaces five-year outlook with top specialty visit volumes', () => {
+  assert.match(mapHtml, /Top 5 Specialty Visit Volumes/);
+  assert.match(mapHtml, /id="snapshot-specialty-rows"/);
+  assert.doesNotMatch(mapHtml, /Current and five-year demographic outlook|FY values are five-year projections/);
 });

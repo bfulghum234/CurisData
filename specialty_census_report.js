@@ -248,10 +248,26 @@ async function loadNationalSnapshot(latitude,longitude,radii) {
   const membership=getBlockGroupsByRadius(latitude,longitude,radii);
   if(!membership.allGeoids.length)throw new Error('No U.S. block groups intersect this report area.');
   const counties=[...new Set(membership.allGeoids.map(id=>id.slice(0,5)))];
-  const [source,ageFiles]=await Promise.all([
+  const [source,ageFiles,demand]=await Promise.all([
     Promise.all(counties.map(loadNationalCensusCounty)),
-    Promise.all(counties.map(async county=>{try{const response=await fetch('reports/acs2024-age/'+county+'.json');return response.ok?(await response.json()).blockGroups:{};}catch{return {};}}))
+    Promise.all(counties.map(async county=>{try{const response=await fetch('reports/acs2024-age/'+county+'.json');return response.ok?(await response.json()).blockGroups:{};}catch{return {};}})),
+    Promise.all([loadSnapshotMepsFile('reports/meps-v2.9.1/manifest.json'),...counties.map(county=>loadSnapshotMepsFile('reports/meps-v2.9.1/'+county+'.json'))]).catch(()=>null)
   ]);
   const current=Object.assign({},...source.map(item=>item.current)),prior=Object.assign({},...source.map(item=>item.prior)),ages=Object.assign({},...ageFiles);
-  return Object.fromEntries(radii.map(radius=>[radius+'mile',buildNationalSnapshot(current,prior,membership.byRadius[radius+'mile']||[],ages)]));
+  const demandRecords=demand?Object.assign({},...demand.slice(1)):{};
+  return Object.fromEntries(radii.map(radius=>{const ids=membership.byRadius[radius+'mile']||[];return [radius+'mile',{...buildNationalSnapshot(current,prior,ids,ages),topSpecialties:demand?rankSnapshotSpecialties(ids,demandRecords,demand[0].specialties):null}];}));
+}
+
+const snapshotMepsCache=new Map();
+function loadSnapshotMepsFile(path) {
+  if(!snapshotMepsCache.has(path)){
+    const promise=fetch(path).then(async response=>{if(!response.ok)throw new Error('Specialty demand unavailable');return response.json();});
+    snapshotMepsCache.set(path,promise);promise.catch(()=>snapshotMepsCache.delete(path));
+  }
+  return snapshotMepsCache.get(path);
+}
+function rankSnapshotSpecialties(ids,records,names) {
+  const unique=[...new Set(ids)];
+  if(!unique.length||names.length!==25||unique.some(id=>!records[id]||records[id].visits?.length!==25||records[id].visits.some(value=>!Number.isFinite(value)||value<0)))return null;
+  return names.map((name,index)=>({name,visits:unique.reduce((sum,id)=>sum+records[id].visits[index],0),warning:unique.some(id=>String(records[id].warnings?.[index]).toLowerCase()==='true')})).sort((a,b)=>b.visits-a.visits||a.name.localeCompare(b.name)).slice(0,5);
 }
