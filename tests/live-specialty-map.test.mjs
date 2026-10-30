@@ -32,3 +32,19 @@ test('refreshes the thematic layer when location or trade-area radii change', ()
   assert.ok(refreshCalls.length >= 3);
   assert.match(html, /setTimeout\(\(\) => updateLiveSpecialtyLayer\(\{ fitMap: false \}\), 300\)/);
 });
+
+test('offers a dot-density style where one dot represents one modeled visit', () => {
+  assert.match(html, /id="live-specialty-mode" onchange="updateLiveSpecialtyLayer\(\)"/);
+  assert.match(html, /value="dots">Dot density · 1 dot = 1 visit/);
+  assert.match(html, /Math\.max\(0, Math\.round\(feature\.properties\.annualVisits\)\)/);
+  assert.match(html, /buildLiveSpecialtyDots\(mappedFeatures, specialty, requestId, status\)/);
+  assert.match(html, /1 dot = 1 modeled annual visit/);
+});
+
+test('draws deterministic dot-density points on a removable canvas overlay', () => {
+  assert.match(html, /liveSpecialtySeed\(`\$\{specialty\}:\$\{feature\.properties\.GEOID\}`\)/);
+  assert.match(html, /turf\.booleanPointInPolygon\(turf\.point\(candidate\), feature\)/);
+  assert.match(html, /class LiveSpecialtyDotOverlay extends google\.maps\.OverlayView/);
+  assert.match(html, /this\.getPanes\(\)\.overlayLayer\.appendChild\(this\.canvas\)/);
+  assert.match(html, /liveSpecialtyDotOverlay\.setMap\(null\)/);
+});

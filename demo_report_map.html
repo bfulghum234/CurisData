@@ -910,6 +910,20 @@ header.product-header {
     font: inherit;
 }
 
+.live-specialty-field + .live-specialty-field {
+    margin-top: 10px;
+}
+
+#live-specialty-mode {
+    width: 100%;
+    padding: 10px 11px;
+    color: var(--curis-900);
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 9px;
+    font: inherit;
+}
+
 .live-specialty-status {
     min-height: 17px;
     margin: 8px 0 0;
@@ -967,6 +981,16 @@ header.product-header {
     flex: 0 0 auto;
     border: 1px solid rgba(7, 59, 44, 0.16);
     border-radius: 3px;
+}
+
+.live-specialty-legend-dot {
+    width: 8px;
+    height: 8px;
+    margin: 1px 5px;
+    flex: 0 0 auto;
+    background: var(--curis-700);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(8, 115, 87, 0.13);
 }
 
 .workflow-heading,
@@ -1507,10 +1531,19 @@ input[type='range']::-moz-range-thumb {
     <section class="live-specialty-card" aria-labelledby="live-specialty-heading">
         <strong id="live-specialty-heading">Explore Specialty Demand</strong>
         <span>Shade nearby block groups by modeled annual resident-generated visits.</span>
-        <label for="live-specialty-select">Specialty</label>
-        <select id="live-specialty-select" onchange="updateLiveSpecialtyLayer()">
-            <option value="">No thematic layer</option>
-        </select>
+        <div class="live-specialty-field">
+            <label for="live-specialty-select">Specialty</label>
+            <select id="live-specialty-select" onchange="updateLiveSpecialtyLayer()">
+                <option value="">No thematic layer</option>
+            </select>
+        </div>
+        <div class="live-specialty-field">
+            <label for="live-specialty-mode">Map style</label>
+            <select id="live-specialty-mode" onchange="updateLiveSpecialtyLayer()">
+                <option value="choropleth">Shaded block groups</option>
+                <option value="dots">Dot density · 1 dot = 1 visit</option>
+            </select>
+        </div>
         <p id="live-specialty-status" class="live-specialty-status" aria-live="polite">Choose a specialty to view demand on the map.</p>
     </section>
    
@@ -1968,6 +2001,7 @@ const LIVE_SPECIALTY_COLORS = Object.freeze([
     '#edf8f3', '#d2eee3', '#a7dfcb', '#72c9ab', '#35a982', '#087357'
 ]);
 let liveSpecialtyFeatures = [];
+let liveSpecialtyDotOverlay = null;
 let liveSpecialtyRequestSequence = 0;
 let liveSpecialtyRefreshTimer = null;
 let liveSpecialtyManifestPromise = null;
@@ -2249,6 +2283,10 @@ function clearLiveSpecialtyLayer({ resetStatus = true } = {}) {
     liveSpecialtyRequestSequence += 1;
     liveSpecialtyFeatures.forEach((feature) => map?.data?.remove(feature));
     liveSpecialtyFeatures = [];
+    if (liveSpecialtyDotOverlay) {
+        liveSpecialtyDotOverlay.setMap(null);
+        liveSpecialtyDotOverlay = null;
+    }
     map?.data?.setStyle({});
 
     const legend = document.getElementById('live-specialty-legend');
@@ -2280,7 +2318,7 @@ function formatLiveSpecialtyValue(value) {
     return Math.round(Number(value) || 0).toLocaleString();
 }
 
-function renderLiveSpecialtyLegend(specialty, thresholds, values) {
+function renderLiveSpecialtyLegend(specialty, thresholds, values, mode = 'choropleth', dotCount = 0) {
     const legend = document.getElementById('live-specialty-legend');
     const title = document.getElementById('live-specialty-legend-title');
     const subtitle = document.getElementById('live-specialty-legend-subtitle');
@@ -2288,8 +2326,23 @@ function renderLiveSpecialtyLegend(specialty, thresholds, values) {
     if (!legend || !title || !subtitle || !list) return;
 
     title.textContent = specialty;
-    subtitle.textContent = `Modeled annual visits · ${values.length.toLocaleString()} block groups`;
+    subtitle.textContent = mode === 'dots'
+        ? `${dotCount.toLocaleString()} dots · ${values.length.toLocaleString()} block groups`
+        : `Modeled annual visits · ${values.length.toLocaleString()} block groups`;
     list.replaceChildren();
+
+    if (mode === 'dots') {
+        const item = document.createElement('div');
+        item.className = 'live-specialty-legend-item';
+        const dot = document.createElement('span');
+        dot.className = 'live-specialty-legend-dot';
+        const label = document.createElement('span');
+        label.textContent = '1 dot = 1 modeled annual visit';
+        item.append(dot, label);
+        list.appendChild(item);
+        legend.hidden = false;
+        return;
+    }
 
     LIVE_SPECIALTY_COLORS.forEach((color, index) => {
         const lower = index === 0 ? 0 : thresholds[index - 1];
@@ -2310,6 +2363,128 @@ function renderLiveSpecialtyLegend(specialty, thresholds, values) {
     });
 
     legend.hidden = false;
+}
+
+function liveSpecialtySeed(value) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+}
+
+function liveSpecialtyRandom(seed) {
+    let state = seed >>> 0;
+    return () => {
+        state += 0x6D2B79F5;
+        let value = state;
+        value = Math.imul(value ^ (value >>> 15), value | 1);
+        value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+async function buildLiveSpecialtyDots(features, specialty, requestId, status) {
+    const points = [];
+    const expectedDots = features.reduce(
+        (sum, feature) => sum + Math.max(0, Math.round(feature.properties.annualVisits)),
+        0
+    );
+
+    for (const feature of features) {
+        const dotCount = Math.max(0, Math.round(feature.properties.annualVisits));
+        if (!dotCount) continue;
+        const bounds = turf.bbox(feature);
+        const random = liveSpecialtyRandom(liveSpecialtySeed(`${specialty}:${feature.properties.GEOID}`));
+        let fallback = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2];
+        try {
+            fallback = turf.pointOnFeature(feature).geometry.coordinates;
+        } catch (error) {
+            console.warn('Unable to calculate a dot fallback point:', feature.properties.GEOID, error);
+        }
+
+        for (let index = 0; index < dotCount; index += 1) {
+            let coordinate = null;
+            for (let attempt = 0; attempt < 60; attempt += 1) {
+                const candidate = [
+                    bounds[0] + random() * (bounds[2] - bounds[0]),
+                    bounds[1] + random() * (bounds[3] - bounds[1])
+                ];
+                if (turf.booleanPointInPolygon(turf.point(candidate), feature)) {
+                    coordinate = candidate;
+                    break;
+                }
+            }
+            points.push(coordinate || fallback);
+
+            if (points.length % 4000 === 0) {
+                if (status) status.textContent = `Placing ${points.length.toLocaleString()} of ${expectedDots.toLocaleString()} visits…`;
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+                if (requestId !== liveSpecialtyRequestSequence) return null;
+            }
+        }
+    }
+    return points;
+}
+
+function createLiveSpecialtyDotOverlay(points) {
+    class LiveSpecialtyDotOverlay extends google.maps.OverlayView {
+        constructor(dotPoints) {
+            super();
+            this.dotPoints = dotPoints;
+            this.canvas = null;
+        }
+
+        onAdd() {
+            this.canvas = document.createElement('canvas');
+            this.canvas.style.position = 'absolute';
+            this.canvas.style.pointerEvents = 'none';
+            this.getPanes().overlayLayer.appendChild(this.canvas);
+        }
+
+        draw() {
+            if (!this.canvas || !this.getMap()?.getBounds()) return;
+            const projection = this.getProjection();
+            const bounds = this.getMap().getBounds();
+            const southWest = projection.fromLatLngToDivPixel(bounds.getSouthWest());
+            const northEast = projection.fromLatLngToDivPixel(bounds.getNorthEast());
+            const width = Math.max(1, Math.ceil(northEast.x - southWest.x));
+            const height = Math.max(1, Math.ceil(southWest.y - northEast.y));
+            const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+            this.canvas.style.left = `${southWest.x}px`;
+            this.canvas.style.top = `${northEast.y}px`;
+            this.canvas.style.width = `${width}px`;
+            this.canvas.style.height = `${height}px`;
+            this.canvas.width = Math.ceil(width * pixelRatio);
+            this.canvas.height = Math.ceil(height * pixelRatio);
+
+            const context = this.canvas.getContext('2d');
+            context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            context.fillStyle = 'rgba(8, 115, 87, 0.68)';
+            context.beginPath();
+            const radius = (this.getMap().getZoom() || 12) >= 14 ? 1.65 : 1.35;
+            this.dotPoints.forEach(([lng, lat]) => {
+                const pixel = projection.fromLatLngToDivPixel(new google.maps.LatLng(lat, lng));
+                const x = pixel.x - southWest.x;
+                const y = pixel.y - northEast.y;
+                if (x < -3 || y < -3 || x > width + 3 || y > height + 3) return;
+                context.moveTo(x + radius, y);
+                context.arc(x, y, radius, 0, Math.PI * 2);
+            });
+            context.fill();
+        }
+
+        onRemove() {
+            this.canvas?.remove();
+            this.canvas = null;
+        }
+    }
+
+    const overlay = new LiveSpecialtyDotOverlay(points);
+    overlay.setMap(map);
+    return overlay;
 }
 
 function loadLiveSpecialtyManifest() {
@@ -2345,8 +2520,10 @@ function loadLiveSpecialtyCounty(countyFips) {
 
 async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
     const select = document.getElementById('live-specialty-select');
+    const modeSelect = document.getElementById('live-specialty-mode');
     const status = document.getElementById('live-specialty-status');
     const specialty = select?.value || '';
+    const mode = modeSelect?.value === 'dots' ? 'dots' : 'choropleth';
     const requestId = liveSpecialtyRequestSequence + 1;
     clearLiveSpecialtyLayer({ resetStatus: false });
     liveSpecialtyRequestSequence = requestId;
@@ -2362,6 +2539,7 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
 
     if (status) status.textContent = `Loading ${specialty} demand…`;
     if (select) select.disabled = true;
+    if (modeSelect) modeSelect.disabled = true;
 
     try {
         const radii = [1, 2, 3]
@@ -2417,6 +2595,16 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
         map.data.setStyle((feature) => {
             const visits = Number(feature.getProperty('annualVisits'));
             if (!Number.isFinite(visits)) return { visible: false };
+            if (mode === 'dots') {
+                return {
+                    fillColor: '#087357',
+                    fillOpacity: 0.01,
+                    strokeColor: '#087357',
+                    strokeOpacity: 0.2,
+                    strokeWeight: 0.6,
+                    zIndex: 1
+                };
+            }
             return {
                 fillColor: LIVE_SPECIALTY_COLORS[liveSpecialtyClassIndex(visits, thresholds)],
                 fillOpacity: 0.7,
@@ -2426,8 +2614,17 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
                 zIndex: 1
             };
         });
-        renderLiveSpecialtyLegend(specialty, thresholds, values);
-        if (status) status.textContent = `${specialty} demand shown across ${mappedFeatures.length.toLocaleString()} nearby block groups.`;
+
+        if (mode === 'dots') {
+            const points = await buildLiveSpecialtyDots(mappedFeatures, specialty, requestId, status);
+            if (!points || requestId !== liveSpecialtyRequestSequence) return;
+            liveSpecialtyDotOverlay = createLiveSpecialtyDotOverlay(points);
+            renderLiveSpecialtyLegend(specialty, thresholds, values, mode, points.length);
+            if (status) status.textContent = `${points.length.toLocaleString()} dots shown · 1 dot = 1 modeled annual visit.`;
+        } else {
+            renderLiveSpecialtyLegend(specialty, thresholds, values);
+            if (status) status.textContent = `${specialty} demand shown across ${mappedFeatures.length.toLocaleString()} nearby block groups.`;
+        }
 
         drawRadiusCircles(map.getCenter());
         if (fitMap && typeof turf !== 'undefined') {
@@ -2445,6 +2642,7 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
         }
     } finally {
         if (requestId === liveSpecialtyRequestSequence && select) select.disabled = false;
+        if (requestId === liveSpecialtyRequestSequence && modeSelect) modeSelect.disabled = false;
     }
 }
 
