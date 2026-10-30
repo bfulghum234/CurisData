@@ -2386,11 +2386,10 @@ function liveSpecialtyRandom(seed) {
 }
 
 function liveSpecialtyDotRatio(totalVisits) {
-    if (totalVisits <= 15000) return 1;
-    if (totalVisits <= 50000) return 5;
-    if (totalVisits <= 150000) return 10;
-    if (totalVisits <= 500000) return 50;
-    return 100;
+    if (totalVisits < 50000) return 1;
+    if (totalVisits <= 300000) return 5;
+    if (totalVisits <= 500000) return 10;
+    return 20;
 }
 
 async function buildLiveSpecialtyDots(features, specialty, requestId, status, dotRatio) {

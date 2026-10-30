@@ -38,10 +38,10 @@ test('offers an automatically scaled dot-density style', () => {
   assert.match(html, /value="dots">Dot density · auto-scaled/);
   assert.match(html, /function liveSpecialtyDotRatio\(totalVisits\)/);
   for (const rule of [
-    'totalVisits <= 15000) return 1',
-    'totalVisits <= 50000) return 5',
-    'totalVisits <= 150000) return 10',
-    'totalVisits <= 500000) return 50'
+    'totalVisits < 50000) return 1',
+    'totalVisits <= 300000) return 5',
+    'totalVisits <= 500000) return 10',
+    'return 20'
   ]) assert.ok(html.includes(rule));
   assert.match(html, /Math\.round\(feature\.properties\.annualVisits \/ dotRatio\)/);
   assert.match(html, /buildLiveSpecialtyDots\(mappedFeatures, specialty, requestId, status, dotRatio\)/);
