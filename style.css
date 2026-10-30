@@ -1354,7 +1354,7 @@ footer {
 }
 /* Specialty data education */
 .understanding-data { padding: 72px 8%; background: #e6f3ec; }
-.understanding-data > .btn-primary { display: inline-block; margin-top: 28px; text-decoration: none; }
+.understanding-data > .btn-primary { display: table; margin: 28px auto 0; text-align: center; text-decoration: none; }
 .understanding-data small { font-weight: 400; }
 .data-guide-page .logo { text-decoration: none; }
 .data-guide { max-width: 980px; margin: auto; padding: 135px 32px 64px; }
