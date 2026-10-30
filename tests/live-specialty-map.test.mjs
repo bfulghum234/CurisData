@@ -56,6 +56,11 @@ test('offers an automatically scaled dot-density style', () => {
   assert.match(html, /1 dot = \$\{dotRatio\.toLocaleString\(\)\}/);
 });
 
+test('shows the visit total used for scaling separately from the rendered dot count', () => {
+  assert.match(html, /\$\{totalVisits\.toLocaleString\(\)\} modeled annual visits · \$\{dotCount\.toLocaleString\(\)\} dots/);
+  assert.match(html, /modeled annual visits represented by \$\{points\.length\.toLocaleString\(\)\} dots/);
+});
+
 test('draws deterministic dot-density points on a removable canvas overlay', () => {
   assert.match(html, /liveSpecialtySeed\(`\$\{specialty\}:\$\{feature\.properties\.GEOID\}`\)/);
   assert.match(html, /turf\.booleanPointInPolygon\(turf\.point\(candidate\), feature\)/);

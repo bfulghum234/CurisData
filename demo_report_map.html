@@ -2332,9 +2332,10 @@ function renderLiveSpecialtyLegend(specialty, thresholds, values, mode = 'chorop
     const list = document.getElementById('live-specialty-legend-list');
     if (!legend || !title || !subtitle || !list) return;
 
+    const totalVisits = Math.round(values.reduce((sum, value) => sum + Math.max(0, value), 0));
     title.textContent = specialty;
     subtitle.textContent = mode === 'dots'
-        ? `${dotCount.toLocaleString()} dots · ${values.length.toLocaleString()} block groups`
+        ? `${totalVisits.toLocaleString()} modeled annual visits · ${dotCount.toLocaleString()} dots · ${values.length.toLocaleString()} block groups`
         : `Modeled annual visits · ${values.length.toLocaleString()} block groups`;
     list.replaceChildren();
 
@@ -2636,7 +2637,7 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
             if (!points || requestId !== liveSpecialtyRequestSequence) return;
             liveSpecialtyDotOverlay = createLiveSpecialtyDotOverlay(points);
             renderLiveSpecialtyLegend(specialty, thresholds, values, mode, points.length, dotRatio);
-            if (status) status.textContent = `${points.length.toLocaleString()} dots shown · 1 dot = ${dotRatio.toLocaleString()} modeled annual ${dotRatio === 1 ? 'visit' : 'visits'}.`;
+            if (status) status.textContent = `${Math.round(totalVisits).toLocaleString()} modeled annual visits represented by ${points.length.toLocaleString()} dots · 1 dot = ${dotRatio.toLocaleString()} ${dotRatio === 1 ? 'visit' : 'visits'}.`;
         } else {
             renderLiveSpecialtyLegend(specialty, thresholds, values);
             if (status) status.textContent = `${specialty} demand shown across ${mappedFeatures.length.toLocaleString()} nearby block groups.`;
