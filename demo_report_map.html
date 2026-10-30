@@ -1932,6 +1932,7 @@ function loadGoogleMapsScript() {
 
 window.addEventListener('DOMContentLoaded', async () => {
     initializeReportWorkflow();
+    initializeLiveSpecialtyExplorer();
     try {
         await loadRuntimeConfig();
         await loadGoogleMapsScript();
@@ -2248,7 +2249,7 @@ function clearLiveSpecialtyLayer({ resetStatus = true } = {}) {
     liveSpecialtyRequestSequence += 1;
     liveSpecialtyFeatures.forEach((feature) => map?.data?.remove(feature));
     liveSpecialtyFeatures = [];
-    map?.data?.setStyle(null);
+    map?.data?.setStyle({});
 
     const legend = document.getElementById('live-specialty-legend');
     if (legend) legend.hidden = true;
