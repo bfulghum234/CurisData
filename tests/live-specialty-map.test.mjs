@@ -33,6 +33,14 @@ test('refreshes the thematic layer when location or trade-area radii change', ()
   assert.match(html, /setTimeout\(\(\) => updateLiveSpecialtyLayer\(\{ fitMap: false \}\), 300\)/);
 });
 
+test('keeps radius rings anchored to the selected analysis site after map panning', () => {
+  assert.match(html, /function getAnalysisSiteLatLng\(\)/);
+  assert.match(html, /const lat = Number\(selectedLocationContext\?\.lat\)/);
+  assert.match(html, /const lng = Number\(selectedLocationContext\?\.lng\)/);
+  assert.doesNotMatch(html, /drawRadiusCircles\(map\.getCenter\(\)\)/);
+  assert.doesNotMatch(html, /const center = map\.getCenter\(\);\s*if \(center\) \{\s*drawRadiusCircles\(center\)/);
+});
+
 test('offers an automatically scaled dot-density style', () => {
   assert.match(html, /id="live-specialty-mode" onchange="updateLiveSpecialtyLayer\(\)"/);
   assert.match(html, /value="dots">Dot density · auto-scaled/);

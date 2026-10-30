@@ -2205,15 +2205,22 @@ function initMap() {
 /* =====================
    RADIUS FUNCTIONS
 ===================== */
+function getAnalysisSiteLatLng() {
+    const lat = Number(selectedLocationContext?.lat);
+    const lng = Number(selectedLocationContext?.lng);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+}
+
 function updateRadiusValue(radiusNum, value) {
     document.getElementById(`radius${radiusNum}-value`).textContent = value + ' mi';
     tradeAreaConfirmed = false;
     updateWorkflowState();
     
-    // Redraw circles if map center exists
-    const center = map.getCenter();
-    if (center) {
-        drawRadiusCircles(center);
+    // Radius rings always remain anchored to the selected analysis site,
+    // even after the user pans the map elsewhere.
+    const analysisSite = getAnalysisSiteLatLng();
+    if (analysisSite) {
+        drawRadiusCircles(analysisSite);
         queueLiveSpecialtyLayerRefresh();
     }
 
@@ -2296,8 +2303,8 @@ function clearLiveSpecialtyLayer({ resetStatus = true } = {}) {
         if (status) status.textContent = 'Choose a specialty to view demand on the map.';
     }
 
-    const center = map?.getCenter?.();
-    if (center) drawRadiusCircles(center);
+    const analysisSite = getAnalysisSiteLatLng();
+    if (analysisSite) drawRadiusCircles(analysisSite);
 }
 
 function liveSpecialtyThresholds(values) {
@@ -2635,7 +2642,8 @@ async function updateLiveSpecialtyLayer({ fitMap = true } = {}) {
             if (status) status.textContent = `${specialty} demand shown across ${mappedFeatures.length.toLocaleString()} nearby block groups.`;
         }
 
-        drawRadiusCircles(map.getCenter());
+        const analysisSite = getAnalysisSiteLatLng();
+        if (analysisSite) drawRadiusCircles(analysisSite);
         if (fitMap && typeof turf !== 'undefined') {
             const bounds = turf.bbox(turf.circle(
                 [selectedLocationContext.lng, selectedLocationContext.lat],
