@@ -905,6 +905,12 @@ section {
     line-height: 1.75;
 }
 
+.methodology-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 34px;
+}
+
 .pricing {
     background-color: #ffffff;
 }
